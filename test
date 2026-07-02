@@ -1,1 +1,6 @@
 test
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git push https://github.com/CHRISTIAN-GONZAGA/MyBackend.git main
