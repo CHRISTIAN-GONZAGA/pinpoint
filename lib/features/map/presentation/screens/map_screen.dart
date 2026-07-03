@@ -11,7 +11,6 @@ import 'package:pinpoint/core/utilities/place_utils.dart';
 import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
 import 'package:pinpoint/core/utilities/color_utils.dart';
-import 'package:pinpoint/core/widgets/loading_shimmer.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
 import 'package:pinpoint/features/map/presentation/utils/map_polyline_utils.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart';
@@ -65,10 +64,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         );
       }
     });
-
-    if (mapState.isLoading) {
-      return const Scaffold(body: LoadingOverlay(message: 'Loading map...'));
-    }
 
     return Scaffold(
       body: Stack(

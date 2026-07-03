@@ -20,19 +20,17 @@ class NotificationsRepository {
   final ApiClient _apiClient;
 
   Future<List<Announcement>> getAnnouncements() async {
-    if (AppConstants.offlineFirstMode) {
-      final raw = await _local.getAnnouncements();
-      return raw.map(Announcement.fromJson).toList();
-    }
+    var local = <Announcement>[];
     try {
-      return await _remote.fetchAnnouncements();
-    } on DioException catch (error) {
-      try {
-        final raw = await _local.getAnnouncements();
-        return raw.map(Announcement.fromJson).toList();
-      } catch (_) {
-        throw _apiClient.mapError(error);
-      }
+      local = (await _local.getAnnouncements()).map(Announcement.fromJson).toList();
+    } catch (_) {}
+
+    if (AppConstants.offlineFirstMode) return local;
+
+    try {
+      return await _remote.fetchAnnouncements().timeout(const Duration(seconds: 8));
+    } catch (_) {
+      return local;
     }
   }
 

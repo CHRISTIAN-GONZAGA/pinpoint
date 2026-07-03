@@ -24,6 +24,7 @@ import 'package:pinpoint/features/map/data/transport_local_datasource.dart';
 import 'package:pinpoint/features/map/data/transport_remote_datasource.dart';
 import 'package:pinpoint/features/map/data/transport_repository.dart';
 import 'package:pinpoint/features/routing/domain/route_planner_service.dart';
+import 'package:pinpoint/features/explore/data/places_asset_datasource.dart';
 import 'package:pinpoint/features/explore/data/places_local_datasource.dart';
 import 'package:pinpoint/features/explore/data/places_remote_datasource.dart';
 import 'package:pinpoint/features/explore/data/places_repository.dart';
@@ -131,10 +132,15 @@ final placesLocalDataSourceProvider = Provider<PlacesLocalDataSource>((ref) {
   return PlacesLocalDataSource();
 });
 
+final placesAssetDataSourceProvider = Provider<PlacesAssetDataSource>((ref) {
+  return PlacesAssetDataSource();
+});
+
 final placesRepositoryProvider = Provider<PlacesRepository>((ref) {
   return PlacesRepository(
     remote: ref.watch(placesRemoteDataSourceProvider),
     local: ref.watch(placesLocalDataSourceProvider),
+    assets: ref.watch(placesAssetDataSourceProvider),
   );
 });
 

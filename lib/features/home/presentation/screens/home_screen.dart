@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -78,7 +80,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     Future.microtask(() async {
-      await ref.read(mapNotifierProvider.notifier).refreshLocation();
+      unawaited(ref.read(mapNotifierProvider.notifier).refreshLocation());
       await ref.read(exploreNotifierProvider.notifier).initialize();
       await ref.read(notificationsNotifierProvider.notifier).loadAnnouncements();
       final user = ref.read(currentUserProvider);

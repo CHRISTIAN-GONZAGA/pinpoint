@@ -39,17 +39,21 @@ class MapNotifier extends Notifier<MapState> {
 
   Future<void> initialize() async {
     state = state.copyWith(
-      isLoading: true,
+      isLoading: false,
       clearError: true,
-      clearLocationWarning: true,
       clearTransportWarning: true,
       tilesUnavailable: false,
     );
+
+    unawaited(_loadTransportOverlays());
+    unawaited(_primeLocationAccess());
+  }
+
+  Future<void> _loadTransportOverlays() async {
     try {
-      final transport = await ref.read(transportRepositoryProvider).loadAllTransportData();
       final highways = await _loadHighwayCorridors();
+      final transport = await ref.read(transportRepositoryProvider).loadAllTransportData();
       state = state.copyWith(
-        isLoading: false,
         jeepneyRoutes: transport.routes,
         tricycleZones: transport.zones,
         fares: transport.fares,
@@ -59,20 +63,30 @@ class MapNotifier extends Notifier<MapState> {
             : null,
         clearTransportWarning: transport.routes.isNotEmpty,
       );
-    } catch (e) {
+
+      if (!AppConstants.offlineFirstMode) {
+        unawaited(_syncTransportFromApi());
+      }
+    } catch (_) {
       state = state.copyWith(
-        isLoading: false,
-        jeepneyRoutes: const [],
-        tricycleZones: const [],
-        fares: const [],
         transportWarning:
             'Using map without transport overlays. Tap Start/Destination to set pins.',
       );
     }
+  }
 
-    // Show the map immediately; resolve GPS in the background.
-    unawaited(_primeLocationAccess());
-    unawaited(_loadPoiData());
+  Future<void> _syncTransportFromApi() async {
+    try {
+      final transport =
+          await ref.read(transportRepositoryProvider).refreshFromRemote();
+      if (transport.routes.isEmpty && transport.zones.isEmpty) return;
+      state = state.copyWith(
+        jeepneyRoutes: transport.routes.isNotEmpty ? transport.routes : state.jeepneyRoutes,
+        tricycleZones: transport.zones.isNotEmpty ? transport.zones : state.tricycleZones,
+        fares: transport.fares.isNotEmpty ? transport.fares : state.fares,
+        clearTransportWarning: transport.routes.isNotEmpty,
+      );
+    } catch (_) {}
   }
 
   Future<void> _primeLocationAccess() async {

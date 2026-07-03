@@ -21,7 +21,7 @@ class PinpointTileLayer extends StatelessWidget {
       subdomains: AppConstants.mapTileSubdomains,
       userAgentPackageName: 'com.pinpoint.butuan',
       maxNativeZoom: 19,
-      retinaMode: RetinaMode.isHighDensity(context),
+      retinaMode: false,
       errorTileCallback: (tile, error, stackTrace) => onTileError?.call(error),
     );
   }

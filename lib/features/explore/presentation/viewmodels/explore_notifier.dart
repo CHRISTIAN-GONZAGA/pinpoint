@@ -16,8 +16,9 @@ class ExploreNotifier extends Notifier<ExploreState> {
       final attractions = await ref.read(placesRepositoryProvider).getAttractions();
       state = state.copyWith(isLoading: false, attractions: attractions);
       await loadNearby();
-    } catch (e) {
-      state = state.copyWith(isLoading: false, errorMessage: _message(e));
+    } catch (_) {
+      state = state.copyWith(isLoading: false, attractions: const [], clearError: true);
+      await loadNearby();
     }
   }
 

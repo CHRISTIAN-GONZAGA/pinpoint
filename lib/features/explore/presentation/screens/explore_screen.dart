@@ -145,12 +145,21 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                       const SizedBox(height: AppSpacing.xl),
                       Text('Nearby Highlights', style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(height: AppSpacing.md),
-                      if (state.nearbyPlaces.isEmpty)
+                      if (state.nearbyPlaces.isEmpty && state.attractions.isEmpty)
                         const EmptyStateWidget(
                           icon: Icons.near_me_outlined,
                           title: 'No nearby places',
-                          message: 'Enable GPS to discover places near you.',
+                          message: 'Enable GPS or browse categories below.',
                         )
+                      else if (state.nearbyPlaces.isEmpty)
+                        ...state.attractions.take(6).map(
+                              (place) => PlaceCard(
+                                place: place,
+                                onTap: () => context.push(
+                                  AppRoutes.placeDetail(place.placeType, place.id),
+                                ),
+                              ),
+                            )
                       else
                         ...state.nearbyPlaces.take(6).map(
                               (place) => PlaceCard(
