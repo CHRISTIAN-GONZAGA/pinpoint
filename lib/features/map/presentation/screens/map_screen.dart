@@ -387,8 +387,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
           if (mapState.plannedRoute != null)
             Positioned(
               left: AppSpacing.md,
-              right: AppSpacing.md,
-              bottom: MediaQuery.sizeOf(context).height * 0.5,
+              bottom: MediaQuery.sizeOf(context).height * 0.40,
               child: MapRouteLegend(route: mapState.plannedRoute!),
             ),
           if (mapState.isLocating)

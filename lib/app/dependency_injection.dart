@@ -98,6 +98,7 @@ final jeepneyPathServiceProvider =
 final routePlannerServiceProvider =
     Provider<RoutePlannerService>((ref) => RoutePlannerService(
           routingService: ref.watch(routingServiceProvider),
+          jeepneyPaths: ref.watch(jeepneyPathServiceProvider),
         ));
 
 final transportRemoteDataSourceProvider = Provider<TransportRemoteDataSource>((ref) {
