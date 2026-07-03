@@ -36,8 +36,10 @@ class RouteScorer {
       total -= 8;
     }
 
-    if (route.primaryMode == VehicleMode.walk && route.walkingDistanceMeters < 1500) {
-      total -= 12;
+    if (route.primaryMode == VehicleMode.walk &&
+        route.walkingDistanceMeters < 800 &&
+        route.coloredSegments.every((s) => s.type == RouteStepType.walk)) {
+      total -= 8;
     }
 
     return total;

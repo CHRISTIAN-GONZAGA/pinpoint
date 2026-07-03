@@ -58,8 +58,22 @@ class RouteRanker {
     if (preferredMode != VehicleMode.auto) {
       final matchIdx = scored.indexWhere((r) => r.primaryMode == preferredMode);
       if (matchIdx >= 0) recommendedIdx = matchIdx;
-    } else if (publicTransport.isNotEmpty) {
-      recommendedIdx = scored.indexOf(publicTransport.first);
+    } else {
+      final jeepneyOptions =
+          scored.where((r) => r.primaryMode == VehicleMode.jeepney).toList();
+      final walkOption =
+          scored.where((r) => r.primaryMode == VehicleMode.walk).firstOrNull;
+
+      if (jeepneyOptions.isNotEmpty) {
+        final shortWalk = walkOption != null &&
+            walkOption.walkingDistanceMeters < 700 &&
+            walkOption.totalDistanceMeters < 1200;
+        recommendedIdx = shortWalk
+            ? scored.indexOf(walkOption)
+            : scored.indexOf(jeepneyOptions.first);
+      } else if (publicTransport.isNotEmpty) {
+        recommendedIdx = scored.indexOf(publicTransport.first);
+      }
     }
 
     final cheapest = _bestBy(scored, (r) => r.estimatedFare);

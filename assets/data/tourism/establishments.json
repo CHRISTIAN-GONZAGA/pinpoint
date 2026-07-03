@@ -23,11 +23,11 @@
     {
       "establishment_id": 3,
       "place_type": "establishment",
-      "name": "Butuan Medical Center",
+      "name": "Butuan Doctors' Hospital area",
       "category": "hospital",
       "latitude": 8.948,
       "longitude": 125.538,
-      "address": "J.C. Aquino Ave, Butuan City",
+      "address": "J.C. Aquino Ave near Rosales, Butuan City",
       "active_status": true
     },
     {

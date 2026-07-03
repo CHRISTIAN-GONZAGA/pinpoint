@@ -8,7 +8,7 @@ class JeepneyCorridorAnalyzer {
 
   final RoutingGeometry _geometry;
 
-  static const corridorThresholdMeters = 450.0;
+  static const corridorThresholdMeters = 750.0;
 
   /// Routes whose polyline or stops are within [corridorThresholdMeters] of [point].
   List<({JeepneyRoute route, double distanceMeters})> corridorsNear(

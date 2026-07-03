@@ -24,40 +24,59 @@ class JeepneyPlanBuilder {
   final TransferOptimizer _transfers;
 
   static const walkOnlyMaxMeters = 1400.0;
-  static const maxDetourRatio = 2.4;
+  static const maxDetourRatio = 3.5;
   static const jeepneySpeedMps = 200 / 60;
-  static const maxPlans = 20;
+  static const maxPlans = 24;
+  static const minJeepneyLegMeters = 40.0;
 
   Future<List<JeepneyPlan>> findAllPlans({
     required LatLng origin,
     required LatLng destination,
     required List<JeepneyRoute> jeepneyRoutes,
   }) async {
+    if (jeepneyRoutes.isEmpty) return [];
+
     final directMeters = _geometry.distanceMeters(origin, destination);
     final scored = <({double score, JeepneyPlan plan})>[];
 
-    for (final route in jeepneyRoutes) {
-      final sameRoutePlans = await _sameRoutePlans(
+    final servingOrigin = _stops.routesServing(origin, jeepneyRoutes);
+    final servingDest = _stops.routesServing(destination, jeepneyRoutes);
+    final activeRoutes = <JeepneyRoute>{
+      ...servingOrigin,
+      ...servingDest,
+      ...jeepneyRoutes,
+    }.toList();
+
+    for (final route in activeRoutes) {
+      scored.addAll(await _sameRoutePlans(
         route: route,
         origin: origin,
         destination: destination,
         directMeters: directMeters,
-      );
-      scored.addAll(sameRoutePlans);
+      ));
     }
 
-    for (var i = 0; i < jeepneyRoutes.length; i++) {
-      for (var j = 0; j < jeepneyRoutes.length; j++) {
+    for (var i = 0; i < activeRoutes.length; i++) {
+      for (var j = 0; j < activeRoutes.length; j++) {
         if (i == j) continue;
         final transferPlan = await _transferPlan(
-          originRoute: jeepneyRoutes[i],
-          destRoute: jeepneyRoutes[j],
+          originRoute: activeRoutes[i],
+          destRoute: activeRoutes[j],
           origin: origin,
           destination: destination,
           directMeters: directMeters,
         );
         if (transferPlan != null) scored.add(transferPlan);
       }
+    }
+
+    if (scored.isEmpty) {
+      scored.addAll(await _fallbackPlans(
+        origin: origin,
+        destination: destination,
+        jeepneyRoutes: jeepneyRoutes,
+        directMeters: directMeters,
+      ));
     }
 
     scored.sort((a, b) => a.score.compareTo(b.score));
@@ -78,48 +97,130 @@ class JeepneyPlanBuilder {
     required double directMeters,
   }) async {
     final roadPoly = await _jeepneyPaths.roadPolylineForRoute(route);
-    if (roadPoly.length < 2) return [];
+    if (roadPoly.length < 2 && route.stops.length < 2) return [];
 
+    final polyline = roadPoly.length >= 2 ? roadPoly : route.polyline;
     final boardCandidates = _stops.nearbyStopsOnRoute(route, origin);
     final alightCandidates = _stops.nearbyStopsOnRoute(route, destination);
+
+    if (boardCandidates.isEmpty || alightCandidates.isEmpty) return [];
+
     final results = <({double score, JeepneyPlan plan})>[];
 
     for (final board in boardCandidates) {
       for (final alight in alightCandidates) {
         if (board.stopId == alight.stopId) continue;
-        if (board.order >= alight.order) continue;
 
-        final walkToBoard = _geometry.distanceMeters(origin, board.latLng);
-        final walkFromAlight = _geometry.distanceMeters(alight.latLng, destination);
-        final segment = _geometry.sliceBetweenPoints(roadPoly, board.latLng, alight.latLng);
-        final jeepDist = _geometry.polylineLengthMeters(segment);
-        if (jeepDist < 80) continue;
-
-        final total = walkToBoard + jeepDist + walkFromAlight;
-        if (total > directMeters * maxDetourRatio && directMeters < 3000) continue;
-        if (directMeters <= walkOnlyMaxMeters && total > directMeters * 1.35) continue;
-
-        final walkTo = await _geometry.safeWalkingRoute(origin, board.latLng);
-        final walkFrom = await _geometry.safeWalkingRoute(alight.latLng, destination);
-        final jeepDuration = (jeepDist / jeepneySpeedMps).round();
-
-        final plan = JeepneyPlan(
-          planId: 'jeep-${route.routeCode}-${board.stopId}-${alight.stopId}',
-          boardRoute: route,
-          boardStop: board,
-          alightStop: alight,
-          walkToBoard: walkTo,
-          walkFromAlight: walkFrom,
-          jeepneyPolyline: segment,
-          jeepneyDistanceMeters: jeepDist,
-          jeepneyDurationSeconds: jeepDuration,
-          estimatedTotalMeters:
-              walkTo.distanceMeters + jeepDist + walkFrom.distanceMeters,
+        final plan = await _trySameRoutePair(
+          route: route,
+          polyline: polyline,
+          board: board,
+          alight: alight,
+          origin: origin,
+          destination: destination,
+          directMeters: directMeters,
         );
-        results.add((score: total + jeepDist * 0.1, plan: plan));
+        if (plan != null) results.add(plan);
       }
     }
     return results;
+  }
+
+  Future<({double score, JeepneyPlan plan})?> _trySameRoutePair({
+    required JeepneyRoute route,
+    required List<LatLng> polyline,
+    required RouteStop board,
+    required RouteStop alight,
+    required LatLng origin,
+    required LatLng destination,
+    required double directMeters,
+  }) async {
+    final walkToBoard = _geometry.distanceMeters(origin, board.latLng);
+    final walkFromAlight = _geometry.distanceMeters(alight.latLng, destination);
+    if (walkToBoard > StopMatcher.maxWalkToStopMeters + 400) return null;
+    if (walkFromAlight > StopMatcher.maxWalkToStopMeters + 400) return null;
+
+    final segment = _geometry.sliceBetweenPoints(polyline, board.latLng, alight.latLng);
+    final jeepDist = _geometry.polylineLengthMeters(segment);
+    if (jeepDist < minJeepneyLegMeters) return null;
+
+    final total = walkToBoard + jeepDist + walkFromAlight;
+    if (!_passesDetourCheck(total, directMeters)) return null;
+
+    final walkTo = await _geometry.safeWalkingRoute(origin, board.latLng);
+    final walkFrom = await _geometry.safeWalkingRoute(alight.latLng, destination);
+    final jeepDuration = (jeepDist / jeepneySpeedMps).round();
+
+    final suffix = board.order < alight.order ? 'fwd' : 'rev';
+    final plan = JeepneyPlan(
+      planId: 'jeep-${route.routeCode}-${board.stopId}-${alight.stopId}-$suffix',
+      boardRoute: route,
+      boardStop: board,
+      alightStop: alight,
+      walkToBoard: walkTo,
+      walkFromAlight: walkFrom,
+      jeepneyPolyline: segment,
+      jeepneyDistanceMeters: jeepDist,
+      jeepneyDurationSeconds: jeepDuration,
+      estimatedTotalMeters: walkTo.distanceMeters + jeepDist + walkFrom.distanceMeters,
+    );
+    return (score: total + jeepDist * 0.08, plan: plan);
+  }
+
+  bool _passesDetourCheck(double totalMeters, double directMeters) {
+    if (directMeters < 400) {
+      return totalMeters <= directMeters * 4.5;
+    }
+    if (directMeters < walkOnlyMaxMeters) {
+      return totalMeters <= directMeters * 2.8;
+    }
+    if (directMeters < 5000) {
+      return totalMeters <= directMeters * maxDetourRatio;
+    }
+    return totalMeters <= directMeters * (maxDetourRatio + 0.5);
+  }
+
+  Future<List<({double score, JeepneyPlan plan})>> _fallbackPlans({
+    required LatLng origin,
+    required LatLng destination,
+    required List<JeepneyRoute> jeepneyRoutes,
+    required double directMeters,
+  }) async {
+    final results = <({double score, JeepneyPlan plan})>[];
+    for (final route in jeepneyRoutes) {
+      final board = _nearestStop(route, origin);
+      final alight = _nearestStop(route, destination);
+      if (board == null || alight == null || board.stopId == alight.stopId) continue;
+
+      final polyline = route.polyline;
+      if (polyline.length < 2) continue;
+
+      final plan = await _trySameRoutePair(
+        route: route,
+        polyline: polyline,
+        board: board,
+        alight: alight,
+        origin: origin,
+        destination: destination,
+        directMeters: directMeters,
+      );
+      if (plan != null) results.add(plan);
+    }
+    return results;
+  }
+
+  RouteStop? _nearestStop(JeepneyRoute route, LatLng point) {
+    RouteStop? best;
+    var bestDist = double.infinity;
+    for (final stop in route.stops) {
+      final d = _geometry.distanceMeters(point, stop.latLng);
+      if (d < bestDist) {
+        bestDist = d;
+        best = stop;
+      }
+    }
+    if (best == null || bestDist > StopMatcher.maxWalkToStopMeters + 800) return null;
+    return best;
   }
 
   Future<({double score, JeepneyPlan plan})?> _transferPlan({
@@ -132,26 +233,26 @@ class JeepneyPlanBuilder {
     final transfer = _transfers.bestTransfer(originRoute, destRoute);
     if (transfer == null) return null;
 
-    final boardCandidates = _stops.nearbyStopsOnRoute(originRoute, origin, limit: 4);
-    final alightCandidates = _stops.nearbyStopsOnRoute(destRoute, destination, limit: 4);
+    final boardCandidates = _stops.nearbyStopsOnRoute(originRoute, origin, limit: 5);
+    final alightCandidates = _stops.nearbyStopsOnRoute(destRoute, destination, limit: 5);
+    if (boardCandidates.isEmpty || alightCandidates.isEmpty) return null;
 
     ({double score, JeepneyPlan plan})? best;
 
     for (final boardStop in boardCandidates) {
-      if (boardStop.order >= transfer.originStop.order) continue;
       for (final alightStop in alightCandidates) {
-        if (transfer.destStop.order >= alightStop.order) continue;
-
         final originPoly = await _jeepneyPaths.roadPolylineForRoute(originRoute);
         final destPoly = await _jeepneyPaths.roadPolylineForRoute(destRoute);
+        final oPoly = originPoly.length >= 2 ? originPoly : originRoute.polyline;
+        final dPoly = destPoly.length >= 2 ? destPoly : destRoute.polyline;
 
         final firstLeg =
-            _geometry.sliceBetweenPoints(originPoly, boardStop.latLng, transfer.originStop.latLng);
+            _geometry.sliceBetweenPoints(oPoly, boardStop.latLng, transfer.originStop.latLng);
         final secondLeg =
-            _geometry.sliceBetweenPoints(destPoly, transfer.destStop.latLng, alightStop.latLng);
+            _geometry.sliceBetweenPoints(dPoly, transfer.destStop.latLng, alightStop.latLng);
         final firstDist = _geometry.polylineLengthMeters(firstLeg);
         final secondDist = _geometry.polylineLengthMeters(secondLeg);
-        if (firstDist < 80 || secondDist < 80) continue;
+        if (firstDist < minJeepneyLegMeters || secondDist < minJeepneyLegMeters) continue;
 
         final walkTo = await _geometry.safeWalkingRoute(origin, boardStop.latLng);
         final walkFrom = await _geometry.safeWalkingRoute(alightStop.latLng, destination);
@@ -165,7 +266,7 @@ class JeepneyPlanBuilder {
             transfer.walkMeters +
             secondDist +
             walkFrom.distanceMeters;
-        if (total > directMeters * (maxDetourRatio + 0.3)) continue;
+        if (!_passesDetourCheck(total, directMeters)) continue;
 
         final plan = JeepneyPlan(
           planId:
@@ -189,7 +290,7 @@ class JeepneyPlanBuilder {
           estimatedTotalMeters: total,
         );
 
-        final score = total + 180 + transfer.walkMeters * 0.5;
+        final score = total + 150 + transfer.walkMeters * 0.4;
         if (best == null || score < best.score) {
           best = (score: score, plan: plan);
         }

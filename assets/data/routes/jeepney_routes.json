@@ -14,47 +14,27 @@
           "coordinates": [
             [125.5315, 8.9515],
             [125.532, 8.951],
-            [125.538, 8.947],
-            [125.545, 8.942],
-            [125.552, 8.938]
+            [125.536, 8.949],
+            [125.5375, 8.9485],
+            [125.541, 8.946],
+            [125.547, 8.944],
+            [125.55, 8.94],
+            [125.554, 8.937],
+            [125.5455, 8.9385]
           ]
         },
         "properties": {}
       },
       "active_status": true,
       "stops": [
-        {
-          "stop_id": 11,
-          "route_id": 1,
-          "stop_name": "City Hall Terminal",
-          "latitude": 8.9515,
-          "longitude": 125.5315,
-          "stop_order": 1
-        },
-        {
-          "stop_id": 12,
-          "route_id": 1,
-          "stop_name": "Guingona Park",
-          "latitude": 8.951,
-          "longitude": 125.532,
-          "stop_order": 2
-        },
-        {
-          "stop_id": 13,
-          "route_id": 1,
-          "stop_name": "Montilla Blvd",
-          "latitude": 8.947,
-          "longitude": 125.538,
-          "stop_order": 3
-        },
-        {
-          "stop_id": 14,
-          "route_id": 1,
-          "stop_name": "Libertad Market",
-          "latitude": 8.938,
-          "longitude": 125.552,
-          "stop_order": 4
-        }
+        {"stop_id": 11, "route_id": 1, "stop_name": "City Hall Terminal", "latitude": 8.9515, "longitude": 125.5315, "stop_order": 1},
+        {"stop_id": 12, "route_id": 1, "stop_name": "Guingona Park", "latitude": 8.951, "longitude": 125.532, "stop_order": 2},
+        {"stop_id": 13, "route_id": 1, "stop_name": "J.C. Aquino Ave (JAQNO)", "latitude": 8.949, "longitude": 125.536, "stop_order": 3},
+        {"stop_id": 14, "route_id": 1, "stop_name": "Montilla Blvd", "latitude": 8.9485, "longitude": 125.5375, "stop_order": 4},
+        {"stop_id": 15, "route_id": 1, "stop_name": "Hotel Almont", "latitude": 8.946, "longitude": 125.541, "stop_order": 5},
+        {"stop_id": 16, "route_id": 1, "stop_name": "Robinsons Place Butuan", "latitude": 8.94, "longitude": 125.55, "stop_order": 6},
+        {"stop_id": 17, "route_id": 1, "stop_name": "SM City Butuan", "latitude": 8.937, "longitude": 125.554, "stop_order": 7},
+        {"stop_id": 18, "route_id": 1, "stop_name": "Libertad", "latitude": 8.9385, "longitude": 125.5455, "stop_order": 8}
       ]
     },
     {
@@ -69,48 +49,24 @@
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [125.535, 8.96],
-            [125.54, 8.952],
-            [125.545, 8.946],
-            [125.55, 8.94]
+            [125.536, 8.949],
+            [125.5315, 8.9515],
+            [125.5375, 8.9485],
+            [125.538, 8.948],
+            [125.55, 8.94],
+            [125.5455, 8.9385]
           ]
         },
         "properties": {}
       },
       "active_status": true,
       "stops": [
-        {
-          "stop_id": 21,
-          "route_id": 2,
-          "stop_name": "Baan Junction",
-          "latitude": 8.96,
-          "longitude": 125.535,
-          "stop_order": 1
-        },
-        {
-          "stop_id": 22,
-          "route_id": 2,
-          "stop_name": "AMPAYON Crossing",
-          "latitude": 8.952,
-          "longitude": 125.54,
-          "stop_order": 2
-        },
-        {
-          "stop_id": 23,
-          "route_id": 2,
-          "stop_name": "Ong Yiu",
-          "latitude": 8.946,
-          "longitude": 125.545,
-          "stop_order": 3
-        },
-        {
-          "stop_id": 24,
-          "route_id": 2,
-          "stop_name": "Robinsons Place Butuan",
-          "latitude": 8.94,
-          "longitude": 125.55,
-          "stop_order": 4
-        }
+        {"stop_id": 21, "route_id": 2, "stop_name": "J.C. Aquino Ave (JAQNO)", "latitude": 8.949, "longitude": 125.536, "stop_order": 1},
+        {"stop_id": 22, "route_id": 2, "stop_name": "City Hall / Jeepney Terminal", "latitude": 8.9515, "longitude": 125.5315, "stop_order": 2},
+        {"stop_id": 23, "route_id": 2, "stop_name": "North Montilla Blvd", "latitude": 8.9485, "longitude": 125.5375, "stop_order": 3},
+        {"stop_id": 24, "route_id": 2, "stop_name": "Butuan Medical Center", "latitude": 8.948, "longitude": 125.538, "stop_order": 4},
+        {"stop_id": 25, "route_id": 2, "stop_name": "Rosales Ave / Robinsons", "latitude": 8.94, "longitude": 125.55, "stop_order": 5},
+        {"stop_id": 26, "route_id": 2, "stop_name": "Libertad", "latitude": 8.9385, "longitude": 125.5455, "stop_order": 6}
       ]
     },
     {
@@ -125,49 +81,22 @@
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [125.53, 8.953],
+            [125.5455, 8.9385],
             [125.536, 8.949],
-            [125.542, 8.945],
-            [125.548, 8.941],
-            [125.554, 8.937]
+            [125.532, 8.951],
+            [125.5315, 8.9515],
+            [125.548, 8.962]
           ]
         },
         "properties": {}
       },
       "active_status": true,
       "stops": [
-        {
-          "stop_id": 31,
-          "route_id": 3,
-          "stop_name": "Downtown Terminal",
-          "latitude": 8.953,
-          "longitude": 125.53,
-          "stop_order": 1
-        },
-        {
-          "stop_id": 32,
-          "route_id": 3,
-          "stop_name": "J.C. Aquino Ave",
-          "latitude": 8.949,
-          "longitude": 125.536,
-          "stop_order": 2
-        },
-        {
-          "stop_id": 33,
-          "route_id": 3,
-          "stop_name": "Villa Kananga",
-          "latitude": 8.945,
-          "longitude": 125.542,
-          "stop_order": 3
-        },
-        {
-          "stop_id": 34,
-          "route_id": 3,
-          "stop_name": "SM City Butuan",
-          "latitude": 8.937,
-          "longitude": 125.554,
-          "stop_order": 4
-        }
+        {"stop_id": 31, "route_id": 3, "stop_name": "Libertad", "latitude": 8.9385, "longitude": 125.5455, "stop_order": 1},
+        {"stop_id": 32, "route_id": 3, "stop_name": "J.C. Aquino Ave (JAQNO)", "latitude": 8.949, "longitude": 125.536, "stop_order": 2},
+        {"stop_id": 33, "route_id": 3, "stop_name": "Guingona Park / FSUU Plaza", "latitude": 8.951, "longitude": 125.532, "stop_order": 3},
+        {"stop_id": 34, "route_id": 3, "stop_name": "City Hall", "latitude": 8.9515, "longitude": 125.5315, "stop_order": 4},
+        {"stop_id": 35, "route_id": 3, "stop_name": "Ampayon Public Market", "latitude": 8.962, "longitude": 125.548, "stop_order": 5}
       ]
     },
     {
@@ -182,41 +111,23 @@
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [125.525, 8.948],
-            [125.532, 8.946],
-            [125.54, 8.944],
-            [125.548, 8.946],
-            [125.552, 8.95]
+            [125.5315, 8.9515],
+            [125.55, 8.94],
+            [125.536, 8.949],
+            [125.548, 8.962],
+            [125.552, 8.95],
+            [125.5315, 8.9515]
           ]
         },
         "properties": {}
       },
       "active_status": true,
       "stops": [
-        {
-          "stop_id": 41,
-          "route_id": 4,
-          "stop_name": "Jeepney Terminal",
-          "latitude": 8.948,
-          "longitude": 125.525,
-          "stop_order": 1
-        },
-        {
-          "stop_id": 42,
-          "route_id": 4,
-          "stop_name": "Agusan Bridge",
-          "latitude": 8.944,
-          "longitude": 125.54,
-          "stop_order": 2
-        },
-        {
-          "stop_id": 43,
-          "route_id": 4,
-          "stop_name": "De Oro",
-          "latitude": 8.95,
-          "longitude": 125.552,
-          "stop_order": 3
-        }
+        {"stop_id": 41, "route_id": 4, "stop_name": "Jeepney Terminal", "latitude": 8.9515, "longitude": 125.5315, "stop_order": 1},
+        {"stop_id": 42, "route_id": 4, "stop_name": "Rosales Ave / Robinsons", "latitude": 8.94, "longitude": 125.55, "stop_order": 2},
+        {"stop_id": 43, "route_id": 4, "stop_name": "J.C. Aquino Ave (JAQNO)", "latitude": 8.949, "longitude": 125.536, "stop_order": 3},
+        {"stop_id": 44, "route_id": 4, "stop_name": "Ampayon", "latitude": 8.962, "longitude": 125.548, "stop_order": 4},
+        {"stop_id": 45, "route_id": 4, "stop_name": "De Oro", "latitude": 8.95, "longitude": 125.552, "stop_order": 5}
       ]
     },
     {
@@ -231,40 +142,22 @@
         "geometry": {
           "type": "LineString",
           "coordinates": [
+            [125.5315, 8.9515],
+            [125.5375, 8.9485],
+            [125.536, 8.949],
             [125.548, 8.962],
-            [125.544, 8.955],
-            [125.54, 8.95],
-            [125.536, 8.945]
+            [125.5315, 8.9515]
           ]
         },
         "properties": {}
       },
       "active_status": true,
       "stops": [
-        {
-          "stop_id": 51,
-          "route_id": 5,
-          "stop_name": "Ampayon Terminal",
-          "latitude": 8.962,
-          "longitude": 125.548,
-          "stop_order": 1
-        },
-        {
-          "stop_id": 52,
-          "route_id": 5,
-          "stop_name": "Baan Km 3",
-          "latitude": 8.955,
-          "longitude": 125.544,
-          "stop_order": 2
-        },
-        {
-          "stop_id": 53,
-          "route_id": 5,
-          "stop_name": "City Proper",
-          "latitude": 8.945,
-          "longitude": 125.536,
-          "stop_order": 3
-        }
+        {"stop_id": 51, "route_id": 5, "stop_name": "Jeepney Terminal", "latitude": 8.9515, "longitude": 125.5315, "stop_order": 1},
+        {"stop_id": 52, "route_id": 5, "stop_name": "North Montilla Blvd", "latitude": 8.9485, "longitude": 125.5375, "stop_order": 2},
+        {"stop_id": 53, "route_id": 5, "stop_name": "J.C. Aquino Ave (JAQNO)", "latitude": 8.949, "longitude": 125.536, "stop_order": 3},
+        {"stop_id": 54, "route_id": 5, "stop_name": "Ampayon", "latitude": 8.962, "longitude": 125.548, "stop_order": 4},
+        {"stop_id": 55, "route_id": 5, "stop_name": "SM City Butuan", "latitude": 8.937, "longitude": 125.554, "stop_order": 5}
       ]
     },
     {
@@ -280,7 +173,7 @@
           "type": "LineString",
           "coordinates": [
             [125.536, 8.948],
-            [125.542, 8.944],
+            [125.532, 8.951],
             [125.55, 8.938],
             [125.558, 8.93]
           ]
@@ -289,30 +182,10 @@
       },
       "active_status": true,
       "stops": [
-        {
-          "stop_id": 61,
-          "route_id": 6,
-          "stop_name": "Provincial Capitol Terminal",
-          "latitude": 8.948,
-          "longitude": 125.536,
-          "stop_order": 1
-        },
-        {
-          "stop_id": 62,
-          "route_id": 6,
-          "stop_name": "Timberlanes",
-          "latitude": 8.938,
-          "longitude": 125.55,
-          "stop_order": 2
-        },
-        {
-          "stop_id": 63,
-          "route_id": 6,
-          "stop_name": "Maguinda",
-          "latitude": 8.93,
-          "longitude": 125.558,
-          "stop_order": 3
-        }
+        {"stop_id": 61, "route_id": 6, "stop_name": "Provincial Capitol Terminal", "latitude": 8.948, "longitude": 125.536, "stop_order": 1},
+        {"stop_id": 62, "route_id": 6, "stop_name": "Guingona Park", "latitude": 8.951, "longitude": 125.532, "stop_order": 2},
+        {"stop_id": 63, "route_id": 6, "stop_name": "Timberlanes", "latitude": 8.938, "longitude": 125.55, "stop_order": 3},
+        {"stop_id": 64, "route_id": 6, "stop_name": "Maguinda", "latitude": 8.93, "longitude": 125.558, "stop_order": 4}
       ]
     },
     {
@@ -327,9 +200,9 @@
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [125.532, 8.942],
-            [125.538, 8.938],
-            [125.544, 8.934],
+            [125.536, 8.948],
+            [125.55, 8.94],
+            [125.5375, 8.9485],
             [125.55, 8.93]
           ]
         },
@@ -337,30 +210,10 @@
       },
       "active_status": true,
       "stops": [
-        {
-          "stop_id": 71,
-          "route_id": 7,
-          "stop_name": "Capitol Terminal",
-          "latitude": 8.942,
-          "longitude": 125.532,
-          "stop_order": 1
-        },
-        {
-          "stop_id": 72,
-          "route_id": 7,
-          "stop_name": "San Vicente",
-          "latitude": 8.938,
-          "longitude": 125.538,
-          "stop_order": 2
-        },
-        {
-          "stop_id": 73,
-          "route_id": 7,
-          "stop_name": "Tungao",
-          "latitude": 8.93,
-          "longitude": 125.55,
-          "stop_order": 3
-        }
+        {"stop_id": 71, "route_id": 7, "stop_name": "Capitol Terminal", "latitude": 8.948, "longitude": 125.536, "stop_order": 1},
+        {"stop_id": 72, "route_id": 7, "stop_name": "Rosales Ave / Robinsons", "latitude": 8.94, "longitude": 125.55, "stop_order": 2},
+        {"stop_id": 73, "route_id": 7, "stop_name": "Montilla Blvd", "latitude": 8.9485, "longitude": 125.5375, "stop_order": 3},
+        {"stop_id": 74, "route_id": 7, "stop_name": "Tungao", "latitude": 8.93, "longitude": 125.55, "stop_order": 4}
       ]
     }
   ]

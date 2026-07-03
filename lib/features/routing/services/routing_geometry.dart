@@ -41,6 +41,19 @@ class RoutingGeometry {
     return bestIdx;
   }
 
+  double distancePointToPolylineMeters(LatLng point, List<LatLng> polyline) {
+    if (polyline.isEmpty) return double.infinity;
+    if (polyline.length == 1) {
+      return _distance.as(LengthUnit.Meter, point, polyline.first);
+    }
+    var best = double.infinity;
+    for (var i = 0; i < polyline.length; i++) {
+      final d = _distance.as(LengthUnit.Meter, point, polyline[i]);
+      if (d < best) best = d;
+    }
+    return best;
+  }
+
   Future<({List<LatLng> polyline, double distanceMeters, int durationSeconds})>
       safeWalkingRoute(LatLng from, LatLng to) async {
     try {
