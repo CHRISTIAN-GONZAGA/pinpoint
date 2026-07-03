@@ -32,30 +32,44 @@ class MapScreen extends ConsumerStatefulWidget {
   ConsumerState<MapScreen> createState() => _MapScreenState();
 }
 
-class _MapScreenState extends ConsumerState<MapScreen> {
+class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveClientMixin {
   final _searchController = TextEditingController();
+  final _mapController = MapController();
   var _showLayerPanel = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(mapNotifierProvider.notifier).initialize());
+    Future.microtask(() {
+      final notifier = ref.read(mapNotifierProvider.notifier);
+      notifier.attachMapController(_mapController);
+      notifier.initialize();
+    });
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _mapController.dispose();
     super.dispose();
+  }
+
+  void _onMapReady() {
+    ref.read(mapNotifierProvider.notifier).refreshMapLayout();
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final mapState = ref.watch(mapNotifierProvider);
     final notifier = ref.read(mapNotifierProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final zoom = mapState.mapZoom;
     final layers = mapState.layers;
-    final mapRotation = mapState.mapController?.camera.rotation ?? 0;
+    final mapRotation = _mapController.camera.rotation;
 
     ref.listen(mapNotifierProvider.select((s) => s.errorMessage), (previous, next) {
       if (next != null && next != previous && mounted) {
@@ -67,20 +81,24 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
     return Scaffold(
       body: Stack(
+        fit: StackFit.expand,
         children: [
-          FlutterMap(
-            mapController: mapState.mapController,
-            options: MapOptions(
-              initialCenter: mapState.mapCenter,
-              initialZoom: AppConstants.defaultMapZoom,
-              minZoom: 11,
-              maxZoom: 18,
-              interactionOptions: const InteractionOptions(
-                flags: InteractiveFlag.all,
-              ),
-              onPositionChanged: (camera, _) {
-                notifier.updateMapZoom(camera.zoom);
-              },
+          Positioned.fill(
+            child: FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                initialCenter: mapState.mapCenter,
+                initialZoom: AppConstants.defaultMapZoom,
+                minZoom: 11,
+                maxZoom: 18,
+                backgroundColor: const Color(0xFFCBD5E1),
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.all,
+                ),
+                onMapReady: _onMapReady,
+                onPositionChanged: (camera, _) {
+                  notifier.updateMapZoom(camera.zoom);
+                },
               onLongPress: (_, point) async {
                 final snapped = await notifier.prepareMapContext(point);
                 if (!mounted) return;
@@ -196,7 +214,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       icon: Icons.trip_origin,
                       onDrag: notifier.updateOriginDrag,
                       onDragEnd: () => notifier.finishOriginDrag(),
-                      controller: mapState.mapController,
+                      controller: _mapController,
                     ),
                   ],
                   if (mapState.destination != null)
@@ -207,11 +225,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       icon: Icons.place_rounded,
                       onDrag: notifier.updateDestinationDrag,
                       onDragEnd: () => notifier.finishDestinationDrag(),
-                      controller: mapState.mapController,
+                      controller: _mapController,
                     ),
                 ],
               ),
             ],
+            ),
           ),
           SafeArea(
             child: Padding(
@@ -285,8 +304,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   icon: Icons.add,
                   tooltip: 'Zoom in',
                   onPressed: () {
-                    final c = mapState.mapController;
-                    c?.move(c.camera.center, c.camera.zoom + 1);
+                    final c = _mapController;
+                    c.move(c.camera.center, c.camera.zoom + 1);
                   },
                 ),
                 const SizedBox(height: AppSpacing.sm),
@@ -294,8 +313,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   icon: Icons.remove,
                   tooltip: 'Zoom out',
                   onPressed: () {
-                    final c = mapState.mapController;
-                    c?.move(c.camera.center, c.camera.zoom - 1);
+                    final c = _mapController;
+                    c.move(c.camera.center, c.camera.zoom - 1);
                   },
                 ),
                 const SizedBox(height: AppSpacing.sm),
@@ -373,26 +392,21 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               ),
             )
           else
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: RouteSummarySheet(
-                route: mapState.plannedRoute,
-                routeOptions: mapState.routeOptions,
-                canGenerate: mapState.canGenerateRoute,
-                isGenerating: mapState.isGeneratingRoute,
-                originLabel: mapState.currentAddress ?? 'Start',
-                destinationLabel: mapState.destinationAddress ?? mapState.destination?.label,
-                selectedVehicleMode: mapState.selectedVehicleMode,
-                highlightedStepIndex: mapState.highlightedStepIndex,
-                onGenerate: () => notifier.generateRoute(),
-                onSelectOption: (option) => notifier.selectRouteOption(option),
-                onPreviewOption: (option) => notifier.previewRouteOption(option),
-                onStepTap: (index) => notifier.focusRouteStep(index),
-                onVehicleModeChanged: (mode) => notifier.setVehicleMode(mode),
-                onClose: () => notifier.clearRoute(),
-              ),
+            RouteSummarySheet(
+              route: mapState.plannedRoute,
+              routeOptions: mapState.routeOptions,
+              canGenerate: mapState.canGenerateRoute,
+              isGenerating: mapState.isGeneratingRoute,
+              originLabel: mapState.currentAddress ?? 'Start',
+              destinationLabel: mapState.destinationAddress ?? mapState.destination?.label,
+              selectedVehicleMode: mapState.selectedVehicleMode,
+              highlightedStepIndex: mapState.highlightedStepIndex,
+              onGenerate: () => notifier.generateRoute(),
+              onSelectOption: (option) => notifier.selectRouteOption(option),
+              onPreviewOption: (option) => notifier.previewRouteOption(option),
+              onStepTap: (index) => notifier.focusRouteStep(index),
+              onVehicleModeChanged: (mode) => notifier.setVehicleMode(mode),
+              onClose: () => notifier.clearRoute(),
             ),
           if (mapState.plannedRoute != null)
             Positioned(

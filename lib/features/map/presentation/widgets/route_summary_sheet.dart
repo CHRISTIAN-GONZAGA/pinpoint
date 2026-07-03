@@ -11,7 +11,7 @@ import 'package:pinpoint/features/routing/domain/transport_colors.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// Bottom sheet showing generated route summary, vehicle options, and steps.
-class RouteSummarySheet extends StatelessWidget {
+class RouteSummarySheet extends StatefulWidget {
   const RouteSummarySheet({
     super.key,
     required this.route,
@@ -46,144 +46,186 @@ class RouteSummarySheet extends StatelessWidget {
   final int? highlightedStepIndex;
 
   @override
+  State<RouteSummarySheet> createState() => _RouteSummarySheetState();
+}
+
+class _RouteSummarySheetState extends State<RouteSummarySheet> {
+  static const _snapSizes = [0.18, 0.45, 0.85];
+  late double _extent;
+
+  @override
+  void initState() {
+    super.initState();
+    _extent = widget.route != null ? 0.45 : 0.22;
+  }
+
+  @override
+  void didUpdateWidget(RouteSummarySheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.route != null && oldWidget.route == null) {
+      _extent = 0.45;
+    } else if (widget.route == null && oldWidget.route != null) {
+      _extent = 0.22;
+    }
+  }
+
+  double _snap(double value) {
+    var nearest = _snapSizes.first;
+    var distance = (value - nearest).abs();
+    for (final size in _snapSizes) {
+      final nextDistance = (value - size).abs();
+      if (nextDistance < distance) {
+        nearest = size;
+        distance = nextDistance;
+      }
+    }
+    return nearest.clamp(_snapSizes.first, _snapSizes.last);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: route != null ? 0.45 : 0.22,
-      minChildSize: 0.18,
-      maxChildSize: 0.85,
-      snap: true,
-      snapSizes: const [0.18, 0.45, 0.85],
-      builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final height = screenHeight * _extent;
+
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: GestureDetector(
+        onVerticalDragUpdate: (details) {
+          setState(() {
+            _extent = (_extent - details.delta.dy / screenHeight).clamp(0.18, 0.85);
+          });
+        },
+        onVerticalDragEnd: (_) => setState(() => _extent = _snap(_extent)),
+        child: Material(
+          elevation: 12,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
+          clipBehavior: Clip.antiAlias,
+          child: Container(
+            height: height,
+            width: double.infinity,
             color: Theme.of(context).colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 16,
-                offset: const Offset(0, -4),
-              ),
-            ],
+            child: ListView(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              children: _sheetContent(context),
+            ),
           ),
-          child: ListView(
-            controller: scrollController,
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              if (route == null) ...[
-                Text('Plan Your Route', style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  canGenerate
-                      ? 'Tap anywhere on the map to set start or destination.'
-                      : 'Move the map freely, then tap a location for options.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                      ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                _VehicleModeSelector(
-                  selected: selectedVehicleMode,
-                  onChanged: onVehicleModeChanged,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                FilledButton.icon(
-                  onPressed: canGenerate && !isGenerating ? onGenerate : null,
-                  icon: isGenerating
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Icon(Icons.route_rounded),
-                  label: Text(isGenerating ? 'Comparing routes...' : 'Compare Routes'),
-                ),
-              ] else ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text('Route Summary', style: Theme.of(context).textTheme.titleLarge),
-                    ),
-                    IconButton(
-                      tooltip: 'Export PDF',
-                      onPressed: () => _exportPdf(context),
-                      icon: const Icon(Icons.picture_as_pdf_outlined),
-                    ),
-                    IconButton(onPressed: onClose, icon: const Icon(Icons.close)),
-                  ],
-                ),
-                if (route!.warningMessage != null) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  _WarningBanner(message: route!.warningMessage!),
-                ],
-                if (routeOptions.length > 1) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  _RouteOptionPicker(
-                    options: routeOptions,
-                    selected: route!,
-                    onSelect: onSelectOption,
-                    onPreview: onPreviewOption,
-                  ),
-                ],
-                const SizedBox(height: AppSpacing.md),
-                Row(
-                  children: [
-                    _StatChip(icon: Icons.schedule, label: route!.durationLabel),
-                    const SizedBox(width: AppSpacing.sm),
-                    _StatChip(icon: Icons.straighten, label: route!.distanceLabel),
-                    const SizedBox(width: AppSpacing.sm),
-                    _StatChip(
-                      icon: Icons.payments_outlined,
-                      label: '₱${route!.estimatedFare.toStringAsFixed(0)}',
-                    ),
-                  ],
-                ),
-                if (route!.transferCount > 0) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    '${route!.transferCount} transfer${route!.transferCount > 1 ? 's' : ''}',
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: AppColors.warning,
-                        ),
-                  ),
-                ],
-                const SizedBox(height: AppSpacing.lg),
-                Text('Directions', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: AppSpacing.sm),
-                ...route!.steps.asMap().entries.map(
-                      (entry) => _StepTile(
-                        index: entry.key + 1,
-                        step: entry.value,
-                        isHighlighted: highlightedStepIndex == entry.key,
-                        onTap: onStepTap != null ? () => onStepTap!(entry.key) : null,
-                      ),
-                    ),
-              ],
-            ],
-          ),
-        );
-      },
+        ),
+      ),
     );
   }
 
+  List<Widget> _sheetContent(BuildContext context) {
+    return [
+      Center(
+        child: Container(
+          width: 40,
+          height: 4,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade300,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+      ),
+      const SizedBox(height: AppSpacing.md),
+      if (widget.route == null) ...[
+        Text('Plan Your Route', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          widget.canGenerate
+              ? 'Tap anywhere on the map to set start or destination.'
+              : 'Move the map freely, then tap a location for options.',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _VehicleModeSelector(
+          selected: widget.selectedVehicleMode,
+          onChanged: widget.onVehicleModeChanged,
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        FilledButton.icon(
+          onPressed: widget.canGenerate && !widget.isGenerating ? widget.onGenerate : null,
+          icon: widget.isGenerating
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                )
+              : const Icon(Icons.route_rounded),
+          label: Text(widget.isGenerating ? 'Comparing routes...' : 'Compare Routes'),
+        ),
+      ] else ...[
+        Row(
+          children: [
+            Expanded(
+              child: Text('Route Summary', style: Theme.of(context).textTheme.titleLarge),
+            ),
+            IconButton(
+              tooltip: 'Export PDF',
+              onPressed: () => _exportPdf(context),
+              icon: const Icon(Icons.picture_as_pdf_outlined),
+            ),
+            IconButton(onPressed: widget.onClose, icon: const Icon(Icons.close)),
+          ],
+        ),
+        if (widget.route!.warningMessage != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          _WarningBanner(message: widget.route!.warningMessage!),
+        ],
+        if (widget.routeOptions.length > 1) ...[
+          const SizedBox(height: AppSpacing.md),
+          _RouteOptionPicker(
+            options: widget.routeOptions,
+            selected: widget.route!,
+            onSelect: widget.onSelectOption,
+            onPreview: widget.onPreviewOption,
+          ),
+        ],
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            _StatChip(icon: Icons.schedule, label: widget.route!.durationLabel),
+            const SizedBox(width: AppSpacing.sm),
+            _StatChip(icon: Icons.straighten, label: widget.route!.distanceLabel),
+            const SizedBox(width: AppSpacing.sm),
+            _StatChip(
+              icon: Icons.payments_outlined,
+              label: '₱${widget.route!.estimatedFare.toStringAsFixed(0)}',
+            ),
+          ],
+        ),
+        if (widget.route!.transferCount > 0) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            '${widget.route!.transferCount} transfer${widget.route!.transferCount > 1 ? 's' : ''}',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: AppColors.warning,
+                ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.lg),
+        Text('Directions', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: AppSpacing.sm),
+        ...widget.route!.steps.asMap().entries.map(
+              (entry) => _StepTile(
+                index: entry.key + 1,
+                step: entry.value,
+                isHighlighted: widget.highlightedStepIndex == entry.key,
+                onTap: widget.onStepTap != null ? () => widget.onStepTap!(entry.key) : null,
+              ),
+            ),
+      ],
+    ];
+  }
+
   Future<void> _exportPdf(BuildContext context) async {
-    if (route == null) return;
+    if (widget.route == null) return;
     try {
       final bytes = await RoutePdfService().generate(
-        route: route!,
-        originLabel: originLabel ?? 'Start',
-        destinationLabel: destinationLabel ?? 'Destination',
+        route: widget.route!,
+        originLabel: widget.originLabel ?? 'Start',
+        destinationLabel: widget.destinationLabel ?? 'Destination',
       );
       final dir = await getTemporaryDirectory();
       final file = File('${dir.path}/pinpoint-route.pdf');

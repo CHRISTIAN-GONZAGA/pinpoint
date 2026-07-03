@@ -34,7 +34,18 @@ class MapNotifier extends Notifier<MapState> {
     _planner = ref.read(routePlannerServiceProvider);
     _jeepneyPaths = ref.read(jeepneyPathServiceProvider);
     _routing = ref.read(routingServiceProvider);
-    return MapState(mapController: MapController());
+    return MapState();
+  }
+
+  void attachMapController(MapController controller) {
+    state = state.copyWith(mapController: controller);
+  }
+
+  void refreshMapLayout() {
+    final controller = state.mapController;
+    if (controller == null) return;
+    final camera = controller.camera;
+    controller.move(camera.center, camera.zoom);
   }
 
   Future<void> initialize() async {
