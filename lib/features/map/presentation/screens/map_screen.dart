@@ -11,17 +11,17 @@ import 'package:pinpoint/core/utilities/place_utils.dart';
 import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
 import 'package:pinpoint/core/utilities/color_utils.dart';
+import 'package:pinpoint/features/map/data/common_destinations.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
 import 'package:pinpoint/features/map/presentation/utils/map_camera_helper.dart';
 import 'package:pinpoint/features/map/presentation/utils/map_polyline_utils.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_state.dart';
+import 'package:pinpoint/features/map/presentation/widgets/featured_destination_sheet.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_context_sheet.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_controls.dart';
-import 'package:pinpoint/features/map/presentation/widgets/map_pin_bar.dart';
-import 'package:pinpoint/features/map/presentation/widgets/map_route_filter_bar.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_route_legend.dart';
-import 'package:pinpoint/features/map/presentation/widgets/map_search_bar.dart';
+import 'package:pinpoint/features/map/presentation/widgets/map_top_panel.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_tile_layer.dart';
 import 'package:pinpoint/features/map/presentation/widgets/route_summary_sheet.dart';
 
@@ -38,6 +38,8 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
   final _mapController = MapController();
   var _showLayerPanel = false;
   var _mapReady = false;
+  var _topPanelExpanded = false;
+  var _showRouteFilters = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -208,6 +210,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
                 ),
               MarkerLayer(
                 markers: [
+                  ..._buildFeaturedDestinationMarkers(mapState, notifier),
                   ..._buildStopMarkers(mapState, notifier, zoom),
                   ..._buildPoiMarkers(mapState),
                   ..._buildEmergencyMarkers(mapState),
@@ -239,72 +242,29 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
             ],
             ),
           ),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  MapSearchBar(
-                    controller: _searchController,
-                    onChanged: (q) =>
-                        ref.read(mapNotifierProvider.notifier).searchPlaces(q),
-                    onClear: () {
-                      _searchController.clear();
-                      ref.read(mapNotifierProvider.notifier).clearSearch();
-                    },
-                    isSearching: mapState.isSearching,
-                    results: mapState.searchResults,
-                    onSelect: (loc) {
-                      _searchController.text = loc.label ?? 'Destination';
-                      ref.read(mapNotifierProvider.notifier).selectDestination(loc);
-                    },
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  const MapPinBar(),
-                  const SizedBox(height: AppSpacing.sm),
-                  const MapRouteFilterBar(),
-                  if (mapState.pinMode != MapPinMode.none)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Text(
-                        mapState.pinMode == MapPinMode.origin
-                            ? 'Tap the map to set your start point'
-                            : 'Tap the map to set your destination',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                      ),
-                    ),
-                  if (mapState.locationWarning != null)
-                    _MapBanner(
-                      icon: Icons.location_searching_rounded,
-                      message: mapState.locationWarning!,
-                      actionLabel: 'Fix',
-                      onAction: () =>
-                          ref.read(mapNotifierProvider.notifier).openLocationSettings(),
-                    ),
-                  if (mapState.transportWarning != null)
-                    _MapBanner(
-                      icon: Icons.directions_bus_outlined,
-                      message: mapState.transportWarning!,
-                      actionLabel: 'Retry',
-                      onAction: () =>
-                          ref.read(mapNotifierProvider.notifier).initialize(),
-                    ),
-                  if (mapState.tilesUnavailable)
-                    const _MapBanner(
-                      icon: Icons.map_outlined,
-                      message: 'Map tiles unavailable. Check your internet connection.',
-                    ),
-                ],
+          MapTopPanel(
+            searchController: _searchController,
+            expanded: _topPanelExpanded,
+            onExpandedChanged: (v) => setState(() => _topPanelExpanded = v),
+            showRouteFilters: _showRouteFilters,
+            onShowRouteFiltersChanged: (v) => setState(() => _showRouteFilters = v),
+          ),
+          if (!_topPanelExpanded && mapState.featuredDestinations.isNotEmpty)
+            Positioned(
+              top: MediaQuery.paddingOf(context).top + 64,
+              left: AppSpacing.md,
+              right: AppSpacing.md,
+              child: _CollapsedDestinationStrip(
+                destinations: mapState.featuredDestinations,
+                selectedName: mapState.destinationAddress,
+                onTap: (dest) => notifier.selectFeaturedDestination(dest),
               ),
             ),
-          ),
           Positioned(
             right: AppSpacing.md,
-            top: MediaQuery.sizeOf(context).height * 0.22,
+            top: _topPanelExpanded
+                ? MediaQuery.sizeOf(context).height * 0.38
+                : MediaQuery.paddingOf(context).top + 112,
             child: Column(
               children: [
                 MapGlassButton(
@@ -580,6 +540,65 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
     }).toList();
   }
 
+  List<Marker> _buildFeaturedDestinationMarkers(
+    MapState mapState,
+    MapNotifier notifier,
+  ) {
+    return mapState.featuredDestinations.map((dest) {
+      final color = PlaceUtils.colorForCategory(dest.place.category);
+      final isSelected = mapState.destinationAddress != null &&
+          (mapState.destinationAddress == dest.place.name ||
+              mapState.destinationAddress!.contains(dest.shortLabel));
+      return Marker(
+        point: dest.place.latLng,
+        width: 110,
+        height: 58,
+        alignment: Alignment.bottomCenter,
+        child: GestureDetector(
+          onTap: () => FeaturedDestinationSheet.show(
+            context,
+            destination: dest,
+            onNavigateTo: () => notifier.selectFeaturedDestination(dest),
+            onNavigateFrom: () => notifier.selectFeaturedAsOrigin(dest),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isSelected ? color : Colors.white.withValues(alpha: 0.95),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: color, width: isSelected ? 2 : 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  dest.shortLabel,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: isSelected ? Colors.white : color,
+                  ),
+                ),
+              ),
+              Icon(
+                PlaceUtils.iconForCategory(dest.place.category),
+                color: color,
+                size: 26,
+              ),
+            ],
+          ),
+        ),
+      );
+    }).toList();
+  }
+
   List<Marker> _buildPoiMarkers(MapState mapState) {
     if (!mapState.layers.showTouristLayer) return [];
     return mapState.poiPlaces.map((place) {
@@ -711,48 +730,69 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
   }
 }
 
-class _MapBanner extends StatelessWidget {
-  const _MapBanner({
-    required this.icon,
-    required this.message,
-    this.actionLabel,
-    this.onAction,
+class _CollapsedDestinationStrip extends StatelessWidget {
+  const _CollapsedDestinationStrip({
+    required this.destinations,
+    required this.onTap,
+    this.selectedName,
   });
 
-  final IconData icon;
-  final String message;
-  final String? actionLabel;
-  final VoidCallback? onAction;
+  final List<FeaturedDestination> destinations;
+  final ValueChanged<FeaturedDestination> onTap;
+  final String? selectedName;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 6),
-      child: Material(
-        elevation: 1,
-        borderRadius: BorderRadius.circular(8),
-        color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.95),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: Row(
-            children: [
-              Icon(icon, size: 18, color: Theme.of(context).colorScheme.onErrorContainer),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  message,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onErrorContainer,
+    return Material(
+      elevation: 2,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
+      clipBehavior: Clip.antiAlias,
+      child: SizedBox(
+        height: 38,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          itemCount: destinations.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 6),
+          itemBuilder: (context, index) {
+            final dest = destinations[index];
+            final color = PlaceUtils.colorForCategory(dest.place.category);
+            final selected = selectedName != null &&
+                (selectedName == dest.place.name ||
+                    selectedName!.contains(dest.shortLabel));
+            return InkWell(
+              onTap: () => onTap(dest),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: selected ? color : color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: color.withValues(alpha: 0.5)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      PlaceUtils.iconForCategory(dest.place.category),
+                      size: 14,
+                      color: selected ? Colors.white : color,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      dest.shortLabel,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: selected ? Colors.white : color,
                       ),
+                    ),
+                  ],
                 ),
               ),
-              if (actionLabel != null && onAction != null)
-                TextButton(
-                  onPressed: onAction,
-                  child: Text(actionLabel!),
-                ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

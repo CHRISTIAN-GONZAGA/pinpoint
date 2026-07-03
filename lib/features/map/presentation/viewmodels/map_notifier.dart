@@ -13,6 +13,7 @@ import 'package:pinpoint/core/services/geocoding_service.dart';
 import 'package:pinpoint/core/services/jeepney_path_service.dart';
 import 'package:pinpoint/core/services/location_service.dart';
 import 'package:pinpoint/core/services/routing_service.dart';
+import 'package:pinpoint/features/map/data/common_destinations.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
 import 'package:pinpoint/features/map/presentation/utils/map_camera_helper.dart';
 import 'package:pinpoint/features/map/presentation/utils/map_camera_utils.dart';
@@ -55,7 +56,47 @@ class MapNotifier extends Notifier<MapState> {
     );
 
     unawaited(_loadTransportOverlays());
+    unawaited(_loadFeaturedDestinations());
     unawaited(_primeLocationAccess());
+  }
+
+  Future<void> _loadFeaturedDestinations() async {
+    try {
+      final repo = ref.read(placesRepositoryProvider);
+      final featured = <FeaturedDestination>[];
+      for (final item in CommonDestinations.featured) {
+        try {
+          final place = item.type == 'establishment'
+              ? await repo.getEstablishment(item.id)
+              : await repo.getAttraction(item.id);
+          featured.add(FeaturedDestination(place: place, shortLabel: item.shortLabel));
+        } catch (_) {}
+      }
+      if (featured.isNotEmpty) {
+        state = state.copyWith(featuredDestinations: featured);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> selectFeaturedDestination(FeaturedDestination featured) async {
+    await selectDestination(
+      MapLocation(
+        latitude: featured.place.latitude,
+        longitude: featured.place.longitude,
+        label: featured.place.name,
+      ),
+    );
+  }
+
+  Future<void> selectFeaturedAsOrigin(FeaturedDestination featured) async {
+    final snapped = await _routing.snapToNearestRoad(featured.place.latLng);
+    state = state.copyWith(
+      currentLocation: MapLocation.fromLatLng(snapped, label: featured.place.name),
+      currentAddress: featured.place.name,
+      clearLocationWarning: true,
+    );
+    MapCameraUtils.moveTo(state.mapController, snapped, zoom: 15.5);
+    _fitEndpoints();
   }
 
   Future<void> _loadTransportOverlays() async {

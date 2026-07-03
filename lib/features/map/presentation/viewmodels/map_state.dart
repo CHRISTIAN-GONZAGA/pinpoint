@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:pinpoint/app/constants.dart';
+import 'package:pinpoint/features/map/data/common_destinations.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
 import 'package:pinpoint/features/explore/domain/place_models.dart' as places;
 
@@ -98,6 +99,7 @@ class MapState extends Equatable {
     this.isSearching = false,
     this.mapController,
     this.poiPlaces = const [],
+    this.featuredDestinations = const [],
     this.emergencyContacts = const [],
     this.highwayCorridors = const [],
     this.visibleRouteCodes = const {},
@@ -132,6 +134,7 @@ class MapState extends Equatable {
   final bool isSearching;
   final MapController? mapController;
   final List<places.Place> poiPlaces;
+  final List<FeaturedDestination> featuredDestinations;
   final List<places.EmergencyContact> emergencyContacts;
   final List<List<LatLng>> highwayCorridors;
   final Set<String> visibleRouteCodes;
@@ -179,6 +182,7 @@ class MapState extends Equatable {
     bool? isSearching,
     MapController? mapController,
     List<places.Place>? poiPlaces,
+    List<FeaturedDestination>? featuredDestinations,
     List<places.EmergencyContact>? emergencyContacts,
     List<List<LatLng>>? highwayCorridors,
     Set<String>? visibleRouteCodes,
@@ -227,6 +231,7 @@ class MapState extends Equatable {
       isSearching: isSearching ?? this.isSearching,
       mapController: mapController ?? this.mapController,
       poiPlaces: poiPlaces ?? this.poiPlaces,
+      featuredDestinations: featuredDestinations ?? this.featuredDestinations,
       emergencyContacts: emergencyContacts ?? this.emergencyContacts,
       highwayCorridors: highwayCorridors ?? this.highwayCorridors,
       visibleRouteCodes: visibleRouteCodes ?? this.visibleRouteCodes,

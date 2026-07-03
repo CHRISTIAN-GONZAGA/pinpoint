@@ -16,13 +16,9 @@ class MapRouteFilterBar extends ConsumerWidget {
 
     if (routes.isEmpty) return const SizedBox.shrink();
 
-    return Material(
-      elevation: 2,
-      borderRadius: BorderRadius.circular(AppRadius.md),
-      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        child: Column(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
@@ -66,7 +62,6 @@ class MapRouteFilterBar extends ConsumerWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }

@@ -14,13 +14,9 @@ class MapPinBar extends ConsumerWidget {
     final notifier = ref.read(mapNotifierProvider.notifier);
     final pinMode = state.pinMode;
 
-    return Material(
-      elevation: 2,
-      borderRadius: BorderRadius.circular(AppRadius.md),
-      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        child: Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      child: Row(
           children: [
             _PinChip(
               icon: Icons.trip_origin,
@@ -51,7 +47,6 @@ class MapPinBar extends ConsumerWidget {
             ),
           ],
         ),
-      ),
     );
   }
 

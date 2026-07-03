@@ -50,22 +50,24 @@ class RouteSummarySheet extends StatefulWidget {
 }
 
 class _RouteSummarySheetState extends State<RouteSummarySheet> {
-  static const _snapSizes = [0.18, 0.45, 0.85];
+  static const _snapSizes = [0.07, 0.18, 0.42, 0.82];
   late double _extent;
+
+  bool get _isCompact => _extent < 0.14;
 
   @override
   void initState() {
     super.initState();
-    _extent = widget.route != null ? 0.45 : 0.22;
+    _extent = widget.route != null ? 0.42 : 0.07;
   }
 
   @override
   void didUpdateWidget(RouteSummarySheet oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.route != null && oldWidget.route == null) {
-      _extent = 0.45;
+      _extent = 0.42;
     } else if (widget.route == null && oldWidget.route != null) {
-      _extent = 0.22;
+      _extent = 0.07;
     }
   }
 
@@ -90,24 +92,58 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
     return GestureDetector(
       onVerticalDragUpdate: (details) {
         setState(() {
-          _extent = (_extent - details.delta.dy / screenHeight).clamp(0.18, 0.85);
+          _extent = (_extent - details.delta.dy / screenHeight).clamp(0.07, 0.82);
         });
       },
       onVerticalDragEnd: (_) => setState(() => _extent = _snap(_extent)),
+      onTap: _isCompact ? () => setState(() => _extent = 0.18) : null,
       child: Material(
         elevation: 12,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
         clipBehavior: Clip.antiAlias,
-        child: Container(
+        color: Theme.of(context).colorScheme.surface,
+        child: SizedBox(
           height: height,
           width: double.infinity,
-          color: Theme.of(context).colorScheme.surface,
-          child: ListView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            children: _sheetContent(context),
-          ),
+          child: _isCompact
+              ? _compactContent(context)
+              : ListView(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  children: _sheetContent(context),
+                ),
         ),
       ),
+    );
+  }
+
+  Widget _compactContent(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 40,
+          height: 4,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade300,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          widget.route != null ? 'Route ready — swipe up' : 'Plan a route — swipe up',
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
+        if (widget.canGenerate && widget.route == null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              'Pick Robinsons, SM, or tap the map',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+            ),
+          ),
+      ],
     );
   }
 
