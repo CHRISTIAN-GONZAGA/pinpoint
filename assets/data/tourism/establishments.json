@@ -1,0 +1,134 @@
+{
+  "establishments": [
+    {
+      "establishment_id": 1,
+      "place_type": "establishment",
+      "name": "Robinsons Place Butuan",
+      "category": "shopping_center",
+      "latitude": 8.94,
+      "longitude": 125.55,
+      "address": "Robinsons Place, J.C. Aquino Ave",
+      "active_status": true
+    },
+    {
+      "establishment_id": 2,
+      "place_type": "establishment",
+      "name": "SM City Butuan",
+      "category": "shopping_center",
+      "latitude": 8.937,
+      "longitude": 125.554,
+      "address": "J.C. Aquino Ave, Butuan City",
+      "active_status": true
+    },
+    {
+      "establishment_id": 3,
+      "place_type": "establishment",
+      "name": "Butuan Medical Center",
+      "category": "hospital",
+      "latitude": 8.948,
+      "longitude": 125.538,
+      "address": "J.C. Aquino Ave, Butuan City",
+      "active_status": true
+    },
+    {
+      "establishment_id": 4,
+      "place_type": "establishment",
+      "name": "Caraga Regional Hospital",
+      "category": "hospital",
+      "latitude": 8.953,
+      "longitude": 125.529,
+      "address": "Rizal St, Butuan City",
+      "active_status": true
+    },
+    {
+      "establishment_id": 5,
+      "place_type": "establishment",
+      "name": "Butuan City Police Station",
+      "category": "police",
+      "latitude": 8.9505,
+      "longitude": 125.5335,
+      "address": "City Hall Complex, Butuan City",
+      "active_status": true
+    },
+    {
+      "establishment_id": 6,
+      "place_type": "establishment",
+      "name": "BFP Butuan City",
+      "category": "fire",
+      "latitude": 8.95,
+      "longitude": 125.534,
+      "address": "City Hall Complex, Butuan City",
+      "active_status": true
+    },
+    {
+      "establishment_id": 7,
+      "place_type": "establishment",
+      "name": "Mercury Drug - Downtown",
+      "category": "pharmacy",
+      "latitude": 8.9495,
+      "longitude": 125.5355,
+      "address": "Montilla Blvd, Butuan City",
+      "active_status": true
+    },
+    {
+      "establishment_id": 8,
+      "place_type": "establishment",
+      "name": "Hotel Almont",
+      "category": "hotel",
+      "latitude": 8.946,
+      "longitude": 125.541,
+      "address": "J.C. Aquino Ave, Butuan City",
+      "active_status": true
+    },
+    {
+      "establishment_id": 9,
+      "place_type": "establishment",
+      "name": "Aling Fopings Panciteria",
+      "category": "restaurant",
+      "latitude": 8.95,
+      "longitude": 125.5365,
+      "address": "Downtown, Butuan City",
+      "active_status": true
+    },
+    {
+      "establishment_id": 10,
+      "place_type": "establishment",
+      "name": "City Hall of Butuan",
+      "category": "government",
+      "latitude": 8.9515,
+      "longitude": 125.5315,
+      "address": "City Hall Complex, Butuan City",
+      "active_status": true
+    },
+    {
+      "establishment_id": 11,
+      "place_type": "establishment",
+      "name": "BDO ATM - Robinsons",
+      "category": "atm",
+      "latitude": 8.9402,
+      "longitude": 125.5502,
+      "address": "Robinsons Place Butuan",
+      "active_status": true
+    },
+    {
+      "establishment_id": 12,
+      "place_type": "establishment",
+      "name": "Petron Gas Station",
+      "category": "gas_station",
+      "latitude": 8.944,
+      "longitude": 125.547,
+      "address": "J.C. Aquino Ave, Butuan City",
+      "active_status": true
+    },
+    {
+      "establishment_id": 13,
+      "place_type": "establishment",
+      "name": "7-Eleven Montilla",
+      "category": "convenience_store",
+      "latitude": 8.9485,
+      "longitude": 125.5375,
+      "address": "Montilla Blvd, Butuan City",
+      "active_status": true
+    }
+  ]
+}

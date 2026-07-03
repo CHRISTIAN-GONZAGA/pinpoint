@@ -1,0 +1,64 @@
+{
+  "contacts": [
+    {
+      "contact_id": 1,
+      "agency": "Philippine National Police",
+      "hotline": "911",
+      "category": "police",
+      "latitude": 8.9505,
+      "longitude": 125.5335,
+      "availability": "24/7",
+      "active_status": true
+    },
+    {
+      "contact_id": 2,
+      "agency": "Bureau of Fire Protection",
+      "hotline": "911",
+      "category": "fire",
+      "latitude": 8.95,
+      "longitude": 125.534,
+      "availability": "24/7",
+      "active_status": true
+    },
+    {
+      "contact_id": 3,
+      "agency": "Butuan Medical Center",
+      "hotline": "(085) 342-0123",
+      "category": "hospital",
+      "latitude": 8.948,
+      "longitude": 125.538,
+      "availability": "24/7",
+      "active_status": true
+    },
+    {
+      "contact_id": 4,
+      "agency": "Caraga Regional Hospital",
+      "hotline": "(085) 225-8001",
+      "category": "hospital",
+      "latitude": 8.953,
+      "longitude": 125.529,
+      "availability": "24/7",
+      "active_status": true
+    },
+    {
+      "contact_id": 5,
+      "agency": "Butuan City Disaster Risk Reduction",
+      "hotline": "(085) 342-5600",
+      "category": "disaster",
+      "latitude": null,
+      "longitude": null,
+      "availability": "24/7",
+      "active_status": true
+    },
+    {
+      "contact_id": 6,
+      "agency": "Butuan City Tourism Office",
+      "hotline": "(085) 342-0256",
+      "category": "tourism",
+      "latitude": 8.9515,
+      "longitude": 125.5315,
+      "availability": "Mon\u2013Fri 8AM\u20135PM",
+      "active_status": true
+    }
+  ]
+}

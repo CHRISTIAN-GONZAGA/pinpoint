@@ -1,0 +1,25 @@
+{
+  "fares": [
+    {
+      "fare_id": 1,
+      "transport_type": "jeepney",
+      "minimum_fare": 13.0,
+      "succeeding_rate": 1.8,
+      "effective_date": "2026-01-01"
+    },
+    {
+      "fare_id": 2,
+      "transport_type": "tricycle",
+      "minimum_fare": 15.0,
+      "succeeding_rate": 2.0,
+      "effective_date": "2026-01-01"
+    },
+    {
+      "fare_id": 3,
+      "transport_type": "taxi",
+      "minimum_fare": 40.0,
+      "succeeding_rate": 13.5,
+      "effective_date": "2026-01-01"
+    }
+  ]
+}

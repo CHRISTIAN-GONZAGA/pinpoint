@@ -1,0 +1,71 @@
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_ENV: production
+      DEBUG_MODE: "false"
+      AUTO_SEED: "true"
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-jwt-secret-32chars-min}
+      DATABASE_URL: sqlite:////app/instance/pinpoint.db
+      CORS_ORIGINS: "*"
+      APP_VERSION: "1.2.0"
+    volumes:
+      - pinpoint_data:/app/instance
+      - pinpoint_chroma:/app/chroma_data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  postgres:
+    image: postgres:16-alpine
+    profiles: ["postgres"]
+    environment:
+      POSTGRES_DB: pinpoint
+      POSTGRES_USER: pinpoint
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pinpoint}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pinpoint_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pinpoint -d pinpoint"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-postgres:
+    profiles: ["postgres"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      FLASK_ENV: production
+      DEBUG_MODE: "false"
+      AUTO_SEED: "true"
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-jwt-secret-32chars-min}
+      DATABASE_URL: postgresql+psycopg2://pinpoint:pinpoint@postgres:5432/pinpoint
+      CORS_ORIGINS: "*"
+      APP_VERSION: "1.2.0"
+    volumes:
+      - pinpoint_chroma:/app/chroma_data
+    restart: unless-stopped
+
+volumes:
+  pinpoint_data:
+  pinpoint_chroma:
+  pinpoint_pg:

@@ -1,0 +1,39 @@
+{
+  "buffer_meters": 80,
+  "corridors": [
+    {
+      "id": "ah26-montilla",
+      "name": "Montilla Boulevard (AH26)",
+      "polyline": [
+        [125.518, 8.938],
+        [125.528, 8.944],
+        [125.538, 8.948],
+        [125.548, 8.952],
+        [125.558, 8.956],
+        [125.568, 8.960]
+      ]
+    },
+    {
+      "id": "surigao-butuan",
+      "name": "Surigao-Butuan National Highway",
+      "polyline": [
+        [125.505, 8.920],
+        [125.512, 8.930],
+        [125.520, 8.940],
+        [125.530, 8.950],
+        [125.540, 8.960],
+        [125.550, 8.970]
+      ]
+    },
+    {
+      "id": "butuan-cdo",
+      "name": "Butuan-Cagayan de Oro Highway (Eastern approach)",
+      "polyline": [
+        [125.555, 8.935],
+        [125.565, 8.942],
+        [125.575, 8.948],
+        [125.585, 8.955]
+      ]
+    }
+  ]
+}

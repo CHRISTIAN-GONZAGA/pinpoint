@@ -1,0 +1,460 @@
+{
+  "routes": [
+    {
+      "route_id": 1,
+      "route_code": "R1",
+      "route_name": "R1 \u2014 City Proper to Libertad",
+      "color": "#E63946",
+      "description": "Serves downtown Butuan and Libertad market area.",
+      "operating_hours": "5:00 AM \u2013 8:00 PM",
+      "geojson": {
+        "type": "Feature",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              125.528,
+              8.955
+            ],
+            [
+              125.532,
+              8.951
+            ],
+            [
+              125.538,
+              8.947
+            ],
+            [
+              125.545,
+              8.942
+            ],
+            [
+              125.552,
+              8.938
+            ]
+          ]
+        },
+        "properties": {}
+      },
+      "active_status": true,
+      "stops": [
+        {
+          "stop_id": 11,
+          "route_id": 1,
+          "stop_name": "City Hall Terminal",
+          "latitude": 8.955,
+          "longitude": 125.528,
+          "stop_order": 1
+        },
+        {
+          "stop_id": 12,
+          "route_id": 1,
+          "stop_name": "Guingona Park",
+          "latitude": 8.951,
+          "longitude": 125.532,
+          "stop_order": 2
+        },
+        {
+          "stop_id": 13,
+          "route_id": 1,
+          "stop_name": "Montilla Blvd",
+          "latitude": 8.947,
+          "longitude": 125.538,
+          "stop_order": 3
+        },
+        {
+          "stop_id": 14,
+          "route_id": 1,
+          "stop_name": "Libertad Market",
+          "latitude": 8.938,
+          "longitude": 125.552,
+          "stop_order": 4
+        }
+      ]
+    },
+    {
+      "route_id": 2,
+      "route_code": "R2",
+      "route_name": "R2 \u2014 Junction to Robinsons",
+      "color": "#F4A261",
+      "description": "Connects Baan KM 3 junction to Robinsons Place Butuan.",
+      "operating_hours": "5:30 AM \u2013 8:30 PM",
+      "geojson": {
+        "type": "Feature",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              125.535,
+              8.96
+            ],
+            [
+              125.54,
+              8.952
+            ],
+            [
+              125.545,
+              8.946
+            ],
+            [
+              125.55,
+              8.94
+            ]
+          ]
+        },
+        "properties": {}
+      },
+      "active_status": true,
+      "stops": [
+        {
+          "stop_id": 21,
+          "route_id": 2,
+          "stop_name": "Baan Junction",
+          "latitude": 8.96,
+          "longitude": 125.535,
+          "stop_order": 1
+        },
+        {
+          "stop_id": 22,
+          "route_id": 2,
+          "stop_name": "AMPAYON Crossing",
+          "latitude": 8.952,
+          "longitude": 125.54,
+          "stop_order": 2
+        },
+        {
+          "stop_id": 23,
+          "route_id": 2,
+          "stop_name": "Ong Yiu",
+          "latitude": 8.946,
+          "longitude": 125.545,
+          "stop_order": 3
+        },
+        {
+          "stop_id": 24,
+          "route_id": 2,
+          "stop_name": "Robinsons Place",
+          "latitude": 8.94,
+          "longitude": 125.55,
+          "stop_order": 4
+        }
+      ]
+    },
+    {
+      "route_id": 3,
+      "route_code": "R3",
+      "route_name": "R3 \u2014 Downtown to SM Butuan",
+      "color": "#2A9D8F",
+      "description": "Main corridor from city center to SM City Butuan.",
+      "operating_hours": "6:00 AM \u2013 9:00 PM",
+      "geojson": {
+        "type": "Feature",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              125.53,
+              8.953
+            ],
+            [
+              125.536,
+              8.949
+            ],
+            [
+              125.542,
+              8.945
+            ],
+            [
+              125.548,
+              8.941
+            ],
+            [
+              125.554,
+              8.937
+            ]
+          ]
+        },
+        "properties": {}
+      },
+      "active_status": true,
+      "stops": [
+        {
+          "stop_id": 31,
+          "route_id": 3,
+          "stop_name": "Downtown Terminal",
+          "latitude": 8.953,
+          "longitude": 125.53,
+          "stop_order": 1
+        },
+        {
+          "stop_id": 32,
+          "route_id": 3,
+          "stop_name": "J.C. Aquino Ave",
+          "latitude": 8.949,
+          "longitude": 125.536,
+          "stop_order": 2
+        },
+        {
+          "stop_id": 33,
+          "route_id": 3,
+          "stop_name": "Villa Kananga",
+          "latitude": 8.945,
+          "longitude": 125.542,
+          "stop_order": 3
+        },
+        {
+          "stop_id": 34,
+          "route_id": 3,
+          "stop_name": "SM City Butuan",
+          "latitude": 8.937,
+          "longitude": 125.554,
+          "stop_order": 4
+        }
+      ]
+    },
+    {
+      "route_id": 4,
+      "route_code": "R4",
+      "route_name": "R4 \u2014 Agusan Bridge Loop",
+      "color": "#457B9D",
+      "description": "Crosses Agusan River connecting east and west districts.",
+      "operating_hours": "5:00 AM \u2013 7:30 PM",
+      "geojson": {
+        "type": "Feature",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              125.525,
+              8.948
+            ],
+            [
+              125.532,
+              8.946
+            ],
+            [
+              125.54,
+              8.944
+            ],
+            [
+              125.548,
+              8.946
+            ],
+            [
+              125.552,
+              8.95
+            ]
+          ]
+        },
+        "properties": {}
+      },
+      "active_status": true,
+      "stops": [
+        {
+          "stop_id": 41,
+          "route_id": 4,
+          "stop_name": "West Bridge Approach",
+          "latitude": 8.948,
+          "longitude": 125.525,
+          "stop_order": 1
+        },
+        {
+          "stop_id": 42,
+          "route_id": 4,
+          "stop_name": "Agusan Bridge",
+          "latitude": 8.944,
+          "longitude": 125.54,
+          "stop_order": 2
+        },
+        {
+          "stop_id": 43,
+          "route_id": 4,
+          "stop_name": "East Side Terminal",
+          "latitude": 8.95,
+          "longitude": 125.552,
+          "stop_order": 3
+        }
+      ]
+    },
+    {
+      "route_id": 5,
+      "route_code": "R5",
+      "route_name": "R5 \u2014 Ampayon to City Proper",
+      "color": "#8338EC",
+      "description": "Serves Ampayon and surrounding residential areas.",
+      "operating_hours": "5:00 AM \u2013 8:00 PM",
+      "geojson": {
+        "type": "Feature",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              125.548,
+              8.962
+            ],
+            [
+              125.544,
+              8.955
+            ],
+            [
+              125.54,
+              8.95
+            ],
+            [
+              125.536,
+              8.945
+            ]
+          ]
+        },
+        "properties": {}
+      },
+      "active_status": true,
+      "stops": [
+        {
+          "stop_id": 51,
+          "route_id": 5,
+          "stop_name": "Ampayon Terminal",
+          "latitude": 8.962,
+          "longitude": 125.548,
+          "stop_order": 1
+        },
+        {
+          "stop_id": 52,
+          "route_id": 5,
+          "stop_name": "Baan Km 3",
+          "latitude": 8.955,
+          "longitude": 125.544,
+          "stop_order": 2
+        },
+        {
+          "stop_id": 53,
+          "route_id": 5,
+          "stop_name": "City Proper",
+          "latitude": 8.945,
+          "longitude": 125.536,
+          "stop_order": 3
+        }
+      ]
+    },
+    {
+      "route_id": 6,
+      "route_code": "R6",
+      "route_name": "R6 \u2014 Bancasi Airport Route",
+      "color": "#FB5607",
+      "description": "Airport connection from city center.",
+      "operating_hours": "6:00 AM \u2013 7:00 PM",
+      "geojson": {
+        "type": "Feature",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              125.536,
+              8.948
+            ],
+            [
+              125.542,
+              8.944
+            ],
+            [
+              125.55,
+              8.938
+            ],
+            [
+              125.558,
+              8.93
+            ]
+          ]
+        },
+        "properties": {}
+      },
+      "active_status": true,
+      "stops": [
+        {
+          "stop_id": 61,
+          "route_id": 6,
+          "stop_name": "City Center",
+          "latitude": 8.948,
+          "longitude": 125.536,
+          "stop_order": 1
+        },
+        {
+          "stop_id": 62,
+          "route_id": 6,
+          "stop_name": "Bancasi Road",
+          "latitude": 8.938,
+          "longitude": 125.55,
+          "stop_order": 2
+        },
+        {
+          "stop_id": 63,
+          "route_id": 6,
+          "stop_name": "Airport Gate",
+          "latitude": 8.93,
+          "longitude": 125.558,
+          "stop_order": 3
+        }
+      ]
+    },
+    {
+      "route_id": 7,
+      "route_code": "R7",
+      "route_name": "R7 \u2014 Bayanihan Route",
+      "color": "#06D6A0",
+      "description": "Serves Bayanihan and nearby barangays.",
+      "operating_hours": "5:30 AM \u2013 8:00 PM",
+      "geojson": {
+        "type": "Feature",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              125.532,
+              8.942
+            ],
+            [
+              125.538,
+              8.938
+            ],
+            [
+              125.544,
+              8.934
+            ],
+            [
+              125.55,
+              8.93
+            ]
+          ]
+        },
+        "properties": {}
+      },
+      "active_status": true,
+      "stops": [
+        {
+          "stop_id": 71,
+          "route_id": 7,
+          "stop_name": "Bayanihan Terminal",
+          "latitude": 8.942,
+          "longitude": 125.532,
+          "stop_order": 1
+        },
+        {
+          "stop_id": 72,
+          "route_id": 7,
+          "stop_name": "Doongan",
+          "latitude": 8.938,
+          "longitude": 125.538,
+          "stop_order": 2
+        },
+        {
+          "stop_id": 73,
+          "route_id": 7,
+          "stop_name": "Bading",
+          "latitude": 8.93,
+          "longitude": 125.55,
+          "stop_order": 3
+        }
+      ]
+    }
+  ]
+}

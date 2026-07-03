@@ -1,0 +1,22 @@
+# Environment
+.env
+.env.flutter.json
+backend/.env
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.db
+backend/instance/
+backend/chroma_data/
+backend/.pytest_cache/
+
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins-dependencies
+build/
+*.iml
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

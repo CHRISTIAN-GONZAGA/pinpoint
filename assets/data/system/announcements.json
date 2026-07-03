@@ -1,0 +1,20 @@
+{
+  "announcements": [
+    {
+      "announcement_id": 1,
+      "title": "Welcome to PINPOINT",
+      "content": "Your official digital mobility companion for Butuan City jeepney routes, fares, and tourism.",
+      "category": "general",
+      "priority": "normal",
+      "active_status": true
+    },
+    {
+      "announcement_id": 2,
+      "title": "Offline Mode Active",
+      "content": "Core PINPOINT features run locally on your device. Connect to the server later for cloud sync.",
+      "category": "general",
+      "priority": "high",
+      "active_status": true
+    }
+  ]
+}

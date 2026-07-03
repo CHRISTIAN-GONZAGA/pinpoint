@@ -1,0 +1,90 @@
+{
+  "documents": [
+    {
+      "id": "routes-overview",
+      "category": "transport",
+      "keywords": [
+        "jeep",
+        "jeepney",
+        "route",
+        "r1",
+        "r2",
+        "r3",
+        "r4",
+        "r5",
+        "r6",
+        "r7",
+        "saan",
+        "which"
+      ],
+      "title": "Jeepney Routes",
+      "content_en": "PINPOINT covers official Butuan jeepney routes R1 through R7, including City Proper, Libertad, Robinsons, SM City Butuan, Ampayon, Bancasi Airport, and Bayanihan corridors.",
+      "content_tl": "Saklaw ng PINPOINT ang opisyal na ruta ng jeepney R1 hanggang R7 sa Butuan, kasama ang City Proper, Libertad, Robinsons, SM City Butuan, Ampayon, Bancasi Airport, at Bayanihan.",
+      "content_ceb": "Gisakop sa PINPOINT ang opisyal nga ruta sa jeepney R1 hangtod R7 sa Butuan, apil ang City Proper, Libertad, Robinsons, SM City Butuan, Ampayon, Bancasi Airport, ug Bayanihan."
+    },
+    {
+      "id": "fares",
+      "category": "transport",
+      "keywords": [
+        "fare",
+        "pamasahe",
+        "magkano",
+        "presyo",
+        "how much",
+        "bayad"
+      ],
+      "title": "Fare Matrix",
+      "content_en": "Jeepney minimum fare is PHP 13.00 with PHP 1.80 per succeeding kilometer. Tricycle base fares start at PHP 15\u201325 depending on the zone.",
+      "content_tl": "Ang minimum na pamasahe sa jeepney ay PHP 13.00 at PHP 1.80 bawat susunod na kilometro. Ang tricycle ay nagsisimula sa PHP 15\u201325 depende sa zone.",
+      "content_ceb": "Ang minimum nga pamasahe sa jeepney kay PHP 13.00 ug PHP 1.80 kada sunod nga kilometro. Ang tricycle nagsugod sa PHP 15\u201325 depende sa zone."
+    },
+    {
+      "id": "emergency",
+      "category": "emergency",
+      "keywords": [
+        "emergency",
+        "911",
+        "hospital",
+        "police",
+        "fire",
+        "tulong",
+        "emergency number"
+      ],
+      "title": "Emergency Contacts",
+      "content_en": "Dial 911 for police and fire emergencies. Butuan Medical Center: (085) 342-0123. Caraga Regional Hospital: (085) 225-8001.",
+      "content_tl": "Tumawag sa 911 para sa pulisya at bumbero. Butuan Medical Center: (085) 342-0123. Caraga Regional Hospital: (085) 225-8001.",
+      "content_ceb": "Tawagi ang 911 para sa pulisya ug bombero. Butuan Medical Center: (085) 342-0123. Caraga Regional Hospital: (085) 225-8001."
+    },
+    {
+      "id": "tourism",
+      "category": "tourism",
+      "keywords": [
+        "tourist",
+        "attraction",
+        "museum",
+        "park",
+        "libot",
+        "bisita",
+        "spot"
+      ],
+      "title": "Tourist Attractions",
+      "content_en": "Popular spots include Balangay Shrine Museum, Butuan National Museum, Guingona Park, and Delta Discovery Park.",
+      "content_tl": "Kasama sa mga sikat na lugar ang Balangay Shrine Museum, Butuan National Museum, Guingona Park, at Delta Discovery Park.",
+      "content_ceb": "Apil sa sikat nga lugar ang Balangay Shrine Museum, Butuan National Museum, Guingona Park, ug Delta Discovery Park."
+    },
+    {
+      "id": "sm-robinsons",
+      "category": "transport",
+      "keywords": [
+        "sm",
+        "robinsons",
+        "mall",
+        "shopping"
+      ],
+      "title": "Mall Routes",
+      "content_en": "Route R2 serves Robinsons Place Butuan. Route R3 serves SM City Butuan from downtown.",
+      "content_tl": "Ang Ruta R2 ay papunta sa Robinsons Place Butuan. Ang Ruta R3 ay papunta sa SM City Butuan mula downtown.",
+      "content_ceb": "Ang Ruta R2 moagi sa Robinsons Place Butuan. Ang Ruta R3 moagi sa SM City Butuan gikan sa downtown."
+    }
+  ]
+}

@@ -1,0 +1,118 @@
+{
+  "zones": [
+    {
+      "zone_id": 1,
+      "zone_name": "Zone A \u2014 City Proper",
+      "polygon_geojson": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                125.525,
+                8.958
+              ],
+              [
+                125.555,
+                8.958
+              ],
+              [
+                125.555,
+                8.935
+              ],
+              [
+                125.525,
+                8.935
+              ],
+              [
+                125.525,
+                8.958
+              ]
+            ]
+          ]
+        },
+        "properties": {}
+      },
+      "base_fare": 15.0,
+      "notes": "Covers downtown and Guingona Park area.",
+      "active_status": true
+    },
+    {
+      "zone_id": 2,
+      "zone_name": "Zone B \u2014 Libertad",
+      "polygon_geojson": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                125.545,
+                8.945
+              ],
+              [
+                125.565,
+                8.945
+              ],
+              [
+                125.565,
+                8.928
+              ],
+              [
+                125.545,
+                8.928
+              ],
+              [
+                125.545,
+                8.945
+              ]
+            ]
+          ]
+        },
+        "properties": {}
+      },
+      "base_fare": 20.0,
+      "notes": "Libertad market and surrounding barangays.",
+      "active_status": true
+    },
+    {
+      "zone_id": 3,
+      "zone_name": "Zone C \u2014 Ampayon",
+      "polygon_geojson": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                125.538,
+                8.968
+              ],
+              [
+                125.56,
+                8.968
+              ],
+              [
+                125.56,
+                8.95
+              ],
+              [
+                125.538,
+                8.95
+              ],
+              [
+                125.538,
+                8.968
+              ]
+            ]
+          ]
+        },
+        "properties": {}
+      },
+      "base_fare": 25.0,
+      "notes": "Ampayon residential and commercial zone.",
+      "active_status": true
+    }
+  ]
+}
