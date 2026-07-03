@@ -14,6 +14,7 @@ import 'package:pinpoint/features/authentication/data/auth_local_datasource.dart
 import 'package:pinpoint/features/authentication/data/auth_remote_datasource.dart';
 import 'package:pinpoint/features/authentication/data/auth_repository_impl.dart';
 import 'package:pinpoint/core/services/geocoding_service.dart';
+import 'package:pinpoint/core/services/place_search_service.dart';
 import 'package:pinpoint/core/services/location_service.dart';
 import 'package:pinpoint/core/services/jeepney_path_service.dart';
 import 'package:pinpoint/core/services/routing_service.dart';
@@ -87,8 +88,15 @@ final locationServiceProvider = Provider<LocationService>((ref) => LocationServi
 final geocodingServiceProvider =
     Provider<GeocodingService>((ref) => GeocodingService());
 
+final placeSearchServiceProvider = Provider<PlaceSearchService>((ref) {
+  return PlaceSearchService(
+    places: ref.watch(placesRepositoryProvider),
+    geocoding: ref.watch(geocodingServiceProvider),
+  );
+});
+
 final routingServiceProvider =
-    Provider<RoutingService>((ref) => RoutingService());
+    Provider<RoutingService>((ref) => RoutingService(offlineMode: AppConstants.offlineFirstMode));
 
 final jeepneyPathServiceProvider =
     Provider<JeepneyPathService>((ref) => JeepneyPathService(

@@ -1,0 +1,149 @@
+{
+  "ordinance": "City Ordinance No. 7194-2024 (LPTRP)",
+  "map_version": "2025-10-24",
+  "note": "Pending geocoding — do NOT ship in app. All stops verified=false until manual review.",
+  "routes": [
+    {
+      "code": "R1",
+      "route_id": 1,
+      "name": "City Proper Loop",
+      "color": "#1D3557",
+      "bidirectional": true,
+      "termini": ["North Montilla Blvd", "Crossing Dumalagan"],
+      "street_segments": ["North Montilla Blvd", "South Montilla Blvd", "J.C. Aquino Ave"],
+      "ordered_stops": [
+        {"id": "r1_north_montilla", "name": "North Montilla Blvd", "lat": null, "lng": null, "verified": false, "aliases": ["7-Eleven Montilla"]},
+        {"id": "r1_city_proper_loop", "name": "City Proper Loop", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r1_bces_anhs", "name": "BCES / Agusan National HS", "lat": null, "lng": null, "verified": false, "aliases": ["Butuan Central ES", "ANHS"]},
+        {"id": "r1_south_montilla", "name": "South Montilla Blvd", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r1_jaqno", "name": "J.C. Aquino Ave (JAQNO)", "lat": null, "lng": null, "verified": false, "aliases": ["Butuan National Museum"]},
+        {"id": "r1_libertad", "name": "Libertad", "lat": null, "lng": null, "verified": false, "aliases": ["Libertad Market"]},
+        {"id": "r1_bancasi", "name": "Bancasi", "lat": null, "lng": null, "verified": false, "aliases": ["Bancasi Airport area"]},
+        {"id": "r1_dumalagan", "name": "Crossing Dumalagan", "lat": null, "lng": null, "verified": false, "aliases": ["Dumalagan Crossing"]}
+      ],
+      "corridor_geojson": null
+    },
+    {
+      "code": "R2",
+      "route_id": 2,
+      "name": "JAQNO to Dumalagan",
+      "color": "#E63946",
+      "bidirectional": true,
+      "termini": ["J.C. Aquino Ave (JAQNO)", "Crossing Dumalagan"],
+      "street_segments": ["J.C. Aquino Ave", "North Montilla Blvd", "Rosales Ave", "Langihan"],
+      "ordered_stops": [
+        {"id": "r2_jaqno", "name": "J.C. Aquino Ave (JAQNO)", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r2_bces_anhs", "name": "BCES / Agusan National HS", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r2_ad_curato", "name": "A.D. Curato St", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r2_g_flores", "name": "G. Flores Ave", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r2_north_montilla", "name": "North Montilla Blvd", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r2_jeepney_terminal", "name": "Jeepney Terminal", "lat": null, "lng": null, "verified": false, "aliases": ["Langihan Jeepney Terminal", "City Hall Terminal"]},
+        {"id": "r2_langihan", "name": "Langihan", "lat": null, "lng": null, "verified": false, "aliases": ["Langihan Public Market", "Langihan Bus-Jeep Terminal"]},
+        {"id": "r2_rosales", "name": "Rosales Ave", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r2_libertad", "name": "Libertad", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r2_bancasi", "name": "Bancasi", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r2_dumalagan", "name": "Crossing Dumalagan", "lat": null, "lng": null, "verified": false, "aliases": []}
+      ],
+      "corridor_geojson": null
+    },
+    {
+      "code": "R3",
+      "route_id": 3,
+      "name": "Ampayon–Libertad",
+      "color": "#2A9D8F",
+      "bidirectional": true,
+      "termini": ["Libertad", "Ampayon Triangle"],
+      "street_segments": ["Libertad", "J.C. Aquino Ave", "FSUU Plaza"],
+      "ordered_stops": [
+        {"id": "r3_libertad", "name": "Libertad", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r3_jaqno", "name": "J.C. Aquino Ave (JAQNO)", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r3_fsuu", "name": "FSUU / Plaza", "lat": null, "lng": null, "verified": false, "aliases": ["FSUU Urios", "Guingona Park"]},
+        {"id": "r3_ampayon_market", "name": "Ampayon Public Market", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r3_ampayon_triangle", "name": "Ampayon Triangle", "lat": null, "lng": null, "verified": false, "aliases": []}
+      ],
+      "corridor_geojson": null
+    },
+    {
+      "code": "R4",
+      "route_id": 4,
+      "name": "De Oro Loop",
+      "color": "#F72585",
+      "bidirectional": true,
+      "termini": ["Jeepney Terminal", "De Oro"],
+      "street_segments": ["Rosales Ave", "R. Calo St", "J.C. Aquino Ave"],
+      "ordered_stops": [
+        {"id": "r4_terminal", "name": "Jeepney Terminal", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r4_rosales", "name": "Rosales Ave", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r4_r_calo", "name": "R. Calo St", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r4_sanchez", "name": "Sanchez St", "lat": null, "lng": null, "verified": false, "aliases": ["T. Sanchez St"]},
+        {"id": "r4_m_calo", "name": "M. Calo St", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r4_ampayon", "name": "Ampayon", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r4_de_oro", "name": "De Oro", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r4_jaqno", "name": "J.C. Aquino Ave (JAQNO)", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r4_rosales_st", "name": "Rosales St", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r4_north_montilla", "name": "North Montilla Blvd", "lat": null, "lng": null, "verified": false, "aliases": []}
+      ],
+      "corridor_geojson": null
+    },
+    {
+      "code": "R5",
+      "route_id": 5,
+      "name": "Santo Niño Loop",
+      "color": "#FB8500",
+      "bidirectional": true,
+      "termini": ["Jeepney Terminal", "Santo Niño"],
+      "street_segments": ["North Montilla Blvd", "J.C. Aquino Ave", "R. Calo St"],
+      "ordered_stops": [
+        {"id": "r5_terminal", "name": "Jeepney Terminal", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r5_north_montilla", "name": "North Montilla Blvd", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r5_jaqno", "name": "J.C. Aquino Ave (JAQNO)", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r5_t_sanchez", "name": "T. Sanchez St", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r5_m_calo", "name": "M. Calo St", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r5_ampayon", "name": "Ampayon", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r5_santo_nino", "name": "Santo Niño", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r5_rosales", "name": "Rosales St", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r5_langihan_terminal", "name": "Langihan Jeepney Terminal", "lat": null, "lng": null, "verified": false, "aliases": []}
+      ],
+      "corridor_geojson": null
+    },
+    {
+      "code": "R6",
+      "route_id": 6,
+      "name": "Maguinda",
+      "color": "#FFB703",
+      "bidirectional": true,
+      "termini": ["Capitol Terminal", "Maguinda"],
+      "street_segments": ["Capitol Drive", "Guingona Ave", "Montilla Blvd", "Mayor Democrito D. Plaza II Ave"],
+      "ordered_stops": [
+        {"id": "r6_capitol", "name": "Capitol Terminal", "lat": null, "lng": null, "verified": false, "aliases": ["Provincial Capitol"]},
+        {"id": "r6_capitol_drive", "name": "Capitol Drive", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r6_guingona", "name": "Guingona Ave", "lat": null, "lng": null, "verified": false, "aliases": ["Guingona Park"]},
+        {"id": "r6_pizarro", "name": "Z. Pizarro St", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r6_montilla_drive", "name": "Montilla Drive", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r6_mddp", "name": "Mayor Demecrito D. Plaza II Ave", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r6_mahay", "name": "Mahay", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r6_lemon", "name": "Lemon", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r6_maguinda", "name": "Maguinda", "lat": null, "lng": null, "verified": false, "aliases": []}
+      ],
+      "corridor_geojson": null
+    },
+    {
+      "code": "R7",
+      "route_id": 7,
+      "name": "Tungao",
+      "color": "#06D6A0",
+      "bidirectional": true,
+      "termini": ["Capitol Terminal", "Tungao"],
+      "street_segments": ["Rosales Ave", "Montilla Blvd"],
+      "ordered_stops": [
+        {"id": "r7_capitol", "name": "Capitol Terminal", "lat": null, "lng": null, "verified": false, "aliases": ["Provincial Capitol"]},
+        {"id": "r7_rosales", "name": "Rosales Ave", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r7_s_calo", "name": "S. Calo St", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r7_montilla", "name": "Montilla Blvd", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r7_san_vicente", "name": "San Vicente", "lat": null, "lng": null, "verified": false, "aliases": []},
+        {"id": "r7_tungao", "name": "Tungao", "lat": null, "lng": null, "verified": false, "aliases": []}
+      ],
+      "corridor_geojson": null
+    }
+  ]
+}

@@ -426,7 +426,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
     if (!mapState.layers.showStopsAtZoom(zoom)) return [];
     final showLabels = mapState.layers.showLabelsAtZoom(zoom);
     return mapState.filteredJeepneyRoutes.expand((route) {
-      return route.stops.map((stop) {
+      return route.verifiedStops.map((stop) {
         final isTransfer = mapState.layers.showTransferPoints && notifier.isTransferStop(stop);
         final isTerminal = notifier.isTerminalStop(stop);
         final color = colorFromHex(route.colorHex);

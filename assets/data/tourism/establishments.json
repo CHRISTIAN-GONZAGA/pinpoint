@@ -8,7 +8,8 @@
       "latitude": 8.94,
       "longitude": 125.55,
       "address": "Robinsons Place, J.C. Aquino Ave",
-      "active_status": true
+      "active_status": true,
+      "verified": true
     },
     {
       "establishment_id": 2,
@@ -18,7 +19,8 @@
       "latitude": 8.937,
       "longitude": 125.554,
       "address": "J.C. Aquino Ave, Butuan City",
-      "active_status": true
+      "active_status": true,
+      "verified": true
     },
     {
       "establishment_id": 3,
@@ -28,7 +30,8 @@
       "latitude": 8.948,
       "longitude": 125.538,
       "address": "J.C. Aquino Ave near Rosales, Butuan City",
-      "active_status": true
+      "active_status": true,
+      "verified": true
     },
     {
       "establishment_id": 4,
@@ -38,7 +41,8 @@
       "latitude": 8.953,
       "longitude": 125.529,
       "address": "Rizal St, Butuan City",
-      "active_status": true
+      "active_status": true,
+      "verified": true
     },
     {
       "establishment_id": 5,
@@ -48,7 +52,8 @@
       "latitude": 8.9505,
       "longitude": 125.5335,
       "address": "City Hall Complex, Butuan City",
-      "active_status": true
+      "active_status": true,
+      "verified": true
     },
     {
       "establishment_id": 6,
@@ -58,7 +63,8 @@
       "latitude": 8.95,
       "longitude": 125.534,
       "address": "City Hall Complex, Butuan City",
-      "active_status": true
+      "active_status": true,
+      "verified": true
     },
     {
       "establishment_id": 7,
@@ -68,7 +74,8 @@
       "latitude": 8.9495,
       "longitude": 125.5355,
       "address": "Montilla Blvd, Butuan City",
-      "active_status": true
+      "active_status": true,
+      "verified": true
     },
     {
       "establishment_id": 8,
@@ -78,7 +85,8 @@
       "latitude": 8.946,
       "longitude": 125.541,
       "address": "J.C. Aquino Ave, Butuan City",
-      "active_status": true
+      "active_status": true,
+      "verified": true
     },
     {
       "establishment_id": 9,
@@ -88,7 +96,8 @@
       "latitude": 8.95,
       "longitude": 125.5365,
       "address": "Downtown, Butuan City",
-      "active_status": true
+      "active_status": true,
+      "verified": true
     },
     {
       "establishment_id": 10,
@@ -98,7 +107,8 @@
       "latitude": 8.9515,
       "longitude": 125.5315,
       "address": "City Hall Complex, Butuan City",
-      "active_status": true
+      "active_status": true,
+      "verified": true
     },
     {
       "establishment_id": 11,
@@ -108,7 +118,8 @@
       "latitude": 8.9402,
       "longitude": 125.5502,
       "address": "Robinsons Place Butuan",
-      "active_status": true
+      "active_status": true,
+      "verified": true
     },
     {
       "establishment_id": 12,
@@ -118,7 +129,8 @@
       "latitude": 8.944,
       "longitude": 125.547,
       "address": "J.C. Aquino Ave, Butuan City",
-      "active_status": true
+      "active_status": true,
+      "verified": true
     },
     {
       "establishment_id": 13,
@@ -128,7 +140,8 @@
       "latitude": 8.9485,
       "longitude": 125.5375,
       "address": "Montilla Blvd, Butuan City",
-      "active_status": true
+      "active_status": true,
+      "verified": true
     }
   ]
 }

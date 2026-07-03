@@ -6,13 +6,14 @@
       "address": "Brgy. Libertad, Butuan City",
       "latitude": 8.9385,
       "longitude": 125.5455,
-      "entrance_fee": "\u20b150",
-      "opening_hours": "9:00 AM \u2013 5:00 PM",
+      "entrance_fee": "₱50",
+      "opening_hours": "9:00 AM – 5:00 PM",
       "category": "museum",
       "contact_information": "(085) 342-1234",
       "attraction_id": 1,
       "place_type": "attraction",
-      "images": []
+      "images": [],
+      "verified": true
     },
     {
       "name": "Butuan National Museum",
@@ -21,12 +22,13 @@
       "latitude": 8.949,
       "longitude": 125.536,
       "entrance_fee": "Free",
-      "opening_hours": "8:00 AM \u2013 5:00 PM",
+      "opening_hours": "8:00 AM – 5:00 PM",
       "category": "museum",
       "contact_information": "(085) 225-7924",
       "attraction_id": 2,
       "place_type": "attraction",
-      "images": []
+      "images": [],
+      "verified": true
     },
     {
       "name": "Guingona Park",
@@ -40,7 +42,8 @@
       "contact_information": null,
       "attraction_id": 3,
       "place_type": "attraction",
-      "images": []
+      "images": [],
+      "verified": true
     },
     {
       "name": "Delta Discovery Park",
@@ -48,13 +51,14 @@
       "address": "Brgy. Bonbon, Butuan City",
       "latitude": 8.962,
       "longitude": 125.528,
-      "entrance_fee": "\u20b130",
-      "opening_hours": "7:00 AM \u2013 6:00 PM",
+      "entrance_fee": "₱30",
+      "opening_hours": "7:00 AM – 6:00 PM",
       "category": "park",
       "contact_information": null,
       "attraction_id": 4,
       "place_type": "attraction",
-      "images": []
+      "images": [],
+      "verified": true
     }
   ]
 }

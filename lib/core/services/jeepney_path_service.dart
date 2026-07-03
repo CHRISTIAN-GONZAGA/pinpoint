@@ -15,11 +15,12 @@ class JeepneyPathService {
     final cached = _cache[route.routeId];
     if (cached != null && cached.isNotEmpty) return cached;
 
-    if (route.stops.length >= 2) {
+    if (route.verifiedStops.length >= 2) {
       final points = <LatLng>[];
-      for (var i = 0; i < route.stops.length - 1; i++) {
-        final from = route.stops[i].latLng;
-        final to = route.stops[i + 1].latLng;
+      final stops = route.verifiedStops;
+      for (var i = 0; i < stops.length - 1; i++) {
+        final from = stops[i].latLng;
+        final to = stops[i + 1].latLng;
         final leg = await _roadLeg(from, to);
         if (points.isEmpty) {
           points.addAll(leg);

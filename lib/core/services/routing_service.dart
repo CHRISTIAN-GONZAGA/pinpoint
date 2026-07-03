@@ -1,13 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:pinpoint/app/constants.dart';
-import 'package:pinpoint/core/exceptions/app_exception.dart';
 
 /// OSRM walking route between two points.
 class RoutingService {
-  RoutingService({Dio? dio}) : _dio = dio ?? Dio();
+  RoutingService({Dio? dio, this.offlineMode = false}) : _dio = dio ?? Dio();
 
   final Dio _dio;
+  final bool offlineMode;
   final Distance _distance = const Distance();
 
   /// Fetches a walking route polyline from OSRM.
@@ -22,6 +22,7 @@ class RoutingService {
 
   Future<({List<LatLng> polyline, double distanceMeters, int durationSeconds})>
       _getRoute(LatLng from, LatLng to, {required String profile}) async {
+    if (offlineMode) return _straightLineFallback(from, to);
     try {
       final coords =
           '${from.longitude},${from.latitude};${to.longitude},${to.latitude}';
@@ -35,10 +36,10 @@ class RoutingService {
       );
       final data = response.data;
       if (data == null || data['routes'] == null) {
-        throw const AppException('Unable to calculate walking route.');
+        return _straightLineFallback(from, to);
       }
       final routes = data['routes'] as List;
-      if (routes.isEmpty) throw const AppException('No walking route found.');
+      if (routes.isEmpty) return _straightLineFallback(from, to);
       final route = routes.first as Map<String, dynamic>;
       final geometry = route['geometry'] as Map<String, dynamic>;
       final coordinates = geometry['coordinates'] as List;
@@ -51,8 +52,21 @@ class RoutingService {
         durationSeconds: (route['duration'] as num).round(),
       );
     } on DioException {
-      throw const AppException('Routing service unavailable. Try again later.');
+      return _straightLineFallback(from, to);
     }
+  }
+
+  ({List<LatLng> polyline, double distanceMeters, int durationSeconds})
+      _straightLineFallback(LatLng from, LatLng to) {
+    final meters = distanceMeters(from, to);
+    const walkMps = 1.4;
+    const driveMps = 8.0;
+    final speed = meters < 2000 ? walkMps : driveMps;
+    return (
+      polyline: [from, to],
+      distanceMeters: meters,
+      durationSeconds: (meters / speed).round().clamp(60, 99999),
+    );
   }
 
   double distanceMeters(LatLng from, LatLng to) =>
@@ -60,6 +74,7 @@ class RoutingService {
 
   /// Snaps a tap to the nearest drivable road using OSRM Nearest.
   Future<LatLng> snapToNearestRoad(LatLng point) async {
+    if (offlineMode) return point;
     try {
       final response = await _dio.get<Map<String, dynamic>>(
         '${AppConstants.osrmBaseUrl}/nearest/v1/driving/'

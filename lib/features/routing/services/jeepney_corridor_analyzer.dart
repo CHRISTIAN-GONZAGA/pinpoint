@@ -17,8 +17,9 @@ class JeepneyCorridorAnalyzer {
   ) {
     final results = <({JeepneyRoute route, double distanceMeters})>[];
     for (final route in routes) {
+      if (!route.isRoutable) continue;
       var nearest = double.infinity;
-      for (final stop in route.stops) {
+      for (final stop in route.verifiedStops) {
         final d = _geometry.distanceMeters(point, stop.latLng);
         if (d < nearest) nearest = d;
       }

@@ -23,10 +23,13 @@ class StopMatcher {
     double maxMeters = maxWalkToStopMeters,
     int limit = maxCandidates,
   }) {
+    final activeStops = route.verifiedStops;
+    if (activeStops.isEmpty) return [];
+
     final corridorDist = _geometry.distancePointToPolylineMeters(point, route.polyline);
 
     final candidates = <({RouteStop stop, double dist})>[];
-    for (final stop in route.stops) {
+    for (final stop in activeStops) {
       final d = _geometry.distanceMeters(point, stop.latLng);
       final effectiveMax = corridorDist <= corridorAttachMeters
           ? maxMeters + corridorAttachMeters
@@ -34,8 +37,8 @@ class StopMatcher {
       if (d <= effectiveMax) candidates.add((stop: stop, dist: d));
     }
 
-    if (candidates.isEmpty && corridorDist <= corridorAttachMeters && route.stops.isNotEmpty) {
-      for (final stop in route.stops) {
+    if (candidates.isEmpty && corridorDist <= corridorAttachMeters && activeStops.isNotEmpty) {
+      for (final stop in activeStops) {
         candidates.add((
           stop: stop,
           dist: _geometry.distanceMeters(point, stop.latLng),

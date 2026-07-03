@@ -77,6 +77,16 @@ class _PlaceDetailScreenState extends ConsumerState<PlaceDetailScreen> {
     );
   }
 
+  Future<void> _planTrip() async {
+    final place = _place;
+    if (place == null || !place.hasVerifiedCoordinates) return;
+    await ref.read(mapNotifierProvider.notifier).planTripTo(
+          MapLocation.fromLatLng(place.latLng, label: place.name),
+        );
+    if (!mounted) return;
+    context.go(AppRoutes.map);
+  }
+
   void _navigateOnMap() {
     final place = _place;
     if (place == null) return;
@@ -148,6 +158,13 @@ class _PlaceDetailScreenState extends ConsumerState<PlaceDetailScreen> {
           if (place.contactInformation != null)
             _InfoRow(icon: Icons.phone_outlined, label: place.contactInformation!),
           const SizedBox(height: AppSpacing.xl),
+          if (place.hasVerifiedCoordinates)
+            PrimaryButton(
+              label: 'Plan a trip here',
+              icon: Icons.directions_rounded,
+              onPressed: _planTrip,
+            ),
+          if (place.hasVerifiedCoordinates) const SizedBox(height: AppSpacing.md),
           PrimaryButton(label: 'View on Map', icon: Icons.map_rounded, onPressed: _navigateOnMap),
         ],
       ),

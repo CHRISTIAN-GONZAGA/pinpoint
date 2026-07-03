@@ -36,15 +36,18 @@ class JeepneyPlanBuilder {
   }) async {
     if (jeepneyRoutes.isEmpty) return [];
 
+    final routable = jeepneyRoutes.where((r) => r.isRoutable).toList();
+    if (routable.isEmpty) return [];
+
     final directMeters = _geometry.distanceMeters(origin, destination);
     final scored = <({double score, JeepneyPlan plan})>[];
 
-    final servingOrigin = _stops.routesServing(origin, jeepneyRoutes);
-    final servingDest = _stops.routesServing(destination, jeepneyRoutes);
+    final servingOrigin = _stops.routesServing(origin, routable);
+    final servingDest = _stops.routesServing(destination, routable);
     final activeRoutes = <JeepneyRoute>{
       ...servingOrigin,
       ...servingDest,
-      ...jeepneyRoutes,
+      ...routable,
     }.toList();
 
     for (final route in activeRoutes) {
@@ -74,7 +77,7 @@ class JeepneyPlanBuilder {
       scored.addAll(await _fallbackPlans(
         origin: origin,
         destination: destination,
-        jeepneyRoutes: jeepneyRoutes,
+        jeepneyRoutes: routable,
         directMeters: directMeters,
       ));
     }
@@ -97,7 +100,7 @@ class JeepneyPlanBuilder {
     required double directMeters,
   }) async {
     final roadPoly = await _jeepneyPaths.roadPolylineForRoute(route);
-    if (roadPoly.length < 2 && route.stops.length < 2) return [];
+    if (roadPoly.length < 2 && route.verifiedStops.length < 2) return [];
 
     final polyline = roadPoly.length >= 2 ? roadPoly : route.polyline;
     final boardCandidates = _stops.nearbyStopsOnRoute(route, origin);
@@ -212,7 +215,7 @@ class JeepneyPlanBuilder {
   RouteStop? _nearestStop(JeepneyRoute route, LatLng point) {
     RouteStop? best;
     var bestDist = double.infinity;
-    for (final stop in route.stops) {
+    for (final stop in route.verifiedStops) {
       final d = _geometry.distanceMeters(point, stop.latLng);
       if (d < bestDist) {
         bestDist = d;

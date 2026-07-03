@@ -8,7 +8,10 @@ import 'package:pinpoint/core/widgets/empty_state_widget.dart';
 import 'package:pinpoint/core/widgets/error_state_widget.dart';
 import 'package:pinpoint/core/widgets/loading_shimmer.dart';
 import 'package:pinpoint/core/widgets/place_card.dart';
+import 'package:pinpoint/features/explore/domain/place_models.dart';
 import 'package:pinpoint/features/explore/presentation/viewmodels/explore_notifier.dart';
+import 'package:pinpoint/features/map/domain/map_models.dart';
+import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart';
 
 /// Tourism and nearby places exploration screen.
 class ExploreScreen extends ConsumerStatefulWidget {
@@ -20,6 +23,24 @@ class ExploreScreen extends ConsumerStatefulWidget {
 
 class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   final _searchController = TextEditingController();
+
+  Future<void> _planTripTo(Place place) async {
+    if (!place.hasVerifiedCoordinates) return;
+    await ref.read(mapNotifierProvider.notifier).planTripTo(
+          MapLocation.fromLatLng(place.latLng, label: place.name),
+        );
+    if (!mounted) return;
+    context.go(AppRoutes.map);
+  }
+
+  Widget _planTripTrailing(Place place) {
+    if (!place.hasVerifiedCoordinates) return const SizedBox.shrink();
+    return IconButton(
+      tooltip: 'Plan a trip',
+      icon: const Icon(Icons.directions_rounded),
+      onPressed: () => _planTripTo(place),
+    );
+  }
 
   @override
   void initState() {
@@ -106,6 +127,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                             onTap: () => context.push(
                               AppRoutes.placeDetail(place.placeType, place.id),
                             ),
+                            trailing: _planTripTrailing(place),
                           ),
                         ),
                       ],
@@ -158,6 +180,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                                 onTap: () => context.push(
                                   AppRoutes.placeDetail(place.placeType, place.id),
                                 ),
+                                trailing: _planTripTrailing(place),
                               ),
                             )
                       else
@@ -167,6 +190,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                                 onTap: () => context.push(
                                   AppRoutes.placeDetail(place.placeType, place.id),
                                 ),
+                                trailing: _planTripTrailing(place),
                               ),
                             ),
                     ],

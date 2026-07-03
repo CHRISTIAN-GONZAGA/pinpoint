@@ -41,16 +41,24 @@ class RouteStop extends Equatable {
     required this.latitude,
     required this.longitude,
     required this.order,
+    this.verified = true,
+    this.stopKey,
+    this.source,
   });
 
-  factory RouteStop.fromJson(Map<String, dynamic> json) {
+  factory RouteStop.fromJson(Map<String, dynamic> json, {int? routeId, int? order}) {
+    final lat = json['lat'] ?? json['latitude'];
+    final lng = json['lng'] ?? json['longitude'];
     return RouteStop(
-      stopId: json['stop_id'] as int,
-      routeId: json['route_id'] as int,
-      name: json['stop_name'] as String,
-      latitude: (json['latitude'] as num).toDouble(),
-      longitude: (json['longitude'] as num).toDouble(),
-      order: json['stop_order'] as int,
+      stopId: (json['stop_id'] as num?)?.toInt() ?? order ?? 0,
+      routeId: (json['route_id'] as num?)?.toInt() ?? routeId ?? 0,
+      name: (json['name'] ?? json['stop_name']) as String,
+      latitude: lat == null ? 0 : (lat as num).toDouble(),
+      longitude: lng == null ? 0 : (lng as num).toDouble(),
+      order: (json['stop_order'] as num?)?.toInt() ?? order ?? 0,
+      verified: json['verified'] as bool? ?? true,
+      stopKey: json['id'] as String?,
+      source: json['source'] as String?,
     );
   }
 
@@ -60,11 +68,16 @@ class RouteStop extends Equatable {
   final double latitude;
   final double longitude;
   final int order;
+  final bool verified;
+  final String? stopKey;
+  final String? source;
 
   LatLng get latLng => LatLng(latitude, longitude);
 
+  bool get hasCoordinates => latitude != 0 || longitude != 0;
+
   @override
-  List<Object?> get props => [stopId, routeId, name];
+  List<Object?> get props => [stopId, routeId, name, stopKey];
 }
 
 /// Official jeepney route (R1–R7).
@@ -78,25 +91,55 @@ class JeepneyRoute extends Equatable {
     this.description,
     this.operatingHours,
     this.stops = const [],
+    this.bidirectional = true,
+    this.streetSegments = const [],
   });
 
   factory JeepneyRoute.fromJson(Map<String, dynamic> json) {
-    final geojson = _readGeoJsonMap(json['geojson']);
-    final geometry = geojson['geometry'] as Map<String, dynamic>;
-    final coordinates = (geometry['coordinates'] as List)
-        .map((c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
-        .toList();
+    final routeId = (json['route_id'] as num?)?.toInt() ?? 0;
+    final routeCode = (json['code'] ?? json['route_code']) as String;
+    final routeName = (json['name'] ?? json['route_name']) as String;
+    final colorHex = json['color'] as String;
+
+    List<LatLng> polyline;
+    if (json['corridor_geojson'] != null) {
+      final geom = Map<String, dynamic>.from(
+        (json['corridor_geojson'] as Map)['coordinates'] != null
+            ? json['corridor_geojson'] as Map
+            : json['corridor_geojson'] as Map,
+      );
+      final coordinates = (geom['coordinates'] as List)
+          .map((c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
+          .toList();
+      polyline = coordinates;
+    } else {
+      final geojson = _readGeoJsonMap(json['geojson']);
+      final geometry = geojson['geometry'] as Map<String, dynamic>;
+      final coordinates = (geometry['coordinates'] as List)
+          .map((c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
+          .toList();
+      polyline = coordinates;
+    }
+
+    final rawStops = json['ordered_stops'] as List<dynamic>? ?? json['stops'] as List<dynamic>? ?? [];
+    final stops = <RouteStop>[];
+    for (var i = 0; i < rawStops.length; i++) {
+      final stopJson = Map<String, dynamic>.from(rawStops[i] as Map);
+      stops.add(RouteStop.fromJson(stopJson, routeId: routeId, order: i + 1));
+    }
 
     return JeepneyRoute(
-      routeId: (json['route_id'] as num).toInt(),
-      routeCode: json['route_code'] as String,
-      routeName: json['route_name'] as String,
-      colorHex: json['color'] as String,
+      routeId: routeId,
+      routeCode: routeCode,
+      routeName: routeName,
+      colorHex: colorHex,
       description: json['description'] as String?,
       operatingHours: json['operating_hours'] as String?,
-      polyline: coordinates,
-      stops: (json['stops'] as List<dynamic>? ?? [])
-          .map((s) => RouteStop.fromJson(Map<String, dynamic>.from(s as Map)))
+      polyline: polyline,
+      stops: stops,
+      bidirectional: json['bidirectional'] as bool? ?? true,
+      streetSegments: (json['street_segments'] as List<dynamic>? ?? [])
+          .map((s) => s as String)
           .toList(),
     );
   }
@@ -109,6 +152,14 @@ class JeepneyRoute extends Equatable {
   final String? operatingHours;
   final List<LatLng> polyline;
   final List<RouteStop> stops;
+  final bool bidirectional;
+  final List<String> streetSegments;
+
+  /// Stops with verified coordinates — only these may be used for routing pins.
+  List<RouteStop> get verifiedStops =>
+      stops.where((s) => s.verified && s.hasCoordinates).toList();
+
+  bool get isRoutable => verifiedStops.length >= 2;
 
   @override
   List<Object?> get props => [routeId, routeCode];

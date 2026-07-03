@@ -7,6 +7,7 @@ import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
 import 'package:pinpoint/core/utilities/color_utils.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
+import 'package:pinpoint/core/widgets/loading_shimmer.dart';
 import 'package:pinpoint/features/routing/domain/route_planning_models.dart';
 import 'package:pinpoint/features/routing/domain/transport_colors.dart';
 import 'package:share_plus/share_plus.dart';
@@ -129,17 +130,27 @@ class RouteSummarySheet extends StatelessWidget {
           ),
         ],
         const SizedBox(height: AppSpacing.md),
-        FilledButton.icon(
-          onPressed: canGenerate && !isGenerating ? onGenerate : null,
-          icon: isGenerating
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                )
-              : const Icon(Icons.route_rounded),
-          label: Text(isGenerating ? 'Comparing…' : 'Compare routes'),
-        ),
+        if (isGenerating) ...[
+          Text(
+            'Comparing walk, jeepney, tricycle & taxi…',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.65),
+                ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          const _RouteOptionsSkeleton(),
+        ] else
+          FilledButton.icon(
+            onPressed: canGenerate ? onGenerate : null,
+            icon: const Icon(Icons.route_rounded),
+            label: const Text('Compare routes'),
+          ),
+      ] else if (isGenerating) ...[
+        Text('Route Summary', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: AppSpacing.md),
+        const _RouteOptionsSkeleton(),
+        const SizedBox(height: AppSpacing.md),
+        const _RouteStepsSkeleton(),
       ] else ...[
         Row(
           children: [
@@ -450,6 +461,43 @@ class _RouteOptionPicker extends StatelessWidget {
         VehicleMode.walk => 'Walk',
         VehicleMode.auto => 'Best',
       };
+}
+
+class _RouteOptionsSkeleton extends StatelessWidget {
+  const _RouteOptionsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 108,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: 3,
+        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
+        itemBuilder: (_, __) => const SizedBox(
+          width: 148,
+          child: LoadingShimmer(height: 108, borderRadius: 14),
+        ),
+      ),
+    );
+  }
+}
+
+class _RouteStepsSkeleton extends StatelessWidget {
+  const _RouteStepsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: List.generate(
+        4,
+        (i) => Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+          child: LoadingShimmer(height: 52, borderRadius: 10),
+        ),
+      ),
+    );
+  }
 }
 
 class _WarningBanner extends StatelessWidget {

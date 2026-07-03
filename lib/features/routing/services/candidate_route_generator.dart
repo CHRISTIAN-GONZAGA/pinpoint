@@ -89,7 +89,16 @@ class CandidateRouteGenerator {
     add(await _assembler.buildTaxiRoute(origin: origin, destination: destination));
 
     if (candidates.isEmpty) {
-      throw Exception('No route could be planned for this trip.');
+      final walk = await _assembler.buildWalkRoute(origin: origin, destination: destination);
+      if (walk != null) {
+        return [
+          walk.copyWith(
+            warningMessage: unservedJeepneyMessage,
+            isRecommended: true,
+          ),
+        ];
+      }
+      return [];
     }
 
     final ranked = _ranker.rank(
@@ -102,6 +111,19 @@ class CandidateRouteGenerator {
       if (a.isRecommended != b.isRecommended) return a.isRecommended ? -1 : 1;
       return (a.rankScore ?? 0).compareTo(b.rankScore ?? 0);
     });
+
+    final hasJeepney = ranked.any(
+      (r) => r.steps.any((s) => s.type == RouteStepType.jeepney),
+    );
+    if (!hasJeepney) {
+      return ranked
+          .map(
+            (r) => r.copyWith(
+              warningMessage: r.warningMessage ?? unservedJeepneyMessage,
+            ),
+          )
+          .toList();
+    }
 
     return ranked;
   }

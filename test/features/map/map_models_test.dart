@@ -23,7 +23,38 @@ void main() {
   });
 
   group('JeepneyRoute', () {
-    test('parses geojson polyline from API response', () {
+    test('parses corridor_geojson and ordered_stops schema', () {
+      final route = JeepneyRoute.fromJson({
+        'route_id': 1,
+        'code': 'R1',
+        'name': 'R1 Test',
+        'color': '#E63946',
+        'bidirectional': true,
+        'street_segments': ['North Montilla Blvd'],
+        'corridor_geojson': {
+          'type': 'LineString',
+          'coordinates': [
+            [125.53, 8.95],
+            [125.54, 8.94],
+          ],
+        },
+        'ordered_stops': [
+          {
+            'id': 'r1_test',
+            'name': 'Test Stop',
+            'lat': 8.95,
+            'lng': 125.53,
+            'verified': true,
+          },
+        ],
+      });
+      expect(route.polyline.length, 2);
+      expect(route.polyline.first.latitude, 8.95);
+      expect(route.verifiedStops.length, 1);
+      expect(route.routeCode, 'R1');
+    });
+
+    test('parses legacy geojson polyline from API response', () {
       final route = JeepneyRoute.fromJson({
         'route_id': 1,
         'route_code': 'R1',

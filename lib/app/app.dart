@@ -56,20 +56,27 @@ class _PinpointAppState extends ConsumerState<PinpointApp> {
         return Stack(
           children: [
             scaledChild,
-            online.when(
-              data: (connected) => connected
-                  ? const SizedBox.shrink()
-                  : Positioned(
-                      left: 0,
-                      right: 0,
-                      top: 0,
-                      child: SafeArea(
-                        bottom: false,
-                        child: _OfflineNotice(languageCode: accessibility.languageCode),
-                      ),
+            Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              child: SafeArea(
+                bottom: false,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (AppConstants.offlineFirstMode)
+                      _OfflineFirstNotice(languageCode: accessibility.languageCode),
+                    online.when(
+                      data: (connected) => connected
+                          ? const SizedBox.shrink()
+                          : _OfflineNotice(languageCode: accessibility.languageCode),
+                      loading: () => const SizedBox.shrink(),
+                      error: (error, stackTrace) => const SizedBox.shrink(),
                     ),
-              loading: () => const SizedBox.shrink(),
-              error: (error, stackTrace) => const SizedBox.shrink(),
+                  ],
+                ),
+              ),
             ),
           ],
         );
@@ -98,6 +105,41 @@ class _OfflineNotice extends StatelessWidget {
               child: Text(
                 PinpointLocalizations.t('offline_notice', languageCode),
                 style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OfflineFirstNotice extends StatelessWidget {
+  const _OfflineFirstNotice({required this.languageCode});
+
+  final String languageCode;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      elevation: 2,
+      color: Theme.of(context).colorScheme.tertiaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            Icon(
+              Icons.cloud_off_rounded,
+              color: Theme.of(context).colorScheme.onTertiaryContainer,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                PinpointLocalizations.t('offline_first_notice', languageCode),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onTertiaryContainer,
+                    ),
               ),
             ),
           ],

@@ -80,13 +80,21 @@ class MapNotifier extends Notifier<MapState> {
   }
 
   Future<void> selectFeaturedDestination(FeaturedDestination featured) async {
-    await selectDestination(
+    await planTripTo(
       MapLocation(
         latitude: featured.place.latitude,
         longitude: featured.place.longitude,
         label: featured.place.name,
       ),
     );
+  }
+
+  /// Sets destination and auto-plans a route (uses GPS for origin when available).
+  Future<void> planTripTo(MapLocation destination) async {
+    if (state.currentLocation == null) {
+      await _primeLocationAccess();
+    }
+    await selectDestination(destination);
   }
 
   Future<void> selectFeaturedAsOrigin(FeaturedDestination featured) async {
@@ -468,7 +476,7 @@ class MapNotifier extends Notifier<MapState> {
     }
     state = state.copyWith(isSearching: true, clearError: true);
     try {
-      final results = await _geocoding.searchPlaces(query);
+      final results = await ref.read(placeSearchServiceProvider).search(query);
       state = state.copyWith(searchResults: results, isSearching: false);
     } catch (e) {
       state = state.copyWith(isSearching: false, errorMessage: _message(e));
@@ -581,6 +589,13 @@ class MapNotifier extends Notifier<MapState> {
         preferredMode: state.selectedVehicleMode,
         preference: state.routePreference,
       );
+      if (options.isEmpty) {
+        state = state.copyWith(
+          isGeneratingRoute: false,
+          errorMessage: unservedJeepneyMessage,
+        );
+        return;
+      }
       final selected = options.first;
       state = state.copyWith(
         isGeneratingRoute: false,

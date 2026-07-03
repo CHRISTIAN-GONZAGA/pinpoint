@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:pinpoint/app/constants.dart';
-import 'package:pinpoint/core/exceptions/app_exception.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
 
 /// Forward and reverse geocoding for map search.
@@ -37,7 +36,7 @@ class GeocodingService {
         );
       }).toList();
     } catch (_) {
-      throw const AppException('Unable to search locations. Check your connection.');
+      return [];
     }
   }
 

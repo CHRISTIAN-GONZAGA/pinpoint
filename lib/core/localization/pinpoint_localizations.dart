@@ -22,6 +22,8 @@ abstract final class PinpointLocalizations {
       'forgot_password': 'Forgot Password?',
       'reset_password': 'Reset Password',
       'offline_notice': 'You are offline. Some features may be unavailable.',
+      'offline_first_notice':
+          'Offline-first mode — routes and fares use bundled local data. Live search may be limited.',
     },
     'tl': {
       'profile': 'Profile',
@@ -37,6 +39,8 @@ abstract final class PinpointLocalizations {
       'forgot_password': 'Nakalimutan ang Password?',
       'reset_password': 'I-reset ang Password',
       'offline_notice': 'Offline ka. Maaaring hindi available ang ilang feature.',
+      'offline_first_notice':
+          'Offline-first mode — gumagamit ng lokal na data ang mga ruta at pamasahe.',
     },
     'ceb': {
       'profile': 'Profile',
@@ -52,6 +56,8 @@ abstract final class PinpointLocalizations {
       'forgot_password': 'Nakalimtan ang Password?',
       'reset_password': 'I-reset ang Password',
       'offline_notice': 'Offline ka. Ang uban nga feature mahimong dili available.',
+      'offline_first_notice':
+          'Offline-first mode — ang mga ruta ug pletehan gigamit ang lokal nga data.',
     },
   };
 }

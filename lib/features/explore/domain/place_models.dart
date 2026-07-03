@@ -16,6 +16,7 @@ class Place extends Equatable {
     this.openingHours,
     this.contactInformation,
     this.distanceKm,
+    this.verified = true,
   });
 
   factory Place.fromJson(Map<String, dynamic> json) {
@@ -33,6 +34,7 @@ class Place extends Equatable {
       openingHours: json['opening_hours'] as String?,
       contactInformation: json['contact_information'] as String?,
       distanceKm: (json['distance_km'] as num?)?.toDouble(),
+      verified: json['verified'] as bool? ?? true,
     );
   }
 
@@ -48,6 +50,9 @@ class Place extends Equatable {
   final String? openingHours;
   final String? contactInformation;
   final double? distanceKm;
+  final bool verified;
+
+  bool get hasVerifiedCoordinates => verified && latitude != 0 && longitude != 0;
 
   LatLng get latLng => LatLng(latitude, longitude);
 
@@ -69,6 +74,7 @@ class Place extends Equatable {
         'entrance_fee': entranceFee,
         'opening_hours': openingHours,
         'contact_information': contactInformation,
+        'verified': verified,
       };
 
   @override

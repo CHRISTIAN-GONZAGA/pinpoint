@@ -36,7 +36,8 @@
       },
       "base_fare": 15.0,
       "notes": "Covers downtown and Guingona Park area.",
-      "active_status": true
+      "active_status": true,
+      "verified": true
     },
     {
       "zone_id": 2,
@@ -74,7 +75,8 @@
       },
       "base_fare": 20.0,
       "notes": "Libertad market and surrounding barangays.",
-      "active_status": true
+      "active_status": true,
+      "verified": true
     },
     {
       "zone_id": 3,
@@ -112,7 +114,8 @@
       },
       "base_fare": 25.0,
       "notes": "Ampayon residential and commercial zone.",
-      "active_status": true
+      "active_status": true,
+      "verified": true
     }
   ]
 }

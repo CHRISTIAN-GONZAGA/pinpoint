@@ -10,10 +10,12 @@ import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
 import 'package:pinpoint/features/authentication/presentation/viewmodels/auth_notifier.dart';
 import 'package:pinpoint/features/explore/presentation/viewmodels/explore_notifier.dart';
+import 'package:pinpoint/features/map/domain/map_models.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart';
 import 'package:pinpoint/features/notifications/domain/notification_models.dart';
 import 'package:pinpoint/features/notifications/presentation/viewmodels/notifications_notifier.dart';
 import 'package:pinpoint/core/widgets/place_card.dart';
+import 'package:pinpoint/shared/widgets/destination_search_field.dart';
 
 /// Main bottom navigation shell with five primary tabs.
 class MainShellScreen extends StatelessWidget {
@@ -81,6 +83,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     Future.microtask(() async {
+      unawaited(ref.read(mapNotifierProvider.notifier).initialize());
       unawaited(ref.read(mapNotifierProvider.notifier).refreshLocation());
       await ref.read(exploreNotifierProvider.notifier).initialize();
       await ref.read(notificationsNotifierProvider.notifier).loadAnnouncements();
@@ -135,7 +138,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ],
                     const _LocationCard(),
                     const SizedBox(height: AppSpacing.lg),
-                    _SearchBar().animate(delay: 150.ms).fadeIn(),
+                    const _HomeSearchBar().animate(delay: 150.ms).fadeIn(),
+                    const SizedBox(height: AppSpacing.md),
+                    const _FeaturedDestinationChips(),
                     const SizedBox(height: AppSpacing.xl),
                     Text('Quick Actions', style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: AppSpacing.md),
@@ -252,35 +257,59 @@ class _LocationCard extends ConsumerWidget {
   }
 }
 
-class _SearchBar extends StatelessWidget {
+class _HomeSearchBar extends ConsumerWidget {
+  const _HomeSearchBar();
+
   @override
-  Widget build(BuildContext context) {
-    return Material(
-      elevation: 2,
-      shadowColor: Colors.black26,
-      borderRadius: BorderRadius.circular(AppSpacing.lg),
-      child: InkWell(
-        onTap: () => context.go(AppRoutes.map),
-        borderRadius: BorderRadius.circular(AppSpacing.lg),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
-          child: Row(
-            children: [
-              Icon(Icons.search_rounded, color: Theme.of(context).colorScheme.primary),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Text(
-                  'Where do you want to go?',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mapState = ref.watch(mapNotifierProvider);
+    return DestinationSearchField(
+      hintText: 'Where do you want to go?',
+      isSearching: mapState.isSearching,
+      results: mapState.searchResults,
+      onQueryChanged: (q) => ref.read(mapNotifierProvider.notifier).searchPlaces(q),
+      onSelect: (loc) async {
+        await ref.read(mapNotifierProvider.notifier).planTripTo(loc);
+        if (context.mounted) context.go(AppRoutes.map);
+      },
+    );
+  }
+}
+
+class _FeaturedDestinationChips extends ConsumerWidget {
+  const _FeaturedDestinationChips();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final featured = ref.watch(mapNotifierProvider).featuredDestinations;
+    if (featured.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Featured destinations', style: Theme.of(context).textTheme.labelLarge),
+        const SizedBox(height: AppSpacing.sm),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: featured.map((item) {
+            return ActionChip(
+              avatar: const Icon(Icons.place_outlined, size: 18),
+              label: Text(item.shortLabel),
+              onPressed: () async {
+                await ref.read(mapNotifierProvider.notifier).planTripTo(
+                      MapLocation(
+                        latitude: item.place.latitude,
+                        longitude: item.place.longitude,
+                        label: item.place.name,
                       ),
-                ),
-              ),
-              Icon(Icons.mic_rounded, color: AppColors.secondary),
-            ],
-          ),
+                    );
+                if (context.mounted) context.go(AppRoutes.map);
+              },
+            );
+          }).toList(),
         ),
-      ),
+      ],
     );
   }
 }

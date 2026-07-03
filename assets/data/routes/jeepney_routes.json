@@ -1,220 +1,864 @@
 {
+  "ordinance": "City Ordinance No. 7194-2024 (LPTRP)",
+  "map_version": "2025-10-24",
+  "unserved_road_policy": {
+    "behavior": "fallback_to_tricycle_or_walk",
+    "source_note": "Not every road is depicted on the official map; unserved destinations require transfer to tricycle or on foot."
+  },
   "routes": [
     {
+      "code": "R1",
       "route_id": 1,
-      "route_code": "R1",
-      "route_name": "R1 — North Montilla to Dumalagan",
+      "name": "City Proper Loop",
       "color": "#1D3557",
-      "description": "LPTRP R1: North Montilla Blvd → City Proper Loop → BCES/ANHS → South Montilla Blvd → J.C. Aquino Ave → Libertad → Bancasi → Crossing Dumalagan (vice versa).",
+      "bidirectional": true,
+      "termini": [
+        "North Montilla Blvd",
+        "Crossing Dumalagan"
+      ],
+      "street_segments": [
+        "North Montilla Blvd",
+        "South Montilla Blvd",
+        "J.C. Aquino Ave"
+      ],
       "operating_hours": "5:00 AM – 8:00 PM",
-      "geojson": {
-        "type": "Feature",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [125.5315, 8.9515],
-            [125.532, 8.951],
-            [125.536, 8.949],
-            [125.5375, 8.9485],
-            [125.541, 8.946],
-            [125.547, 8.944],
-            [125.55, 8.94],
-            [125.554, 8.937],
-            [125.5455, 8.9385]
+      "description": "North Montilla Blvd → City Proper Loop → BCES/ANHS → South Montilla Blvd → J.C. Aquino Ave → Libertad → Bancasi → Crossing Dumalagan (vice versa).",
+      "ordered_stops": [
+        {
+          "id": "r1_north_montilla",
+          "name": "North Montilla Blvd",
+          "lat": 8.9516893,
+          "lng": 125.5410472,
+          "verified": true,
+          "aliases": [
+            "7-Eleven Montilla"
           ]
         },
-        "properties": {}
-      },
-      "active_status": true,
-      "stops": [
-        {"stop_id": 11, "route_id": 1, "stop_name": "City Hall Terminal", "latitude": 8.9515, "longitude": 125.5315, "stop_order": 1},
-        {"stop_id": 12, "route_id": 1, "stop_name": "Guingona Park", "latitude": 8.951, "longitude": 125.532, "stop_order": 2},
-        {"stop_id": 13, "route_id": 1, "stop_name": "J.C. Aquino Ave (JAQNO)", "latitude": 8.949, "longitude": 125.536, "stop_order": 3},
-        {"stop_id": 14, "route_id": 1, "stop_name": "Montilla Blvd", "latitude": 8.9485, "longitude": 125.5375, "stop_order": 4},
-        {"stop_id": 15, "route_id": 1, "stop_name": "Hotel Almont", "latitude": 8.946, "longitude": 125.541, "stop_order": 5},
-        {"stop_id": 16, "route_id": 1, "stop_name": "Robinsons Place Butuan", "latitude": 8.94, "longitude": 125.55, "stop_order": 6},
-        {"stop_id": 17, "route_id": 1, "stop_name": "SM City Butuan", "latitude": 8.937, "longitude": 125.554, "stop_order": 7},
-        {"stop_id": 18, "route_id": 1, "stop_name": "Libertad", "latitude": 8.9385, "longitude": 125.5455, "stop_order": 8}
-      ]
+        {
+          "id": "r1_bces_anhs",
+          "name": "BCES / Agusan National HS",
+          "lat": 8.9443662,
+          "lng": 125.5422398,
+          "verified": true,
+          "aliases": [
+            "Butuan Central ES",
+            "ANHS"
+          ]
+        },
+        {
+          "id": "r1_south_montilla",
+          "name": "South Montilla Blvd",
+          "lat": 8.9251467,
+          "lng": 125.5399452,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r1_jaqno",
+          "name": "J.C. Aquino Ave (JAQNO)",
+          "lat": 8.9435478,
+          "lng": 125.5230337,
+          "verified": true,
+          "aliases": [
+            "Butuan National Museum"
+          ]
+        },
+        {
+          "id": "r1_libertad",
+          "name": "Libertad",
+          "lat": 8.9455141,
+          "lng": 125.5011976,
+          "verified": true,
+          "aliases": [
+            "Libertad Market"
+          ]
+        },
+        {
+          "id": "r1_bancasi",
+          "name": "Bancasi",
+          "lat": 8.9465745,
+          "lng": 125.4861249,
+          "verified": true,
+          "aliases": [
+            "Bancasi Airport area"
+          ]
+        },
+        {
+          "id": "r1_dumalagan",
+          "name": "Crossing Dumalagan",
+          "lat": 8.9517455,
+          "lng": 125.46643,
+          "verified": true,
+          "aliases": [
+            "Dumalagan Crossing"
+          ]
+        }
+      ],
+      "corridor_geojson": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            125.5410472,
+            8.9516893
+          ],
+          [
+            125.5422398,
+            8.9443662
+          ],
+          [
+            125.5399452,
+            8.9251467
+          ],
+          [
+            125.5230337,
+            8.9435478
+          ],
+          [
+            125.5011976,
+            8.9455141
+          ],
+          [
+            125.4861249,
+            8.9465745
+          ],
+          [
+            125.46643,
+            8.9517455
+          ]
+        ]
+      }
     },
     {
+      "code": "R2",
       "route_id": 2,
-      "route_code": "R2",
-      "route_name": "R2 — JAQNO to Dumalagan",
+      "name": "JAQNO to Dumalagan",
       "color": "#E63946",
-      "description": "LPTRP R2: JAQNO → BCES/ANHS → A. D. Curato St → G. Flores Ave → North Montilla Blvd → Jeepney Terminal → Langihan → Rosales Ave → Libertad → Bancasi → Crossing Dumalagan (vice versa).",
-      "operating_hours": "5:30 AM – 8:30 PM",
-      "geojson": {
-        "type": "Feature",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [125.536, 8.949],
-            [125.5315, 8.9515],
-            [125.5375, 8.9485],
-            [125.538, 8.948],
-            [125.55, 8.94],
-            [125.5455, 8.9385]
-          ]
-        },
-        "properties": {}
-      },
-      "active_status": true,
-      "stops": [
-        {"stop_id": 21, "route_id": 2, "stop_name": "J.C. Aquino Ave (JAQNO)", "latitude": 8.949, "longitude": 125.536, "stop_order": 1},
-        {"stop_id": 22, "route_id": 2, "stop_name": "City Hall / Jeepney Terminal", "latitude": 8.9515, "longitude": 125.5315, "stop_order": 2},
-        {"stop_id": 23, "route_id": 2, "stop_name": "North Montilla Blvd", "latitude": 8.9485, "longitude": 125.5375, "stop_order": 3},
-        {"stop_id": 24, "route_id": 2, "stop_name": "Butuan Medical Center", "latitude": 8.948, "longitude": 125.538, "stop_order": 4},
-        {"stop_id": 25, "route_id": 2, "stop_name": "Rosales Ave / Robinsons", "latitude": 8.94, "longitude": 125.55, "stop_order": 5},
-        {"stop_id": 26, "route_id": 2, "stop_name": "Libertad", "latitude": 8.9385, "longitude": 125.5455, "stop_order": 6}
-      ]
-    },
-    {
-      "route_id": 3,
-      "route_code": "R3",
-      "route_name": "R3 — Ampayon-Libertad",
-      "color": "#2A9D8F",
-      "description": "LPTRP R3: Libertad → JAQNO → FSUU/Plaza → Ampayon Public Market → Ampayon Triangle (vice versa).",
-      "operating_hours": "6:00 AM – 9:00 PM",
-      "geojson": {
-        "type": "Feature",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [125.5455, 8.9385],
-            [125.536, 8.949],
-            [125.532, 8.951],
-            [125.5315, 8.9515],
-            [125.548, 8.962]
-          ]
-        },
-        "properties": {}
-      },
-      "active_status": true,
-      "stops": [
-        {"stop_id": 31, "route_id": 3, "stop_name": "Libertad", "latitude": 8.9385, "longitude": 125.5455, "stop_order": 1},
-        {"stop_id": 32, "route_id": 3, "stop_name": "J.C. Aquino Ave (JAQNO)", "latitude": 8.949, "longitude": 125.536, "stop_order": 2},
-        {"stop_id": 33, "route_id": 3, "stop_name": "Guingona Park / FSUU Plaza", "latitude": 8.951, "longitude": 125.532, "stop_order": 3},
-        {"stop_id": 34, "route_id": 3, "stop_name": "City Hall", "latitude": 8.9515, "longitude": 125.5315, "stop_order": 4},
-        {"stop_id": 35, "route_id": 3, "stop_name": "Ampayon Public Market", "latitude": 8.962, "longitude": 125.548, "stop_order": 5}
-      ]
-    },
-    {
-      "route_id": 4,
-      "route_code": "R4",
-      "route_name": "R4 — De Oro Loop",
-      "color": "#F72585",
-      "description": "LPTRP R4 loop: Jeepney Terminal → Rosales Ave → JAQNO → R. Calo St → Ampayon → De Oro → back via North Montilla Blvd.",
-      "operating_hours": "5:00 AM – 7:30 PM",
-      "geojson": {
-        "type": "Feature",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [125.5315, 8.9515],
-            [125.55, 8.94],
-            [125.536, 8.949],
-            [125.548, 8.962],
-            [125.552, 8.95],
-            [125.5315, 8.9515]
-          ]
-        },
-        "properties": {}
-      },
-      "active_status": true,
-      "stops": [
-        {"stop_id": 41, "route_id": 4, "stop_name": "Jeepney Terminal", "latitude": 8.9515, "longitude": 125.5315, "stop_order": 1},
-        {"stop_id": 42, "route_id": 4, "stop_name": "Rosales Ave / Robinsons", "latitude": 8.94, "longitude": 125.55, "stop_order": 2},
-        {"stop_id": 43, "route_id": 4, "stop_name": "J.C. Aquino Ave (JAQNO)", "latitude": 8.949, "longitude": 125.536, "stop_order": 3},
-        {"stop_id": 44, "route_id": 4, "stop_name": "Ampayon", "latitude": 8.962, "longitude": 125.548, "stop_order": 4},
-        {"stop_id": 45, "route_id": 4, "stop_name": "De Oro", "latitude": 8.95, "longitude": 125.552, "stop_order": 5}
-      ]
-    },
-    {
-      "route_id": 5,
-      "route_code": "R5",
-      "route_name": "R5 — Santo Niño Loop",
-      "color": "#FB8500",
-      "description": "LPTRP R5 loop: Jeepney Terminal → North Montilla Blvd → JAQNO → R. Calo St → Ampayon → Santo Niño → back via Langihan.",
+      "bidirectional": true,
+      "termini": [
+        "J.C. Aquino Ave (JAQNO)",
+        "Crossing Dumalagan"
+      ],
+      "street_segments": [
+        "J.C. Aquino Ave",
+        "North Montilla Blvd",
+        "Rosales Ave",
+        "Langihan"
+      ],
       "operating_hours": "5:00 AM – 8:00 PM",
-      "geojson": {
-        "type": "Feature",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [125.5315, 8.9515],
-            [125.5375, 8.9485],
-            [125.536, 8.949],
-            [125.548, 8.962],
-            [125.5315, 8.9515]
+      "description": "JAQNO → BCES/ANHS → A.D. Curato St → G. Flores Ave → North Montilla Blvd → Jeepney Terminal → Langihan → Rosales Ave → Libertad → Bancasi → Crossing Dumalagan (vice versa).",
+      "ordered_stops": [
+        {
+          "id": "r2_jaqno",
+          "name": "J.C. Aquino Ave (JAQNO)",
+          "lat": 8.9435478,
+          "lng": 125.5230337,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r2_bces_anhs",
+          "name": "BCES / Agusan National HS",
+          "lat": 8.9443662,
+          "lng": 125.5422398,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r2_ad_curato",
+          "name": "A.D. Curato St",
+          "lat": 8.9488085,
+          "lng": 125.543556,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r2_g_flores",
+          "name": "G. Flores Ave",
+          "lat": 8.949643,
+          "lng": 125.5438718,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r2_north_montilla",
+          "name": "North Montilla Blvd",
+          "lat": 8.9516893,
+          "lng": 125.5410472,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r2_jeepney_terminal",
+          "name": "Jeepney Terminal",
+          "lat": 8.9600815,
+          "lng": 125.5355754,
+          "verified": true,
+          "aliases": [
+            "Langihan Jeepney Terminal",
+            "City Hall Terminal"
           ]
         },
-        "properties": {}
-      },
-      "active_status": true,
-      "stops": [
-        {"stop_id": 51, "route_id": 5, "stop_name": "Jeepney Terminal", "latitude": 8.9515, "longitude": 125.5315, "stop_order": 1},
-        {"stop_id": 52, "route_id": 5, "stop_name": "North Montilla Blvd", "latitude": 8.9485, "longitude": 125.5375, "stop_order": 2},
-        {"stop_id": 53, "route_id": 5, "stop_name": "J.C. Aquino Ave (JAQNO)", "latitude": 8.949, "longitude": 125.536, "stop_order": 3},
-        {"stop_id": 54, "route_id": 5, "stop_name": "Ampayon", "latitude": 8.962, "longitude": 125.548, "stop_order": 4},
-        {"stop_id": 55, "route_id": 5, "stop_name": "SM City Butuan", "latitude": 8.937, "longitude": 125.554, "stop_order": 5}
-      ]
+        {
+          "id": "r2_langihan",
+          "name": "Langihan",
+          "lat": 8.957266,
+          "lng": 125.5340426,
+          "verified": true,
+          "aliases": [
+            "Langihan Public Market",
+            "Langihan Bus-Jeep Terminal"
+          ]
+        },
+        {
+          "id": "r2_rosales",
+          "name": "Rosales Ave",
+          "lat": 8.9501161,
+          "lng": 125.5302805,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r2_libertad",
+          "name": "Libertad",
+          "lat": 8.9455141,
+          "lng": 125.5011976,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r2_bancasi",
+          "name": "Bancasi",
+          "lat": 8.9465745,
+          "lng": 125.4861249,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r2_dumalagan",
+          "name": "Crossing Dumalagan",
+          "lat": 8.9517455,
+          "lng": 125.46643,
+          "verified": true,
+          "aliases": []
+        }
+      ],
+      "corridor_geojson": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            125.5230337,
+            8.9435478
+          ],
+          [
+            125.5422398,
+            8.9443662
+          ],
+          [
+            125.543556,
+            8.9488085
+          ],
+          [
+            125.5438718,
+            8.949643
+          ],
+          [
+            125.5410472,
+            8.9516893
+          ],
+          [
+            125.5355754,
+            8.9600815
+          ],
+          [
+            125.5340426,
+            8.957266
+          ],
+          [
+            125.5302805,
+            8.9501161
+          ],
+          [
+            125.5011976,
+            8.9455141
+          ],
+          [
+            125.4861249,
+            8.9465745
+          ],
+          [
+            125.46643,
+            8.9517455
+          ]
+        ]
+      }
     },
     {
+      "code": "R3",
+      "route_id": 3,
+      "name": "Ampayon–Libertad",
+      "color": "#2A9D8F",
+      "bidirectional": true,
+      "termini": [
+        "Libertad",
+        "Ampayon Triangle"
+      ],
+      "street_segments": [
+        "Libertad",
+        "J.C. Aquino Ave",
+        "FSUU Plaza"
+      ],
+      "operating_hours": "5:00 AM – 8:00 PM",
+      "description": "Libertad → JAQNO → FSUU/Plaza → Ampayon Public Market → Ampayon Triangle (vice versa).",
+      "ordered_stops": [
+        {
+          "id": "r3_libertad",
+          "name": "Libertad",
+          "lat": 8.9455141,
+          "lng": 125.5011976,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r3_jaqno",
+          "name": "J.C. Aquino Ave (JAQNO)",
+          "lat": 8.9435478,
+          "lng": 125.5230337,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r3_fsuu",
+          "name": "FSUU / Plaza",
+          "lat": 8.9518242,
+          "lng": 125.5032909,
+          "verified": true,
+          "aliases": [
+            "FSUU Urios",
+            "Guingona Park"
+          ]
+        },
+        {
+          "id": "r3_ampayon_market",
+          "name": "Ampayon Public Market",
+          "lat": 8.9597222,
+          "lng": 125.6027778,
+          "verified": true,
+          "aliases": []
+        }
+      ],
+      "corridor_geojson": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            125.5011976,
+            8.9455141
+          ],
+          [
+            125.5230337,
+            8.9435478
+          ],
+          [
+            125.5032909,
+            8.9518242
+          ],
+          [
+            125.6027778,
+            8.9597222
+          ]
+        ]
+      }
+    },
+    {
+      "code": "R4",
+      "route_id": 4,
+      "name": "De Oro Loop",
+      "color": "#F72585",
+      "bidirectional": true,
+      "termini": [
+        "Jeepney Terminal",
+        "De Oro"
+      ],
+      "street_segments": [
+        "Rosales Ave",
+        "R. Calo St",
+        "J.C. Aquino Ave"
+      ],
+      "operating_hours": "5:00 AM – 8:00 PM",
+      "description": "Jeepney Terminal → Rosales Ave → R. Calo St → Sanchez St → M. Calo St → Ampayon → De Oro → JAQNO → R. Calo St → Rosales St → North Montilla Blvd → Jeepney Terminal (vice versa).",
+      "ordered_stops": [
+        {
+          "id": "r4_terminal",
+          "name": "Jeepney Terminal",
+          "lat": 8.9600815,
+          "lng": 125.5355754,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r4_rosales",
+          "name": "Rosales Ave",
+          "lat": 8.9501161,
+          "lng": 125.5302805,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r4_r_calo",
+          "name": "R. Calo St",
+          "lat": 8.9607237,
+          "lng": 125.54127,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r4_sanchez",
+          "name": "Sanchez St",
+          "lat": 8.9447169,
+          "lng": 125.5428304,
+          "verified": true,
+          "aliases": [
+            "T. Sanchez St"
+          ]
+        },
+        {
+          "id": "r4_m_calo",
+          "name": "M. Calo St",
+          "lat": 8.9459611,
+          "lng": 125.5441758,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r4_ampayon",
+          "name": "Ampayon",
+          "lat": 8.9630655,
+          "lng": 125.6049565,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r4_de_oro",
+          "name": "De Oro",
+          "lat": 8.953387,
+          "lng": 125.4619333,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r4_jaqno",
+          "name": "J.C. Aquino Ave (JAQNO)",
+          "lat": 8.9435478,
+          "lng": 125.5230337,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r4_rosales_st",
+          "name": "Rosales St",
+          "lat": 8.9501161,
+          "lng": 125.5302805,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r4_north_montilla",
+          "name": "North Montilla Blvd",
+          "lat": 8.9516893,
+          "lng": 125.5410472,
+          "verified": true,
+          "aliases": []
+        }
+      ],
+      "corridor_geojson": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            125.5355754,
+            8.9600815
+          ],
+          [
+            125.5302805,
+            8.9501161
+          ],
+          [
+            125.54127,
+            8.9607237
+          ],
+          [
+            125.5428304,
+            8.9447169
+          ],
+          [
+            125.5441758,
+            8.9459611
+          ],
+          [
+            125.6049565,
+            8.9630655
+          ],
+          [
+            125.4619333,
+            8.953387
+          ],
+          [
+            125.5230337,
+            8.9435478
+          ],
+          [
+            125.5302805,
+            8.9501161
+          ],
+          [
+            125.5410472,
+            8.9516893
+          ]
+        ]
+      }
+    },
+    {
+      "code": "R5",
+      "route_id": 5,
+      "name": "Santo Niño Loop",
+      "color": "#FB8500",
+      "bidirectional": true,
+      "termini": [
+        "Jeepney Terminal",
+        "Santo Niño"
+      ],
+      "street_segments": [
+        "North Montilla Blvd",
+        "J.C. Aquino Ave",
+        "R. Calo St"
+      ],
+      "operating_hours": "5:00 AM – 8:00 PM",
+      "description": "Jeepney Terminal → North Montilla Blvd → JAQNO → T. Sanchez St → M. Calo St → Ampayon → Santo Niño → JAQNO → Rosales St → Langihan Jeepney Terminal (vice versa).",
+      "ordered_stops": [
+        {
+          "id": "r5_terminal",
+          "name": "Jeepney Terminal",
+          "lat": 8.9600815,
+          "lng": 125.5355754,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r5_north_montilla",
+          "name": "North Montilla Blvd",
+          "lat": 8.9516893,
+          "lng": 125.5410472,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r5_jaqno",
+          "name": "J.C. Aquino Ave (JAQNO)",
+          "lat": 8.9435478,
+          "lng": 125.5230337,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r5_t_sanchez",
+          "name": "T. Sanchez St",
+          "lat": 8.9447169,
+          "lng": 125.5428304,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r5_m_calo",
+          "name": "M. Calo St",
+          "lat": 8.9459611,
+          "lng": 125.5441758,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r5_ampayon",
+          "name": "Ampayon",
+          "lat": 8.9630655,
+          "lng": 125.6049565,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r5_rosales",
+          "name": "Rosales St",
+          "lat": 8.9501161,
+          "lng": 125.5302805,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r5_langihan_terminal",
+          "name": "Langihan Jeepney Terminal",
+          "lat": 8.9559203,
+          "lng": 125.5357449,
+          "verified": true,
+          "aliases": []
+        }
+      ],
+      "corridor_geojson": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            125.5355754,
+            8.9600815
+          ],
+          [
+            125.5410472,
+            8.9516893
+          ],
+          [
+            125.5230337,
+            8.9435478
+          ],
+          [
+            125.5428304,
+            8.9447169
+          ],
+          [
+            125.5441758,
+            8.9459611
+          ],
+          [
+            125.6049565,
+            8.9630655
+          ],
+          [
+            125.5302805,
+            8.9501161
+          ],
+          [
+            125.5357449,
+            8.9559203
+          ]
+        ]
+      }
+    },
+    {
+      "code": "R6",
       "route_id": 6,
-      "route_code": "R6",
-      "route_name": "R6 — Maguinda",
+      "name": "Maguinda",
       "color": "#FFB703",
-      "description": "LPTRP R6: Capitol Terminal → Capitol Drive → Guingona Ave → Montilla Blvd → Mayor Democrito D. Plaza II Ave → Mahay → Lemon → Maguinda (vice versa).",
-      "operating_hours": "6:00 AM – 7:00 PM",
-      "geojson": {
-        "type": "Feature",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [125.536, 8.948],
-            [125.532, 8.951],
-            [125.55, 8.938],
-            [125.558, 8.93]
+      "bidirectional": true,
+      "termini": [
+        "Capitol Terminal",
+        "Maguinda"
+      ],
+      "street_segments": [
+        "Capitol Drive",
+        "Guingona Ave",
+        "Montilla Blvd",
+        "Mayor Democrito D. Plaza II Ave"
+      ],
+      "operating_hours": "5:00 AM – 8:00 PM",
+      "description": "Capitol Terminal → Guingona Ave → Montilla Blvd → Mahay → Lemon → Maguinda (vice versa).",
+      "ordered_stops": [
+        {
+          "id": "r6_capitol",
+          "name": "Capitol Terminal",
+          "lat": 8.9404319,
+          "lng": 125.5339852,
+          "verified": true,
+          "aliases": [
+            "Provincial Capitol"
           ]
         },
-        "properties": {}
-      },
-      "active_status": true,
-      "stops": [
-        {"stop_id": 61, "route_id": 6, "stop_name": "Provincial Capitol Terminal", "latitude": 8.948, "longitude": 125.536, "stop_order": 1},
-        {"stop_id": 62, "route_id": 6, "stop_name": "Guingona Park", "latitude": 8.951, "longitude": 125.532, "stop_order": 2},
-        {"stop_id": 63, "route_id": 6, "stop_name": "Timberlanes", "latitude": 8.938, "longitude": 125.55, "stop_order": 3},
-        {"stop_id": 64, "route_id": 6, "stop_name": "Maguinda", "latitude": 8.93, "longitude": 125.558, "stop_order": 4}
-      ]
+        {
+          "id": "r6_capitol_drive",
+          "name": "Capitol Drive",
+          "lat": 8.9404319,
+          "lng": 125.5339852,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r6_guingona",
+          "name": "Guingona Ave",
+          "lat": 8.9447904,
+          "lng": 125.5368072,
+          "verified": true,
+          "aliases": [
+            "Guingona Park"
+          ]
+        },
+        {
+          "id": "r6_pizarro",
+          "name": "Z. Pizarro St",
+          "lat": 8.9436113,
+          "lng": 125.5384406,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r6_mddp",
+          "name": "Mayor Demecrito D. Plaza II Ave",
+          "lat": 8.9222424,
+          "lng": 125.5314633,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r6_mahay",
+          "name": "Mahay",
+          "lat": 8.9330536,
+          "lng": 125.5599854,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r6_lemon",
+          "name": "Lemon",
+          "lat": 8.9370873,
+          "lng": 125.5916979,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r6_maguinda",
+          "name": "Maguinda",
+          "lat": 8.8116546,
+          "lng": 125.6040785,
+          "verified": true,
+          "aliases": []
+        }
+      ],
+      "corridor_geojson": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            125.5339852,
+            8.9404319
+          ],
+          [
+            125.5339852,
+            8.9404319
+          ],
+          [
+            125.5368072,
+            8.9447904
+          ],
+          [
+            125.5384406,
+            8.9436113
+          ],
+          [
+            125.5314633,
+            8.9222424
+          ],
+          [
+            125.5599854,
+            8.9330536
+          ],
+          [
+            125.5916979,
+            8.9370873
+          ],
+          [
+            125.6040785,
+            8.8116546
+          ]
+        ]
+      }
     },
     {
+      "code": "R7",
       "route_id": 7,
-      "route_code": "R7",
-      "route_name": "R7 — Tungao",
+      "name": "Tungao",
       "color": "#06D6A0",
-      "description": "LPTRP R7: Capitol Terminal → Rosales Ave → S. Calo St → Montilla Blvd → San Vicente → Tungao (vice versa).",
-      "operating_hours": "5:30 AM – 8:00 PM",
-      "geojson": {
-        "type": "Feature",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [125.536, 8.948],
-            [125.55, 8.94],
-            [125.5375, 8.9485],
-            [125.55, 8.93]
+      "bidirectional": true,
+      "termini": [
+        "Capitol Terminal",
+        "Tungao"
+      ],
+      "street_segments": [
+        "Rosales Ave",
+        "Montilla Blvd"
+      ],
+      "operating_hours": "5:00 AM – 8:00 PM",
+      "description": "Capitol Terminal → Rosales Ave → Montilla Blvd → San Vicente → Tungao (vice versa).",
+      "ordered_stops": [
+        {
+          "id": "r7_capitol",
+          "name": "Capitol Terminal",
+          "lat": 8.9404319,
+          "lng": 125.5339852,
+          "verified": true,
+          "aliases": [
+            "Provincial Capitol"
           ]
         },
-        "properties": {}
-      },
-      "active_status": true,
-      "stops": [
-        {"stop_id": 71, "route_id": 7, "stop_name": "Capitol Terminal", "latitude": 8.948, "longitude": 125.536, "stop_order": 1},
-        {"stop_id": 72, "route_id": 7, "stop_name": "Rosales Ave / Robinsons", "latitude": 8.94, "longitude": 125.55, "stop_order": 2},
-        {"stop_id": 73, "route_id": 7, "stop_name": "Montilla Blvd", "latitude": 8.9485, "longitude": 125.5375, "stop_order": 3},
-        {"stop_id": 74, "route_id": 7, "stop_name": "Tungao", "latitude": 8.93, "longitude": 125.55, "stop_order": 4}
-      ]
+        {
+          "id": "r7_rosales",
+          "name": "Rosales Ave",
+          "lat": 8.9501161,
+          "lng": 125.5302805,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r7_s_calo",
+          "name": "S. Calo St",
+          "lat": 8.9600583,
+          "lng": 125.5222715,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r7_montilla",
+          "name": "Montilla Blvd",
+          "lat": 8.9434868,
+          "lng": 125.5402994,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r7_san_vicente",
+          "name": "San Vicente",
+          "lat": 8.9060073,
+          "lng": 125.5537694,
+          "verified": true,
+          "aliases": []
+        },
+        {
+          "id": "r7_tungao",
+          "name": "Tungao",
+          "lat": 8.7786654,
+          "lng": 125.5677887,
+          "verified": true,
+          "aliases": []
+        }
+      ],
+      "corridor_geojson": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            125.5339852,
+            8.9404319
+          ],
+          [
+            125.5302805,
+            8.9501161
+          ],
+          [
+            125.5222715,
+            8.9600583
+          ],
+          [
+            125.5402994,
+            8.9434868
+          ],
+          [
+            125.5537694,
+            8.9060073
+          ],
+          [
+            125.5677887,
+            8.7786654
+          ]
+        ]
+      }
     }
   ]
 }

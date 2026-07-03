@@ -1,3 +1,8 @@
+/// LPTRP unserved-road policy message when no jeepney option is viable.
+const unservedJeepneyMessage =
+    'No verified LPTRP jeepney corridor fully serves this trip. '
+    'The official map notes not every road is depicted — tricycle or walking may be required.';
+
 /// User preference for how routes are scored and ranked.
 enum RoutePreference {
   balanced,
