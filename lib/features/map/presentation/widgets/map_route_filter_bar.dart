@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:pinpoint/core/utilities/color_utils.dart';
-import 'package:pinpoint/core/theme/app_spacing.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

@@ -11,7 +11,6 @@ import 'package:pinpoint/core/utilities/place_utils.dart';
 import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
 import 'package:pinpoint/core/utilities/color_utils.dart';
-import 'package:pinpoint/features/map/data/common_destinations.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
 import 'package:pinpoint/features/map/presentation/utils/map_camera_helper.dart';
 import 'package:pinpoint/features/map/presentation/utils/map_polyline_utils.dart';
@@ -20,8 +19,9 @@ import 'package:pinpoint/features/map/presentation/viewmodels/map_state.dart';
 import 'package:pinpoint/features/map/presentation/widgets/featured_destination_sheet.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_context_sheet.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_controls.dart';
+import 'package:pinpoint/features/map/presentation/widgets/map_minimal_header.dart';
+import 'package:pinpoint/features/map/presentation/widgets/map_tools_sheet.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_route_legend.dart';
-import 'package:pinpoint/features/map/presentation/widgets/map_top_panel.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_tile_layer.dart';
 import 'package:pinpoint/features/map/presentation/widgets/route_summary_sheet.dart';
 
@@ -38,8 +38,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
   final _mapController = MapController();
   var _showLayerPanel = false;
   var _mapReady = false;
-  var _topPanelExpanded = false;
-  var _showRouteFilters = false;
+  var _showRoutePanel = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -76,6 +75,12 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
     final zoom = mapState.mapZoom;
     final layers = mapState.layers;
     final mapRotation = MapCameraHelper.rotation(_mapController);
+
+    ref.listen(mapNotifierProvider.select((s) => s.plannedRoute), (previous, next) {
+      if (next != null && previous == null && mounted) {
+        setState(() => _showRoutePanel = true);
+      }
+    });
 
     ref.listen(mapNotifierProvider.select((s) => s.errorMessage), (previous, next) {
       if (next != null && next != previous && mounted) {
@@ -242,29 +247,13 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
             ],
             ),
           ),
-          MapTopPanel(
+          MapMinimalHeader(
             searchController: _searchController,
-            expanded: _topPanelExpanded,
-            onExpandedChanged: (v) => setState(() => _topPanelExpanded = v),
-            showRouteFilters: _showRouteFilters,
-            onShowRouteFiltersChanged: (v) => setState(() => _showRouteFilters = v),
+            onOpenTools: () => MapToolsSheet.show(context, _searchController),
           ),
-          if (!_topPanelExpanded && mapState.featuredDestinations.isNotEmpty)
-            Positioned(
-              top: MediaQuery.paddingOf(context).top + 64,
-              left: AppSpacing.md,
-              right: AppSpacing.md,
-              child: _CollapsedDestinationStrip(
-                destinations: mapState.featuredDestinations,
-                selectedName: mapState.destinationAddress,
-                onTap: (dest) => notifier.selectFeaturedDestination(dest),
-              ),
-            ),
           Positioned(
             right: AppSpacing.md,
-            top: _topPanelExpanded
-                ? MediaQuery.sizeOf(context).height * 0.38
-                : MediaQuery.paddingOf(context).top + 112,
+            top: MediaQuery.paddingOf(context).top + 96,
             child: Column(
               children: [
                 MapGlassButton(
@@ -360,26 +349,39 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
                     ref.read(mapNotifierProvider.notifier).selectJeepneyRoute(null),
               ),
             )
-          else
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
+          else if (_showRoutePanel || mapState.plannedRoute != null)
+            Positioned.fill(
               child: RouteSummarySheet(
-              route: mapState.plannedRoute,
-              routeOptions: mapState.routeOptions,
-              canGenerate: mapState.canGenerateRoute,
-              isGenerating: mapState.isGeneratingRoute,
-              originLabel: mapState.currentAddress ?? 'Start',
-              destinationLabel: mapState.destinationAddress ?? mapState.destination?.label,
-              selectedVehicleMode: mapState.selectedVehicleMode,
-              highlightedStepIndex: mapState.highlightedStepIndex,
-              onGenerate: () => notifier.generateRoute(),
-              onSelectOption: (option) => notifier.selectRouteOption(option),
-              onPreviewOption: (option) => notifier.previewRouteOption(option),
-              onStepTap: (index) => notifier.focusRouteStep(index),
-              onVehicleModeChanged: (mode) => notifier.setVehicleMode(mode),
-              onClose: () => notifier.clearRoute(),
+                route: mapState.plannedRoute,
+                routeOptions: mapState.routeOptions,
+                canGenerate: mapState.canGenerateRoute,
+                isGenerating: mapState.isGeneratingRoute,
+                originLabel: mapState.currentAddress ?? 'Start',
+                destinationLabel:
+                    mapState.destinationAddress ?? mapState.destination?.label,
+                selectedVehicleMode: mapState.selectedVehicleMode,
+                highlightedStepIndex: mapState.highlightedStepIndex,
+                onGenerate: () => notifier.generateRoute(),
+                onSelectOption: (option) => notifier.selectRouteOption(option),
+                onPreviewOption: (option) => notifier.previewRouteOption(option),
+                onStepTap: (index) => notifier.focusRouteStep(index),
+                onVehicleModeChanged: (mode) => notifier.setVehicleMode(mode),
+                onClose: () => notifier.clearRoute(),
+                onDismiss: () => setState(() => _showRoutePanel = false),
+              ),
+            ),
+          if (!_showRoutePanel &&
+              mapState.plannedRoute == null &&
+              mapState.selectedRoute == null)
+            Positioned(
+              left: AppSpacing.lg,
+              bottom: 88,
+              child: FloatingActionButton.extended(
+                heroTag: 'map-route-fab',
+                elevation: 4,
+                onPressed: () => setState(() => _showRoutePanel = true),
+                icon: const Icon(Icons.route_rounded, size: 20),
+                label: const Text('Plan route'),
               ),
             ),
           if (mapState.plannedRoute != null)
@@ -724,75 +726,6 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
             ),
             Icon(icon, color: color, size: 36),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CollapsedDestinationStrip extends StatelessWidget {
-  const _CollapsedDestinationStrip({
-    required this.destinations,
-    required this.onTap,
-    this.selectedName,
-  });
-
-  final List<FeaturedDestination> destinations;
-  final ValueChanged<FeaturedDestination> onTap;
-  final String? selectedName;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      elevation: 2,
-      borderRadius: BorderRadius.circular(AppRadius.lg),
-      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
-      clipBehavior: Clip.antiAlias,
-      child: SizedBox(
-        height: 38,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          itemCount: destinations.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 6),
-          itemBuilder: (context, index) {
-            final dest = destinations[index];
-            final color = PlaceUtils.colorForCategory(dest.place.category);
-            final selected = selectedName != null &&
-                (selectedName == dest.place.name ||
-                    selectedName!.contains(dest.shortLabel));
-            return InkWell(
-              onTap: () => onTap(dest),
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: selected ? color : color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: color.withValues(alpha: 0.5)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      PlaceUtils.iconForCategory(dest.place.category),
-                      size: 14,
-                      color: selected ? Colors.white : color,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      dest.shortLabel,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: selected ? Colors.white : color,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
         ),
       ),
     );

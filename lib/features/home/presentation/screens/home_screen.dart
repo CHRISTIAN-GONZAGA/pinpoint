@@ -56,7 +56,8 @@ class MainShellScreen extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: navigationShell.currentIndex == 3
+      floatingActionButton: navigationShell.currentIndex == 3 ||
+              navigationShell.currentIndex == 1
           ? null
           : FloatingActionButton.extended(
               onPressed: () => navigationShell.goBranch(3),
