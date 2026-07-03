@@ -20,11 +20,14 @@ class RouteSummarySheet extends StatelessWidget {
     required this.onGenerate,
     required this.onSelectOption,
     required this.onVehicleModeChanged,
+    this.onPreviewOption,
+    this.onStepTap,
     this.isGenerating = false,
     this.canGenerate = false,
     this.originLabel,
     this.destinationLabel,
     this.selectedVehicleMode = VehicleMode.auto,
+    this.highlightedStepIndex,
   });
 
   final PlannedRoute? route;
@@ -32,19 +35,24 @@ class RouteSummarySheet extends StatelessWidget {
   final VoidCallback onClose;
   final VoidCallback onGenerate;
   final ValueChanged<PlannedRoute> onSelectOption;
+  final ValueChanged<PlannedRoute?>? onPreviewOption;
+  final ValueChanged<int>? onStepTap;
   final ValueChanged<VehicleMode> onVehicleModeChanged;
   final bool isGenerating;
   final bool canGenerate;
   final String? originLabel;
   final String? destinationLabel;
   final VehicleMode selectedVehicleMode;
+  final int? highlightedStepIndex;
 
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
-      initialChildSize: route != null ? 0.48 : 0.28,
-      minChildSize: 0.2,
-      maxChildSize: 0.8,
+      initialChildSize: route != null ? 0.45 : 0.22,
+      minChildSize: 0.18,
+      maxChildSize: 0.85,
+      snap: true,
+      snapSizes: const [0.18, 0.45, 0.85],
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
@@ -78,8 +86,8 @@ class RouteSummarySheet extends StatelessWidget {
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   canGenerate
-                      ? 'Compare Jeepney, Tricycle, and Taxi options.'
-                      : 'Tag your start point and destination using the pins above, or long-press the map.',
+                      ? 'Tap anywhere on the map to set start or destination.'
+                      : 'Move the map freely, then tap a location for options.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
@@ -125,6 +133,7 @@ class RouteSummarySheet extends StatelessWidget {
                     options: routeOptions,
                     selected: route!,
                     onSelect: onSelectOption,
+                    onPreview: onPreviewOption,
                   ),
                 ],
                 const SizedBox(height: AppSpacing.md),
@@ -152,7 +161,14 @@ class RouteSummarySheet extends StatelessWidget {
                 const SizedBox(height: AppSpacing.lg),
                 Text('Directions', style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: AppSpacing.sm),
-                ...route!.steps.map((step) => _StepTile(step: step)),
+                ...route!.steps.asMap().entries.map(
+                      (entry) => _StepTile(
+                        index: entry.key + 1,
+                        step: entry.value,
+                        isHighlighted: highlightedStepIndex == entry.key,
+                        onTap: onStepTap != null ? () => onStepTap!(entry.key) : null,
+                      ),
+                    ),
               ],
             ],
           ),
@@ -209,16 +225,18 @@ class _RouteOptionPicker extends StatelessWidget {
     required this.options,
     required this.selected,
     required this.onSelect,
+    this.onPreview,
   });
 
   final List<PlannedRoute> options;
   final PlannedRoute selected;
   final ValueChanged<PlannedRoute> onSelect;
+  final ValueChanged<PlannedRoute?>? onPreview;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 88,
+      height: 108,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: options.length,
@@ -227,11 +245,16 @@ class _RouteOptionPicker extends StatelessWidget {
           final option = options[index];
           final isSelected = option.primaryMode == selected.primaryMode;
           final color = _modeColor(option.primaryMode);
+          final stars = _ratingStars(option);
           return InkWell(
             onTap: () => onSelect(option),
+            onHighlightChanged: (highlighted) {
+              if (onPreview == null) return;
+              onPreview!(highlighted ? option : null);
+            },
             borderRadius: BorderRadius.circular(AppRadius.md),
             child: Container(
-              width: 120,
+              width: 136,
               padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppRadius.md),
@@ -249,20 +272,33 @@ class _RouteOptionPicker extends StatelessWidget {
                     children: [
                       Icon(_modeIcon(option.primaryMode), size: 16, color: color),
                       const SizedBox(width: 4),
-                      Text(
-                        _modeLabel(option.primaryMode),
-                        style: Theme.of(context).textTheme.labelMedium,
+                      Expanded(
+                        child: Text(
+                          option.isRecommended ? 'Recommended' : _modeLabel(option.primaryMode),
+                          style: Theme.of(context).textTheme.labelMedium,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      if (option.isRecommended) ...[
-                        const Spacer(),
-                        Icon(Icons.star_rounded, size: 14, color: AppColors.accent),
-                      ],
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '₱${option.estimatedFare.toStringAsFixed(0)} · ${option.durationLabel}',
                     style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  Text(
+                    '${option.walkingDistanceMeters.round()} m walk',
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  Row(
+                    children: List.generate(
+                      5,
+                      (i) => Icon(
+                        i < stars ? Icons.star_rounded : Icons.star_outline_rounded,
+                        size: 12,
+                        color: AppColors.accent,
+                      ),
+                    ),
                   ),
                   if (option.warningMessage != null)
                     Text(
@@ -278,6 +314,15 @@ class _RouteOptionPicker extends StatelessWidget {
         },
       ),
     );
+  }
+
+  int _ratingStars(PlannedRoute option) {
+    var score = 3;
+    if (option.isRecommended) score += 1;
+    if (option.walkingDistanceMeters < 300) score += 1;
+    if (option.transferCount == 0) score += 1;
+    if (option.estimatedFare > 80) score -= 1;
+    return score.clamp(1, 5);
   }
 
   Color _modeColor(VehicleMode mode) => switch (mode) {
@@ -343,9 +388,17 @@ class _StatChip extends StatelessWidget {
 }
 
 class _StepTile extends StatelessWidget {
-  const _StepTile({required this.step});
+  const _StepTile({
+    required this.index,
+    required this.step,
+    this.isHighlighted = false,
+    this.onTap,
+  });
 
+  final int index;
   final RouteStep step;
+  final bool isHighlighted;
+  final VoidCallback? onTap;
 
   IconData get _icon => switch (step.type) {
         RouteStepType.walk => Icons.directions_walk_rounded,
@@ -367,34 +420,68 @@ class _StepTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    final content = Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundColor: _color.withValues(alpha: 0.15),
-            child: Icon(_icon, size: 18, color: _color),
+            backgroundColor: isHighlighted
+                ? _color
+                : _color.withValues(alpha: 0.15),
+            child: Text(
+              '$index',
+              style: TextStyle(
+                color: isHighlighted ? Colors.white : _color,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(step.instruction, style: Theme.of(context).textTheme.bodyMedium),
+                Row(
+                  children: [
+                    Icon(_icon, size: 16, color: _color),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(step.instruction, style: Theme.of(context).textTheme.bodyMedium),
+                    ),
+                  ],
+                ),
+                if (step.distanceMeters > 0)
+                  Text(
+                    step.distanceMeters >= 1000
+                        ? '${(step.distanceMeters / 1000).toStringAsFixed(1)} km'
+                        : '${step.distanceMeters.round()} m',
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
+                  ),
                 if (step.durationSeconds > 0)
                   Text(
                     step.durationLabel,
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                         ),
                   ),
               ],
             ),
           ),
+          if (onTap != null) Icon(Icons.chevron_right, color: Colors.grey.shade400),
         ],
       ),
+    );
+
+    if (onTap == null) return content;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.sm),
+      child: content,
     );
   }
 }
@@ -443,9 +530,24 @@ class JeepneyRouteSheet extends StatelessWidget {
               IconButton(onPressed: onClose, icon: const Icon(Icons.close)),
             ],
           ),
-          if (route.description != null) ...[
+          if (route.routeName.toLowerCase().contains('terminal') || route.stops.any((s) => s.name.toLowerCase().contains('terminal'))) ...[
             const SizedBox(height: AppSpacing.sm),
-            Text(route.description!),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                Chip(
+                  avatar: const Icon(Icons.directions_bus, size: 16),
+                  label: Text('${route.stops.length} stops'),
+                  visualDensity: VisualDensity.compact,
+                ),
+                Chip(
+                  label: Text(route.routeCode),
+                  backgroundColor: color.withValues(alpha: 0.12),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            ),
           ],
           const SizedBox(height: AppSpacing.md),
           Text('Stops (${route.stops.length})', style: Theme.of(context).textTheme.titleSmall),

@@ -10,6 +10,9 @@ class MapLayerVisibility extends Equatable {
   const MapLayerVisibility({
     this.showJeepneyRoutes = false,
     this.showTricycleZones = false,
+    this.showJeepneyStops = true,
+    this.showStopLabels = false,
+    this.showTransferPoints = true,
     this.showTouristLayer = false,
     this.showEmergency = false,
     this.showHighwayCorridors = false,
@@ -17,13 +20,28 @@ class MapLayerVisibility extends Equatable {
 
   final bool showJeepneyRoutes;
   final bool showTricycleZones;
+  final bool showJeepneyStops;
+  final bool showStopLabels;
+  final bool showTransferPoints;
   final bool showTouristLayer;
   final bool showEmergency;
   final bool showHighwayCorridors;
 
+  /// Zoom-aware visibility for jeepney route lines (≥14).
+  bool showJeepneyLinesAtZoom(double zoom) => showJeepneyRoutes && zoom >= 14;
+
+  /// Stop markers visible at ≥15.5.
+  bool showStopsAtZoom(double zoom) => showJeepneyStops && zoom >= 15.5;
+
+  /// Stop labels visible at ≥16.5.
+  bool showLabelsAtZoom(double zoom) => showStopLabels && zoom >= 16.5;
+
   MapLayerVisibility copyWith({
     bool? showJeepneyRoutes,
     bool? showTricycleZones,
+    bool? showJeepneyStops,
+    bool? showStopLabels,
+    bool? showTransferPoints,
     bool? showTouristLayer,
     bool? showEmergency,
     bool? showHighwayCorridors,
@@ -31,6 +49,9 @@ class MapLayerVisibility extends Equatable {
     return MapLayerVisibility(
       showJeepneyRoutes: showJeepneyRoutes ?? this.showJeepneyRoutes,
       showTricycleZones: showTricycleZones ?? this.showTricycleZones,
+      showJeepneyStops: showJeepneyStops ?? this.showJeepneyStops,
+      showStopLabels: showStopLabels ?? this.showStopLabels,
+      showTransferPoints: showTransferPoints ?? this.showTransferPoints,
       showTouristLayer: showTouristLayer ?? this.showTouristLayer,
       showEmergency: showEmergency ?? this.showEmergency,
       showHighwayCorridors: showHighwayCorridors ?? this.showHighwayCorridors,
@@ -41,6 +62,9 @@ class MapLayerVisibility extends Equatable {
   List<Object?> get props => [
         showJeepneyRoutes,
         showTricycleZones,
+        showJeepneyStops,
+        showStopLabels,
+        showTransferPoints,
         showTouristLayer,
         showEmergency,
         showHighwayCorridors,
@@ -78,6 +102,10 @@ class MapState extends Equatable {
     this.highwayCorridors = const [],
     this.visibleRouteCodes = const {},
     this.roadRoutePolylines = const {},
+    this.mapZoom = AppConstants.defaultMapZoom,
+    this.previewVehicleMode,
+    this.highlightedStepIndex,
+    this.isNavigating = false,
   });
 
   final bool isLoading;
@@ -108,6 +136,10 @@ class MapState extends Equatable {
   final List<List<LatLng>> highwayCorridors;
   final Set<String> visibleRouteCodes;
   final Map<int, List<LatLng>> roadRoutePolylines;
+  final double mapZoom;
+  final VehicleMode? previewVehicleMode;
+  final int? highlightedStepIndex;
+  final bool isNavigating;
 
   List<JeepneyRoute> get filteredJeepneyRoutes {
     if (visibleRouteCodes.isEmpty) return const [];
@@ -151,6 +183,12 @@ class MapState extends Equatable {
     List<List<LatLng>>? highwayCorridors,
     Set<String>? visibleRouteCodes,
     Map<int, List<LatLng>>? roadRoutePolylines,
+    double? mapZoom,
+    VehicleMode? previewVehicleMode,
+    int? highlightedStepIndex,
+    bool? isNavigating,
+    bool clearPreviewVehicleMode = false,
+    bool clearHighlightedStep = false,
     bool clearError = false,
     bool clearLocationWarning = false,
     bool clearTransportWarning = false,
@@ -193,6 +231,12 @@ class MapState extends Equatable {
       highwayCorridors: highwayCorridors ?? this.highwayCorridors,
       visibleRouteCodes: visibleRouteCodes ?? this.visibleRouteCodes,
       roadRoutePolylines: roadRoutePolylines ?? this.roadRoutePolylines,
+      mapZoom: mapZoom ?? this.mapZoom,
+      previewVehicleMode:
+          clearPreviewVehicleMode ? null : (previewVehicleMode ?? this.previewVehicleMode),
+      highlightedStepIndex:
+          clearHighlightedStep ? null : (highlightedStepIndex ?? this.highlightedStepIndex),
+      isNavigating: isNavigating ?? this.isNavigating,
     );
   }
 

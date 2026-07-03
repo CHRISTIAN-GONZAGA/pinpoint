@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,8 +13,10 @@ import 'package:pinpoint/core/theme/app_spacing.dart';
 import 'package:pinpoint/core/utilities/color_utils.dart';
 import 'package:pinpoint/core/widgets/loading_shimmer.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
+import 'package:pinpoint/features/map/presentation/utils/map_polyline_utils.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_state.dart';
+import 'package:pinpoint/features/map/presentation/widgets/map_context_sheet.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_controls.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_pin_bar.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_route_filter_bar.dart';
@@ -48,7 +52,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   @override
   Widget build(BuildContext context) {
     final mapState = ref.watch(mapNotifierProvider);
+    final notifier = ref.read(mapNotifierProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final zoom = mapState.mapZoom;
+    final layers = mapState.layers;
+    final mapRotation = mapState.mapController?.camera.rotation ?? 0;
 
     ref.listen(mapNotifierProvider.select((s) => s.errorMessage), (previous, next) {
       if (next != null && next != previous && mounted) {
@@ -75,11 +83,41 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               interactionOptions: const InteractionOptions(
                 flags: InteractiveFlag.all,
               ),
-              onLongPress: (_, point) {
-                ref.read(mapNotifierProvider.notifier).setDestinationFromTap(point);
+              onPositionChanged: (camera, _) {
+                notifier.updateMapZoom(camera.zoom);
               },
-              onTap: (_, point) {
-                ref.read(mapNotifierProvider.notifier).handleMapTap(point);
+              onLongPress: (_, point) async {
+                final snapped = await notifier.prepareMapContext(point);
+                if (!mounted) return;
+                final items = notifier.buildNearbyItems(snapped.snapped).map(_toNearbyItem).toList();
+                await MapNearbySheet.show(
+                  context,
+                  items: items,
+                  onNavigateFrom: () => notifier.setOriginFromContext(snapped.snapped),
+                  onNavigateTo: () => notifier.setDestinationFromContext(snapped.snapped),
+                );
+              },
+              onTap: (_, point) async {
+                if (mapState.pinMode != MapPinMode.none) {
+                  await notifier.handleMapTap(point);
+                  return;
+                }
+                if (mapState.selectedRoute != null) {
+                  await notifier.handleMapTap(point);
+                  return;
+                }
+                final ctx = await notifier.prepareMapContext(point);
+                if (!mounted) return;
+                await MapContextSheet.show(
+                  context,
+                  point: ctx.snapped,
+                  address: ctx.address,
+                  nearestStopName: ctx.nearestStop,
+                  nearestStopDistanceM: ctx.nearestM,
+                  onNavigateFrom: () => notifier.setOriginFromContext(ctx.snapped),
+                  onNavigateTo: () => notifier.setDestinationFromContext(ctx.snapped),
+                  onExploreNearby: () => notifier.exploreNearbyAt(ctx.snapped),
+                );
               },
             ),
             children: [
@@ -117,40 +155,64 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     );
                   }).toList(),
                 ),
-              if (mapState.layers.showJeepneyRoutes && mapState.filteredJeepneyRoutes.isNotEmpty)
+              if (layers.showJeepneyLinesAtZoom(zoom) &&
+                  mapState.filteredJeepneyRoutes.isNotEmpty)
                 PolylineLayer(
                   polylines: mapState.filteredJeepneyRoutes.map((route) {
                     final isSelected = mapState.selectedRoute?.routeId == route.routeId;
-                    final points = mapState.roadRoutePolylines[route.routeId] ?? route.polyline;
+                    final points =
+                        mapState.roadRoutePolylines[route.routeId] ?? route.polyline;
                     return Polyline(
                       points: points,
-                      color: colorFromHex(route.colorHex),
+                      color: colorFromHex(route.colorHex)
+                          .withValues(alpha: isSelected ? 1 : 0.75),
                       strokeWidth: isSelected ? 6 : 4,
                     );
                   }).toList(),
                 ),
+              if (mapState.routeOptions.length > 1 && mapState.plannedRoute != null)
+                PolylineLayer(
+                  polylines: _buildPreviewPolylines(mapState),
+                ),
               if (mapState.plannedRoute != null)
                 PolylineLayer(
-                  polylines: _buildColoredRoutePolylines(mapState.plannedRoute!),
+                  polylines: _buildColoredRoutePolylines(
+                    mapState.plannedRoute!,
+                    dimmed: mapState.previewVehicleMode != null &&
+                        mapState.previewVehicleMode != mapState.plannedRoute!.primaryMode,
+                  ),
+                ),
+              if (mapState.plannedRoute != null)
+                MarkerLayer(
+                  markers: _buildDirectionMarkers(mapState.plannedRoute!),
                 ),
               MarkerLayer(
                 markers: [
-                  ..._buildStopMarkers(mapState),
+                  ..._buildStopMarkers(mapState, notifier, zoom),
                   ..._buildPoiMarkers(mapState),
                   ..._buildEmergencyMarkers(mapState),
-                  if (mapState.currentLocation != null)
-                    _locationTagMarker(
+                  if (mapState.currentLocation != null) ...[
+                    if (mapState.currentLocation!.accuracyMeters != null)
+                      _accuracyCircleMarker(mapState.currentLocation!),
+                    _draggablePinMarker(
                       location: mapState.currentLocation!,
                       label: 'Start',
                       color: Theme.of(context).colorScheme.primary,
                       icon: Icons.trip_origin,
+                      onDrag: notifier.updateOriginDrag,
+                      onDragEnd: () => notifier.finishOriginDrag(),
+                      controller: mapState.mapController,
                     ),
+                  ],
                   if (mapState.destination != null)
-                    _locationTagMarker(
+                    _draggablePinMarker(
                       location: mapState.destination!,
                       label: 'Destination',
                       color: AppColors.danger,
                       icon: Icons.place_rounded,
+                      onDrag: notifier.updateDestinationDrag,
+                      onDragEnd: () => notifier.finishDestinationDrag(),
+                      controller: mapState.mapController,
                     ),
                 ],
               ),
@@ -196,9 +258,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     ),
                   if (mapState.locationWarning != null)
                     _MapBanner(
-                      icon: Icons.location_off_rounded,
+                      icon: Icons.location_searching_rounded,
                       message: mapState.locationWarning!,
-                      actionLabel: 'Settings',
+                      actionLabel: 'Fix',
                       onAction: () =>
                           ref.read(mapNotifierProvider.notifier).openLocationSettings(),
                     ),
@@ -255,6 +317,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   isActive: _showLayerPanel,
                   onPressed: () => setState(() => _showLayerPanel = !_showLayerPanel),
                 ),
+                if (mapRotation.abs() > 0.5) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  MapGlassButton(
+                    icon: Icons.explore_rounded,
+                    tooltip: 'North up',
+                    onPressed: notifier.resetMapRotation,
+                  ),
+                ],
               ],
             ),
           ),
@@ -266,27 +336,32 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               child: MapLayerPanel(
                 showJeepney: mapState.layers.showJeepneyRoutes,
                 showTricycle: mapState.layers.showTricycleZones,
+                showStops: mapState.layers.showJeepneyStops,
+                showStopLabels: mapState.layers.showStopLabels,
+                showTransfers: mapState.layers.showTransferPoints,
                 showTourist: mapState.layers.showTouristLayer,
                 showEmergency: mapState.layers.showEmergency,
                 showHighway: mapState.layers.showHighwayCorridors,
                 onJeepneyChanged: (v) {
                   if (v) {
-                    ref.read(mapNotifierProvider.notifier).showAllRoutes();
+                    notifier.showAllRoutes();
                   } else {
-                    ref.read(mapNotifierProvider.notifier).clearRouteFilters();
+                    notifier.clearRouteFilters();
                   }
                 },
-                onTricycleChanged: (v) => ref
-                    .read(mapNotifierProvider.notifier)
+                onStopsChanged: (v) => notifier
+                    .toggleLayer((l) => l.copyWith(showJeepneyStops: v)),
+                onStopLabelsChanged: (v) => notifier
+                    .toggleLayer((l) => l.copyWith(showStopLabels: v)),
+                onTransfersChanged: (v) => notifier
+                    .toggleLayer((l) => l.copyWith(showTransferPoints: v)),
+                onTricycleChanged: (v) => notifier
                     .toggleLayer((l) => l.copyWith(showTricycleZones: v)),
-                onTouristChanged: (v) => ref
-                    .read(mapNotifierProvider.notifier)
+                onTouristChanged: (v) => notifier
                     .toggleLayer((l) => l.copyWith(showTouristLayer: v)),
-                onEmergencyChanged: (v) => ref
-                    .read(mapNotifierProvider.notifier)
+                onEmergencyChanged: (v) => notifier
                     .toggleLayer((l) => l.copyWith(showEmergency: v)),
-                onHighwayChanged: (v) => ref
-                    .read(mapNotifierProvider.notifier)
+                onHighwayChanged: (v) => notifier
                     .toggleLayer((l) => l.copyWith(showHighwayCorridors: v)),
                 onClose: () => setState(() => _showLayerPanel = false),
               ),
@@ -315,12 +390,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 originLabel: mapState.currentAddress ?? 'Start',
                 destinationLabel: mapState.destinationAddress ?? mapState.destination?.label,
                 selectedVehicleMode: mapState.selectedVehicleMode,
-                onGenerate: () => ref.read(mapNotifierProvider.notifier).generateRoute(),
-                onSelectOption: (option) =>
-                    ref.read(mapNotifierProvider.notifier).selectRouteOption(option),
-                onVehicleModeChanged: (mode) =>
-                    ref.read(mapNotifierProvider.notifier).setVehicleMode(mode),
-                onClose: () => ref.read(mapNotifierProvider.notifier).clearRoute(),
+                highlightedStepIndex: mapState.highlightedStepIndex,
+                onGenerate: () => notifier.generateRoute(),
+                onSelectOption: (option) => notifier.selectRouteOption(option),
+                onPreviewOption: (option) => notifier.previewRouteOption(option),
+                onStepTap: (index) => notifier.focusRouteStep(index),
+                onVehicleModeChanged: (mode) => notifier.setVehicleMode(mode),
+                onClose: () => notifier.clearRoute(),
               ),
             ),
           if (mapState.plannedRoute != null)
@@ -360,29 +436,124 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     );
   }
 
-  List<Marker> _buildStopMarkers(MapState mapState) {
-    if (!mapState.layers.showJeepneyRoutes) return [];
+  List<Marker> _buildStopMarkers(MapState mapState, MapNotifier notifier, double zoom) {
+    if (!mapState.layers.showStopsAtZoom(zoom)) return [];
+    final showLabels = mapState.layers.showLabelsAtZoom(zoom);
     return mapState.filteredJeepneyRoutes.expand((route) {
       return route.stops.map((stop) {
+        final isTransfer = mapState.layers.showTransferPoints && notifier.isTransferStop(stop);
+        final isTerminal = notifier.isTerminalStop(stop);
+        final color = colorFromHex(route.colorHex);
         return Marker(
           point: stop.latLng,
-          width: 28,
-          height: 28,
+          width: showLabels ? 120 : 36,
+          height: showLabels ? 56 : 36,
+          alignment: showLabels ? Alignment.bottomCenter : Alignment.center,
           child: GestureDetector(
-            onTap: () {
-              ref.read(mapNotifierProvider.notifier).selectJeepneyRoute(route);
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color: colorFromHex(route.colorHex),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-              ),
-              child: const Icon(Icons.circle, size: 8, color: Colors.white),
-            ),
+            onTap: () => ref.read(mapNotifierProvider.notifier).selectJeepneyRoute(route),
+            child: showLabels
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 1)),
+                          ],
+                        ),
+                        child: Text(
+                          stop.name,
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Icon(
+                        isTerminal
+                            ? Icons.directions_bus_filled
+                            : isTransfer
+                                ? Icons.swap_horiz_rounded
+                                : Icons.directions_bus_outlined,
+                        color: color,
+                        size: 28,
+                      ),
+                    ],
+                  )
+                : Container(
+                    decoration: BoxDecoration(
+                      color: isTransfer ? Colors.white : color,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: color, width: 2),
+                    ),
+                    child: Icon(
+                      isTerminal
+                          ? Icons.directions_bus_filled
+                          : isTransfer
+                              ? Icons.swap_horiz_rounded
+                              : Icons.circle,
+                      size: isTransfer || isTerminal ? 16 : 8,
+                      color: isTransfer ? color : Colors.white,
+                    ),
+                  ),
           ),
         );
       });
+    }).toList();
+  }
+
+  MapNearbyItem _toNearbyItem(MapNearbyItemData data) {
+    final icon = switch (data.kind) {
+      'stop' => Icons.directions_bus_outlined,
+      'tricycle' => Icons.moped_outlined,
+      'hospital' => Icons.local_hospital_outlined,
+      'police' => Icons.local_police_outlined,
+      'tourist' || 'attraction' => Icons.attractions_outlined,
+      'school' => Icons.school_outlined,
+      'government' => Icons.account_balance_outlined,
+      _ => Icons.place_outlined,
+    };
+    final color = switch (data.kind) {
+      'stop' => AppColors.primary,
+      'tricycle' => AppColors.warning,
+      'hospital' => AppColors.danger,
+      'police' => AppColors.primary,
+      _ => AppColors.secondary,
+    };
+    return MapNearbyItem(
+      icon: icon,
+      color: color,
+      label: data.label,
+      subtitle: data.subtitle,
+    );
+  }
+
+  List<Polyline> _buildPreviewPolylines(MapState mapState) {
+    final selected = mapState.plannedRoute!;
+    return mapState.routeOptions
+        .where((o) => o.primaryMode != selected.primaryMode)
+        .map((option) {
+      final points = option.coloredSegments.isNotEmpty
+          ? option.coloredSegments.expand((s) => s.polyline).toList()
+          : option.fullPolyline;
+      return Polyline(
+        points: points,
+        color: Colors.grey.withValues(alpha: 0.45),
+        strokeWidth: 3,
+        pattern: StrokePattern.dashed(segments: [8, 12]),
+      );
+    }).toList();
+  }
+
+  List<Marker> _buildDirectionMarkers(PlannedRoute route) {
+    return route.coloredSegments.expand((segment) {
+      if (segment.type == RouteStepType.walk) return const <Marker>[];
+      return MapPolylineUtils.directionMarkers(
+        segment.polyline,
+        color: colorFromHex(segment.colorHex),
+      );
     }).toList();
   }
 
@@ -416,67 +587,102 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     }).toList();
   }
 
-  List<Polyline> _buildColoredRoutePolylines(PlannedRoute route) {
+  List<Polyline> _buildColoredRoutePolylines(PlannedRoute route, {bool dimmed = false}) {
+    final alpha = dimmed ? 0.35 : 1.0;
     if (route.coloredSegments.isNotEmpty) {
       return route.coloredSegments.map((segment) {
+        final isWalk = segment.type == RouteStepType.walk;
         return Polyline(
           points: segment.polyline,
-          color: colorFromHex(segment.colorHex),
-          strokeWidth: segment.type == RouteStepType.walk ? 4 : 6,
-          borderColor: Colors.white,
-          borderStrokeWidth: 1.5,
+          color: colorFromHex(segment.colorHex).withValues(alpha: alpha),
+          strokeWidth: isWalk ? 4 : 7,
+          borderColor: Colors.white.withValues(alpha: alpha),
+          borderStrokeWidth: isWalk ? 1 : 2,
         );
       }).toList();
     }
     return [
       Polyline(
         points: route.fullPolyline,
-        color: AppColors.accent,
+        color: AppColors.accent.withValues(alpha: alpha),
         strokeWidth: 5,
-        borderColor: Colors.white,
+        borderColor: Colors.white.withValues(alpha: alpha),
         borderStrokeWidth: 2,
       ),
     ];
   }
 
-  Marker _locationTagMarker({
+  Marker _accuracyCircleMarker(MapLocation location) {
+    final radius = location.accuracyMeters ?? 30;
+    final diameter = (radius * 2).clamp(40, 200).toDouble();
+    return Marker(
+      point: location.latLng,
+      width: diameter,
+      height: diameter,
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.primary.withValues(alpha: 0.12),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.35)),
+        ),
+      ),
+    );
+  }
+
+  Marker _draggablePinMarker({
     required MapLocation location,
     required String label,
     required Color color,
     required IconData icon,
+    required ValueChanged<LatLng> onDrag,
+    required VoidCallback onDragEnd,
+    required MapController? controller,
   }) {
     return Marker(
       point: location.latLng,
       width: 120,
       height: 72,
       alignment: Alignment.topCenter,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.35),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onPanUpdate: (details) {
+          final camera = controller?.camera;
+          if (camera == null) return;
+          final screen = camera.latLngToScreenPoint(location.latLng);
+          final next = camera.pointToLatLng(
+            math.Point(screen.x + details.delta.dx, screen.y + details.delta.dy),
+          );
+          onDrag(next);
+        },
+        onPanEnd: (_) => onDragEnd(),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.35),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
                 ),
-              ],
-            ),
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
               ),
             ),
-          ),
-          Icon(icon, color: color, size: 36),
-        ],
+            Icon(icon, color: color, size: 36),
+          ],
+        ),
       ),
     );
   }

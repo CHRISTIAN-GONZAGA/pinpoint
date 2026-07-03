@@ -57,4 +57,21 @@ class RoutingService {
 
   double distanceMeters(LatLng from, LatLng to) =>
       _distance.as(LengthUnit.Meter, from, to);
+
+  /// Snaps a tap to the nearest drivable road using OSRM Nearest.
+  Future<LatLng> snapToNearestRoad(LatLng point) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '${AppConstants.osrmBaseUrl}/nearest/v1/driving/'
+        '${point.longitude},${point.latitude}',
+        queryParameters: {'number': 1},
+      );
+      final waypoints = response.data?['waypoints'] as List<dynamic>? ?? [];
+      if (waypoints.isEmpty) return point;
+      final location = (waypoints.first as Map<String, dynamic>)['location'] as List;
+      return LatLng((location[1] as num).toDouble(), (location[0] as num).toDouble());
+    } on DioException {
+      return point;
+    }
+  }
 }

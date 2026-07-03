@@ -78,10 +78,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     Future.microtask(() async {
-      final map = ref.read(mapNotifierProvider);
-      if (map.currentLocation == null) {
-        await ref.read(mapNotifierProvider.notifier).refreshLocation();
-      }
+      await ref.read(mapNotifierProvider.notifier).refreshLocation();
       await ref.read(exploreNotifierProvider.notifier).initialize();
       await ref.read(notificationsNotifierProvider.notifier).loadAnnouncements();
       final user = ref.read(currentUserProvider);
@@ -223,11 +220,17 @@ class _LocationCard extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    accuracy != null
-                        ? 'GPS accuracy: ${accuracy.round()} m'
-                        : AppConstants.cityName,
+                    mapState.locationWarning ??
+                        (accuracy != null
+                            ? 'GPS accuracy: ${accuracy.round()} m'
+                            : 'Tap refresh to detect your location'),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                          color: mapState.locationWarning != null
+                              ? Theme.of(context).colorScheme.error
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.6),
                         ),
                   ),
                 ],

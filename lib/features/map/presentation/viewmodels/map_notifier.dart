@@ -1,17 +1,20 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:pinpoint/app/constants.dart';
+import 'package:pinpoint/core/exceptions/app_exception.dart';
 import 'package:pinpoint/app/dependency_injection.dart';
 import 'package:pinpoint/core/local/asset_loader.dart';
 import 'package:pinpoint/core/services/analytics_service.dart';
 import 'package:pinpoint/core/services/geocoding_service.dart';
 import 'package:pinpoint/core/services/jeepney_path_service.dart';
 import 'package:pinpoint/core/services/location_service.dart';
+import 'package:pinpoint/core/services/routing_service.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
+import 'package:pinpoint/features/map/presentation/utils/map_camera_utils.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_state.dart';
 import 'package:pinpoint/features/routing/domain/route_planner_service.dart';
 
@@ -21,6 +24,8 @@ class MapNotifier extends Notifier<MapState> {
   late final GeocodingService _geocoding;
   late final RoutePlannerService _planner;
   late final JeepneyPathService _jeepneyPaths;
+  late final RoutingService _routing;
+  final _distance = const Distance();
 
   @override
   MapState build() {
@@ -28,6 +33,7 @@ class MapNotifier extends Notifier<MapState> {
     _geocoding = ref.read(geocodingServiceProvider);
     _planner = ref.read(routePlannerServiceProvider);
     _jeepneyPaths = ref.read(jeepneyPathServiceProvider);
+    _routing = ref.read(routingServiceProvider);
     return MapState(mapController: MapController());
   }
 
@@ -65,8 +71,17 @@ class MapNotifier extends Notifier<MapState> {
     }
 
     // Show the map immediately; resolve GPS in the background.
-    unawaited(refreshLocation(animate: true));
+    unawaited(_primeLocationAccess());
     unawaited(_loadPoiData());
+  }
+
+  Future<void> _primeLocationAccess() async {
+    try {
+      await _location.requestPermission();
+    } catch (_) {
+      // Permission dialog declined or GPS off — refreshLocation surfaces a banner.
+    }
+    await refreshLocation(animate: true);
   }
 
   void onTileLoadError() {
@@ -75,7 +90,7 @@ class MapNotifier extends Notifier<MapState> {
     }
   }
 
-  Future<void> openLocationSettings() => _location.openSettings();
+  Future<void> openLocationSettings() => _location.openRelevantSettings();
 
   void toggleRouteFilter(String routeCode) {
     final next = Set<String>.from(state.visibleRouteCodes);
@@ -137,29 +152,56 @@ class MapNotifier extends Notifier<MapState> {
     state = state.copyWith(isLocating: true, clearLocationWarning: true);
     try {
       final location = await _location.getCurrentLocation();
-      final address = await _geocoding.reverseGeocode(location.latLng);
+
       state = state.copyWith(
         isLocating: false,
+        currentLocation: location,
+        currentAddress:
+            '${location.latitude.toStringAsFixed(5)}, ${location.longitude.toStringAsFixed(5)}',
+        clearLocationWarning: true,
+      );
+
+      if (animate) {
+        MapCameraUtils.moveTo(
+          state.mapController,
+          location.latLng,
+          zoom: state.mapController?.camera.zoom ?? AppConstants.defaultMapZoom,
+        );
+      }
+
+      final address = await _geocoding.reverseGeocode(location.latLng);
+      state = state.copyWith(
         currentLocation: location.copyWith(label: address),
         currentAddress: address,
       );
-      if (animate) {
-        state.mapController?.move(
-          location.latLng,
-          state.mapController?.camera.zoom ?? AppConstants.defaultMapZoom,
-        );
-      }
       await _loadPoiData();
     } catch (e) {
       state = state.copyWith(
         isLocating: false,
-        locationWarning: _message(e),
+        locationWarning: _locationMessage(e),
       );
     }
   }
 
   void setPinMode(MapPinMode mode) {
     state = state.copyWith(pinMode: mode);
+  }
+
+  void updateMapZoom(double zoom) {
+    if ((state.mapZoom - zoom).abs() < 0.05) return;
+    final autoLabels = zoom >= 16.5;
+    state = state.copyWith(
+      mapZoom: zoom,
+      layers: autoLabels && !state.layers.showStopLabels
+          ? state.layers.copyWith(showStopLabels: true)
+          : state.layers,
+    );
+  }
+
+  void resetMapRotation() {
+    final controller = state.mapController;
+    if (controller == null) return;
+    controller.rotate(0);
   }
 
   Future<void> handleMapTap(LatLng point) async {
@@ -178,15 +220,175 @@ class MapNotifier extends Notifier<MapState> {
     }
   }
 
-  Future<void> setOriginFromTap(LatLng point) async {
+  /// Returns context data for the tap menu. Caller shows [MapContextSheet].
+  Future<({LatLng snapped, String address, String? nearestStop, double? nearestM})>
+      prepareMapContext(LatLng point) async {
+    final snapped = await _routing.snapToNearestRoad(point);
+    final address = await _geocoding.reverseGeocode(snapped);
+    final nearest = _nearestStop(snapped);
+    return (
+      snapped: snapped,
+      address: address,
+      nearestStop: nearest?.name,
+      nearestM: nearest != null ? _distance.as(LengthUnit.Meter, snapped, nearest.latLng) : null,
+    );
+  }
+
+  Future<void> setOriginFromContext(LatLng point) => setOriginFromTap(point);
+
+  Future<void> setDestinationFromContext(LatLng point) => setDestinationFromTap(point);
+
+  Future<void> exploreNearbyAt(LatLng point) async {
+    state = state.copyWith(
+      layers: state.layers.copyWith(showTouristLayer: true, showJeepneyStops: true),
+    );
+    MapCameraUtils.moveTo(state.mapController, point, zoom: 16);
     final address = await _geocoding.reverseGeocode(point);
     state = state.copyWith(
       currentLocation: MapLocation.fromLatLng(point, label: address),
       currentAddress: address,
+    );
+    await _loadPoiData();
+  }
+
+  List<MapNearbyItemData> buildNearbyItems(LatLng point) {
+    final items = <MapNearbyItemData>[];
+    final stop = _nearestStop(point);
+    if (stop != null) {
+      final m = _distance.as(LengthUnit.Meter, point, stop.latLng).round();
+      items.add(MapNearbyItemData(
+        kind: 'stop',
+        label: stop.name,
+        subtitle: '$m m away',
+      ));
+    }
+
+    TricycleZone? zone;
+    for (final z in state.tricycleZones) {
+      if (_pointInPolygon(point, z.polygon)) {
+        zone = z;
+        break;
+      }
+    }
+    if (zone != null) {
+      items.add(MapNearbyItemData(
+        kind: 'tricycle',
+        label: zone.zoneName,
+        subtitle: 'Tricycle service area',
+      ));
+    }
+
+    for (final place in state.poiPlaces.take(3)) {
+      final m = _distance.as(LengthUnit.Meter, point, place.latLng).round();
+      if (m <= 2000) {
+        items.add(MapNearbyItemData(
+          kind: place.category ?? place.placeType,
+          label: place.name,
+          subtitle: '$m m · ${place.category ?? place.placeType}',
+        ));
+      }
+    }
+    return items;
+  }
+
+  RouteStop? _nearestStop(LatLng point) {
+    RouteStop? nearest;
+    var best = double.infinity;
+    for (final route in state.jeepneyRoutes) {
+      for (final stop in route.stops) {
+        final d = _distance.as(LengthUnit.Meter, point, stop.latLng);
+        if (d < best) {
+          best = d;
+          nearest = stop;
+        }
+      }
+    }
+    return nearest;
+  }
+
+  bool isTransferStop(RouteStop stop) {
+    var routes = 0;
+    for (final route in state.jeepneyRoutes) {
+      if (route.stops.any((s) => s.stopId == stop.stopId || s.name == stop.name)) {
+        routes++;
+      }
+    }
+    return routes > 1;
+  }
+
+  bool isTerminalStop(RouteStop stop) =>
+      stop.name.toLowerCase().contains('terminal');
+
+  Future<void> updateOriginDrag(LatLng point) async {
+    state = state.copyWith(
+      currentLocation: MapLocation.fromLatLng(point, label: state.currentAddress),
+    );
+  }
+
+  Future<void> finishOriginDrag() async {
+    final point = state.currentLocation?.latLng;
+    if (point != null) await setOriginFromTap(point);
+  }
+
+  Future<void> updateDestinationDrag(LatLng point) async {
+    state = state.copyWith(
+      destination: MapLocation.fromLatLng(point, label: state.destinationAddress),
+    );
+  }
+
+  Future<void> finishDestinationDrag() async {
+    final point = state.destination?.latLng;
+    if (point != null) await setDestinationFromTap(point);
+  }
+
+  void previewRouteOption(PlannedRoute? option) {
+    if (option == null || option.primaryMode == state.plannedRoute?.primaryMode) {
+      state = state.copyWith(clearPreviewVehicleMode: true);
+      if (state.plannedRoute != null) _fitRoute(state.plannedRoute!);
+      return;
+    }
+    state = state.copyWith(previewVehicleMode: option.primaryMode);
+    _fitRoute(option);
+  }
+
+  void focusRouteStep(int index) {
+    final route = state.plannedRoute;
+    if (route == null || index < 0 || index >= route.steps.length) return;
+    final step = route.steps[index];
+    state = state.copyWith(highlightedStepIndex: index);
+    if (step.polyline.isNotEmpty) {
+      MapCameraUtils.fitStep(state.mapController, step.polyline);
+    }
+  }
+
+  bool _pointInPolygon(LatLng point, List<LatLng> polygon) {
+    if (polygon.length < 3) return false;
+    var inside = false;
+    for (var i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      final xi = polygon[i].longitude;
+      final yi = polygon[i].latitude;
+      final xj = polygon[j].longitude;
+      final yj = polygon[j].latitude;
+      final intersect = ((yi > point.latitude) != (yj > point.latitude)) &&
+          (point.longitude <
+              (xj - xi) * (point.latitude - yi) / (yj - yi + 0.0000001) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  }
+
+  Future<void> setOriginFromTap(LatLng point) async {
+    final snapped = await _routing.snapToNearestRoad(point);
+    final address = await _geocoding.reverseGeocode(snapped);
+    state = state.copyWith(
+      currentLocation: MapLocation.fromLatLng(snapped, label: address),
+      currentAddress: address,
       clearRoute: true,
       clearRouteOptions: true,
+      clearLocationWarning: true,
     );
-    state.mapController?.move(point, state.mapController?.camera.zoom ?? 15);
+    MapCameraUtils.moveTo(state.mapController, snapped, zoom: 15.5);
+    _fitEndpoints();
     await _loadPoiData();
     await _maybeAutoGenerateRoute();
   }
@@ -210,17 +412,19 @@ class MapNotifier extends Notifier<MapState> {
   }
 
   Future<void> selectDestination(MapLocation location) async {
+    final snapped = await _routing.snapToNearestRoad(location.latLng);
     final address =
-        location.label ?? await _geocoding.reverseGeocode(location.latLng);
+        location.label ?? await _geocoding.reverseGeocode(snapped);
     state = state.copyWith(
-      destination: location.copyWith(label: address),
+      destination: MapLocation.fromLatLng(snapped, label: address),
       destinationAddress: address,
       searchResults: [],
       isSearching: false,
       clearRoute: true,
       clearRouteOptions: true,
     );
-    state.mapController?.move(location.latLng, 15);
+    MapCameraUtils.moveTo(state.mapController, snapped, zoom: 15.5);
+    _fitEndpoints();
     await _maybeAutoGenerateRoute();
   }
 
@@ -256,7 +460,11 @@ class MapNotifier extends Notifier<MapState> {
   }
 
   void selectRouteOption(PlannedRoute option) {
-    state = state.copyWith(plannedRoute: option);
+    state = state.copyWith(
+      plannedRoute: option,
+      clearPreviewVehicleMode: true,
+      clearHighlightedStep: true,
+    );
     _fitRoute(option);
   }
 
@@ -327,12 +535,17 @@ class MapNotifier extends Notifier<MapState> {
         .toList();
     final points = coords.isNotEmpty ? coords : route.fullPolyline;
     if (points.isNotEmpty) {
-      state.mapController?.fitCamera(
-        CameraFit.coordinates(
-          coordinates: points,
-          padding: const EdgeInsets.all(56),
-        ),
-      );
+      MapCameraUtils.fitPoints(state.mapController, points);
+    }
+  }
+
+  void _fitEndpoints() {
+    final points = <LatLng>[
+      if (state.currentLocation != null) state.currentLocation!.latLng,
+      if (state.destination != null) state.destination!.latLng,
+    ];
+    if (points.length >= 2) {
+      MapCameraUtils.fitPoints(state.mapController, points);
     }
   }
 
@@ -357,6 +570,17 @@ class MapNotifier extends Notifier<MapState> {
       final emergency = await placesRepo.getEmergencyContacts();
       state = state.copyWith(poiPlaces: nearby, emergencyContacts: emergency);
     } catch (_) {}
+  }
+
+  String _locationMessage(Object error) {
+    if (error is AppException) return error.message;
+    if (error is TimeoutException) {
+      return 'GPS signal is weak. Move near a window or outdoors, then tap the location button.';
+    }
+    if (error is LocationServiceDisabledException) {
+      return 'GPS is off on your phone. Turn on Location in system settings.';
+    }
+    return _message(error);
   }
 
   String _message(Object error) {
@@ -389,3 +613,16 @@ final currentLocationProvider = Provider<MapLocation?>((ref) {
 final currentAddressProvider = Provider<String?>((ref) {
   return ref.watch(mapNotifierProvider).currentAddress;
 });
+
+/// Lightweight nearby item for long-press sheet.
+class MapNearbyItemData {
+  const MapNearbyItemData({
+    required this.kind,
+    required this.label,
+    required this.subtitle,
+  });
+
+  final String kind;
+  final String label;
+  final String subtitle;
+}

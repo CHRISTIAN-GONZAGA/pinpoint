@@ -67,10 +67,16 @@ class MapLayerPanel extends StatelessWidget {
     super.key,
     required this.showJeepney,
     required this.showTricycle,
+    required this.showStops,
+    required this.showStopLabels,
+    required this.showTransfers,
     required this.showTourist,
     required this.showEmergency,
     required this.onJeepneyChanged,
     required this.onTricycleChanged,
+    required this.onStopsChanged,
+    required this.onStopLabelsChanged,
+    required this.onTransfersChanged,
     required this.onTouristChanged,
     required this.onEmergencyChanged,
     required this.onClose,
@@ -80,11 +86,17 @@ class MapLayerPanel extends StatelessWidget {
 
   final bool showJeepney;
   final bool showTricycle;
+  final bool showStops;
+  final bool showStopLabels;
+  final bool showTransfers;
   final bool showTourist;
   final bool showEmergency;
   final bool showHighway;
   final ValueChanged<bool> onJeepneyChanged;
   final ValueChanged<bool> onTricycleChanged;
+  final ValueChanged<bool> onStopsChanged;
+  final ValueChanged<bool> onStopLabelsChanged;
+  final ValueChanged<bool> onTransfersChanged;
   final ValueChanged<bool> onTouristChanged;
   final ValueChanged<bool> onEmergencyChanged;
   final ValueChanged<bool>? onHighwayChanged;
@@ -113,9 +125,29 @@ class MapLayerPanel extends StatelessWidget {
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text('Jeepney Routes'),
-              subtitle: const Text('Use route chips above to pick R1–R7'),
+              subtitle: const Text('Visible at zoom 14+'),
               value: showJeepney,
               onChanged: onJeepneyChanged,
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Jeepney Stops'),
+              subtitle: const Text('Visible at zoom 15.5+'),
+              value: showStops,
+              onChanged: onStopsChanged,
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Stop Labels'),
+              subtitle: const Text('Visible at zoom 16.5+'),
+              value: showStopLabels,
+              onChanged: onStopLabelsChanged,
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Transfer Points'),
+              value: showTransfers,
+              onChanged: onTransfersChanged,
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
