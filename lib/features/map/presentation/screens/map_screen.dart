@@ -63,7 +63,6 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
     if (!_mapReady && mounted) {
       setState(() => _mapReady = true);
     }
-    ref.read(mapNotifierProvider.notifier).refreshMapLayout();
   }
 
   @override

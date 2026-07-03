@@ -49,16 +49,15 @@ abstract final class AppConstants {
   static const String osrmBaseUrl = 'https://router.project-osrm.org';
   static const String nominatimBaseUrl = 'https://nominatim.openstreetmap.org';
 
-  /// Carto basemaps are reliable on mobile; OSM direct tiles often 403/block apps.
+  /// Carto basemaps (no API key). Primary tile source for mobile.
   static const List<String> mapTileSubdomains = ['a', 'b', 'c', 'd'];
-  /// Carto Voyager — no `{r}` suffix (retina handled by flutter_map).
   static const String lightTileUrl =
       'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
   static const String darkTileUrl =
       'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';
-  /// Wikimedia OSM tiles — reliable mobile fallback.
+  /// Direct OSM tiles — used as fallback (Wikimedia blocks third-party apps).
   static const String osmTileFallbackUrl =
-      'https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png';
+      'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
   @Deprecated('Use lightTileUrl')
   static const String osmTileUrl = lightTileUrl;
