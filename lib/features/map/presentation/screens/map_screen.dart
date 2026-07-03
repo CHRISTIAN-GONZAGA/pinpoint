@@ -12,6 +12,7 @@ import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
 import 'package:pinpoint/core/utilities/color_utils.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
+import 'package:pinpoint/features/map/presentation/utils/map_camera_helper.dart';
 import 'package:pinpoint/features/map/presentation/utils/map_polyline_utils.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_state.dart';
@@ -36,6 +37,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
   final _searchController = TextEditingController();
   final _mapController = MapController();
   var _showLayerPanel = false;
+  var _mapReady = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -58,6 +60,9 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
   }
 
   void _onMapReady() {
+    if (!_mapReady && mounted) {
+      setState(() => _mapReady = true);
+    }
     ref.read(mapNotifierProvider.notifier).refreshMapLayout();
   }
 
@@ -69,7 +74,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final zoom = mapState.mapZoom;
     final layers = mapState.layers;
-    final mapRotation = _mapController.camera.rotation;
+    final mapRotation = MapCameraHelper.rotation(_mapController);
 
     ref.listen(mapNotifierProvider.select((s) => s.errorMessage), (previous, next) {
       if (next != null && next != previous && mounted) {
@@ -87,7 +92,10 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
             child: FlutterMap(
               mapController: _mapController,
               options: MapOptions(
-                initialCenter: mapState.mapCenter,
+                initialCenter: const LatLng(
+                  AppConstants.butuanLat,
+                  AppConstants.butuanLng,
+                ),
                 initialZoom: AppConstants.defaultMapZoom,
                 minZoom: 11,
                 maxZoom: 18,
@@ -305,6 +313,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
                   tooltip: 'Zoom in',
                   onPressed: () {
                     final c = _mapController;
+                    if (!MapCameraHelper.isReady(c)) return;
                     c.move(c.camera.center, c.camera.zoom + 1);
                   },
                 ),
@@ -314,6 +323,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
                   tooltip: 'Zoom out',
                   onPressed: () {
                     final c = _mapController;
+                    if (!MapCameraHelper.isReady(c)) return;
                     c.move(c.camera.center, c.camera.zoom - 1);
                   },
                 ),
@@ -392,7 +402,11 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
               ),
             )
           else
-            RouteSummarySheet(
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: RouteSummarySheet(
               route: mapState.plannedRoute,
               routeOptions: mapState.routeOptions,
               canGenerate: mapState.canGenerateRoute,
@@ -407,6 +421,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
               onStepTap: (index) => notifier.focusRouteStep(index),
               onVehicleModeChanged: (mode) => notifier.setVehicleMode(mode),
               onClose: () => notifier.clearRoute(),
+              ),
             ),
           if (mapState.plannedRoute != null)
             Positioned(
@@ -655,8 +670,8 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onPanUpdate: (details) {
-          final camera = controller?.camera;
-          if (camera == null) return;
+          if (!MapCameraHelper.isReady(controller)) return;
+          final camera = controller!.camera;
           final screen = camera.latLngToScreenPoint(location.latLng);
           final next = camera.pointToLatLng(
             math.Point(screen.x + details.delta.dx, screen.y + details.delta.dy),

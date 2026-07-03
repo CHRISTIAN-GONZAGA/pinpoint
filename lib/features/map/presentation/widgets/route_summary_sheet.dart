@@ -87,27 +87,24 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
     final screenHeight = MediaQuery.sizeOf(context).height;
     final height = screenHeight * _extent;
 
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: GestureDetector(
-        onVerticalDragUpdate: (details) {
-          setState(() {
-            _extent = (_extent - details.delta.dy / screenHeight).clamp(0.18, 0.85);
-          });
-        },
-        onVerticalDragEnd: (_) => setState(() => _extent = _snap(_extent)),
-        child: Material(
-          elevation: 12,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
-          clipBehavior: Clip.antiAlias,
-          child: Container(
-            height: height,
-            width: double.infinity,
-            color: Theme.of(context).colorScheme.surface,
-            child: ListView(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              children: _sheetContent(context),
-            ),
+    return GestureDetector(
+      onVerticalDragUpdate: (details) {
+        setState(() {
+          _extent = (_extent - details.delta.dy / screenHeight).clamp(0.18, 0.85);
+        });
+      },
+      onVerticalDragEnd: (_) => setState(() => _extent = _snap(_extent)),
+      child: Material(
+        elevation: 12,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
+        clipBehavior: Clip.antiAlias,
+        child: Container(
+          height: height,
+          width: double.infinity,
+          color: Theme.of(context).colorScheme.surface,
+          child: ListView(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            children: _sheetContent(context),
           ),
         ),
       ),

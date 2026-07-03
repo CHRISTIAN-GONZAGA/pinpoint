@@ -14,6 +14,7 @@ import 'package:pinpoint/core/services/jeepney_path_service.dart';
 import 'package:pinpoint/core/services/location_service.dart';
 import 'package:pinpoint/core/services/routing_service.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
+import 'package:pinpoint/features/map/presentation/utils/map_camera_helper.dart';
 import 'package:pinpoint/features/map/presentation/utils/map_camera_utils.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_state.dart';
 import 'package:pinpoint/features/routing/domain/route_planner_service.dart';
@@ -42,10 +43,7 @@ class MapNotifier extends Notifier<MapState> {
   }
 
   void refreshMapLayout() {
-    final controller = state.mapController;
-    if (controller == null) return;
-    final camera = controller.camera;
-    controller.move(camera.center, camera.zoom);
+    MapCameraHelper.nudge(state.mapController);
   }
 
   Future<void> initialize() async {
@@ -190,7 +188,10 @@ class MapNotifier extends Notifier<MapState> {
         MapCameraUtils.moveTo(
           state.mapController,
           location.latLng,
-          zoom: state.mapController?.camera.zoom ?? AppConstants.defaultMapZoom,
+          zoom: MapCameraHelper.zoom(
+            state.mapController,
+            fallback: AppConstants.defaultMapZoom,
+          ),
         );
       }
 
@@ -474,7 +475,11 @@ class MapNotifier extends Notifier<MapState> {
       clearRoute: true,
       clearRouteOptions: true,
     );
-    state.mapController?.move(dest.latLng, state.mapController?.camera.zoom ?? 15);
+    MapCameraHelper.moveTo(
+      state.mapController,
+      dest.latLng,
+      zoom: MapCameraHelper.zoom(state.mapController, fallback: 15),
+    );
   }
 
   void setVehicleMode(VehicleMode mode) {
