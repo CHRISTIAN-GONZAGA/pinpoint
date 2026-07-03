@@ -113,7 +113,7 @@ class MapLayerPanel extends StatelessWidget {
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text('Jeepney Routes'),
-              subtitle: const Text('R1 – R7'),
+              subtitle: const Text('Use route chips above to pick R1–R7'),
               value: showJeepney,
               onChanged: onJeepneyChanged,
             ),

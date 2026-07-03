@@ -15,6 +15,7 @@ import 'package:pinpoint/features/authentication/data/auth_remote_datasource.dar
 import 'package:pinpoint/features/authentication/data/auth_repository_impl.dart';
 import 'package:pinpoint/core/services/geocoding_service.dart';
 import 'package:pinpoint/core/services/location_service.dart';
+import 'package:pinpoint/core/services/jeepney_path_service.dart';
 import 'package:pinpoint/core/services/routing_service.dart';
 import 'package:pinpoint/core/services/route_cache_service.dart';
 import 'package:pinpoint/core/services/biometric_service.dart';
@@ -88,8 +89,15 @@ final geocodingServiceProvider =
 final routingServiceProvider =
     Provider<RoutingService>((ref) => RoutingService());
 
+final jeepneyPathServiceProvider =
+    Provider<JeepneyPathService>((ref) => JeepneyPathService(
+          routingService: ref.watch(routingServiceProvider),
+        ));
+
 final routePlannerServiceProvider =
-    Provider<RoutePlannerService>((ref) => RoutePlannerService());
+    Provider<RoutePlannerService>((ref) => RoutePlannerService(
+          routingService: ref.watch(routingServiceProvider),
+        ));
 
 final transportRemoteDataSourceProvider = Provider<TransportRemoteDataSource>((ref) {
   return TransportRemoteDataSource(apiClient: ref.watch(apiClientProviderOverride));

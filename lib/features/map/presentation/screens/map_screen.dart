@@ -15,6 +15,7 @@ import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart'
 import 'package:pinpoint/features/map/presentation/viewmodels/map_state.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_controls.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_pin_bar.dart';
+import 'package:pinpoint/features/map/presentation/widgets/map_route_filter_bar.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_route_legend.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_search_bar.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_tile_layer.dart';
@@ -116,12 +117,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     );
                   }).toList(),
                 ),
-              if (mapState.layers.showJeepneyRoutes)
+              if (mapState.layers.showJeepneyRoutes && mapState.filteredJeepneyRoutes.isNotEmpty)
                 PolylineLayer(
-                  polylines: mapState.jeepneyRoutes.map((route) {
+                  polylines: mapState.filteredJeepneyRoutes.map((route) {
                     final isSelected = mapState.selectedRoute?.routeId == route.routeId;
+                    final points = mapState.roadRoutePolylines[route.routeId] ?? route.polyline;
                     return Polyline(
-                      points: route.polyline,
+                      points: points,
                       color: colorFromHex(route.colorHex),
                       strokeWidth: isSelected ? 6 : 4,
                     );
@@ -177,6 +179,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   const MapPinBar(),
+                  const SizedBox(height: AppSpacing.sm),
+                  const MapRouteFilterBar(),
                   if (mapState.pinMode != MapPinMode.none)
                     Padding(
                       padding: const EdgeInsets.only(top: 6),
@@ -265,9 +269,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 showTourist: mapState.layers.showTouristLayer,
                 showEmergency: mapState.layers.showEmergency,
                 showHighway: mapState.layers.showHighwayCorridors,
-                onJeepneyChanged: (v) => ref
-                    .read(mapNotifierProvider.notifier)
-                    .toggleLayer((l) => l.copyWith(showJeepneyRoutes: v)),
+                onJeepneyChanged: (v) {
+                  if (v) {
+                    ref.read(mapNotifierProvider.notifier).showAllRoutes();
+                  } else {
+                    ref.read(mapNotifierProvider.notifier).clearRouteFilters();
+                  }
+                },
                 onTricycleChanged: (v) => ref
                     .read(mapNotifierProvider.notifier)
                     .toggleLayer((l) => l.copyWith(showTricycleZones: v)),
@@ -354,7 +362,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   List<Marker> _buildStopMarkers(MapState mapState) {
     if (!mapState.layers.showJeepneyRoutes) return [];
-    return mapState.jeepneyRoutes.expand((route) {
+    return mapState.filteredJeepneyRoutes.expand((route) {
       return route.stops.map((stop) {
         return Marker(
           point: stop.latLng,

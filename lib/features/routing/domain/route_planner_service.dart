@@ -215,37 +215,28 @@ class RoutePlannerService {
     }
 
     if (originRoute.routeId == destRoute.routeId) {
-      final jeepneyDistance = _routing.distanceMeters(originStop.latLng, destStop.latLng);
-      final jeepneyPolyline = _segmentPolyline(
-        originRoute.polyline,
-        originStop.latLng,
-        destStop.latLng,
-      );
+      final jeepneyLeg = await _jeepneyLeg(originStop.latLng, destStop.latLng);
       addJeepney(RouteStep(
         type: RouteStepType.jeepney,
         instruction: 'Ride ${originRoute.routeCode} (${originRoute.routeName}) to ${destStop.name}',
-        distanceMeters: jeepneyDistance,
-        durationSeconds: (jeepneyDistance / _jeepneySpeedMps).round(),
+        distanceMeters: jeepneyLeg.distanceMeters,
+        durationSeconds: jeepneyLeg.durationSeconds,
         routeCode: originRoute.routeCode,
-        polyline: jeepneyPolyline,
+        polyline: jeepneyLeg.polyline,
         segmentColorHex: originRoute.colorHex,
       ));
     } else {
       final transfer = _findBestTransfer(originRoute, destRoute);
       transferCount = 1;
 
-      final firstLeg = _routing.distanceMeters(originStop.latLng, transfer.transferPoint);
+      final firstLeg = await _jeepneyLeg(originStop.latLng, transfer.transferPoint);
       addJeepney(RouteStep(
         type: RouteStepType.jeepney,
         instruction: 'Ride ${originRoute.routeCode} to ${transfer.originStop.name}',
-        distanceMeters: firstLeg,
-        durationSeconds: (firstLeg / _jeepneySpeedMps).round(),
+        distanceMeters: firstLeg.distanceMeters,
+        durationSeconds: firstLeg.durationSeconds,
         routeCode: originRoute.routeCode,
-        polyline: _segmentPolyline(
-          originRoute.polyline,
-          originStop.latLng,
-          transfer.transferPoint,
-        ),
+        polyline: firstLeg.polyline,
         segmentColorHex: originRoute.colorHex,
       ));
 
@@ -274,18 +265,14 @@ class RoutePlannerService {
         ));
       }
 
-      final secondLeg = _routing.distanceMeters(transfer.destStop.latLng, destStop.latLng);
+      final secondLeg = await _jeepneyLeg(transfer.destStop.latLng, destStop.latLng);
       addJeepney(RouteStep(
         type: RouteStepType.jeepney,
         instruction: 'Ride ${destRoute.routeCode} to ${destStop.name}',
-        distanceMeters: secondLeg,
-        durationSeconds: (secondLeg / _jeepneySpeedMps).round(),
+        distanceMeters: secondLeg.distanceMeters,
+        durationSeconds: secondLeg.durationSeconds,
         routeCode: destRoute.routeCode,
-        polyline: _segmentPolyline(
-          destRoute.polyline,
-          transfer.destStop.latLng,
-          destStop.latLng,
-        ),
+        polyline: secondLeg.polyline,
         segmentColorHex: destRoute.colorHex,
       ));
     }
@@ -459,6 +446,27 @@ class RoutePlannerService {
   }
 
   Future<({List<LatLng> polyline, double distanceMeters, int durationSeconds})>
+      _jeepneyLeg(LatLng from, LatLng to) async {
+    try {
+      final drive = await _routing.getDrivingRoute(from, to);
+      return (
+        polyline: drive.polyline.isNotEmpty ? drive.polyline : [from, to],
+        distanceMeters: drive.distanceMeters,
+        durationSeconds: drive.durationSeconds > 0
+            ? drive.durationSeconds
+            : (drive.distanceMeters / _jeepneySpeedMps).round(),
+      );
+    } catch (_) {
+      final dist = _routing.distanceMeters(from, to);
+      return (
+        polyline: [from, to],
+        distanceMeters: dist,
+        durationSeconds: (dist / _jeepneySpeedMps).round(),
+      );
+    }
+  }
+
+  Future<({List<LatLng> polyline, double distanceMeters, int durationSeconds})>
       _safeWalkingRoute(LatLng from, LatLng to) async {
     try {
       return await _routing.getWalkingRoute(from, to);
@@ -556,31 +564,6 @@ class RoutePlannerService {
     }
     return inside;
   }
-
-  List<LatLng> _segmentPolyline(List<LatLng> routePolyline, LatLng from, LatLng to) {
-    if (routePolyline.length < 2) return [from, to];
-    var startIdx = 0;
-    var endIdx = routePolyline.length - 1;
-    var minStart = double.infinity;
-    var minEnd = double.infinity;
-    for (var i = 0; i < routePolyline.length; i++) {
-      final ds = _distance.as(LengthUnit.Meter, from, routePolyline[i]);
-      final de = _distance.as(LengthUnit.Meter, to, routePolyline[i]);
-      if (ds < minStart) {
-        minStart = ds;
-        startIdx = i;
-      }
-      if (de < minEnd) {
-        minEnd = de;
-        endIdx = i;
-      }
-    }
-    if (startIdx <= endIdx) {
-      return [from, ...routePolyline.sublist(startIdx, endIdx + 1), to];
-    }
-    return [from, ...routePolyline.sublist(endIdx, startIdx + 1).reversed, to];
-  }
-
 }
 
 extension on PlannedRoute {

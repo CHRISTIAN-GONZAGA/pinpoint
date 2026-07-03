@@ -9,6 +9,7 @@ import 'package:pinpoint/app/dependency_injection.dart';
 import 'package:pinpoint/core/local/asset_loader.dart';
 import 'package:pinpoint/core/services/analytics_service.dart';
 import 'package:pinpoint/core/services/geocoding_service.dart';
+import 'package:pinpoint/core/services/jeepney_path_service.dart';
 import 'package:pinpoint/core/services/location_service.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_state.dart';
@@ -19,12 +20,14 @@ class MapNotifier extends Notifier<MapState> {
   late final LocationService _location;
   late final GeocodingService _geocoding;
   late final RoutePlannerService _planner;
+  late final JeepneyPathService _jeepneyPaths;
 
   @override
   MapState build() {
     _location = ref.read(locationServiceProvider);
     _geocoding = ref.read(geocodingServiceProvider);
     _planner = ref.read(routePlannerServiceProvider);
+    _jeepneyPaths = ref.read(jeepneyPathServiceProvider);
     return MapState(mapController: MapController());
   }
 
@@ -73,6 +76,46 @@ class MapNotifier extends Notifier<MapState> {
   }
 
   Future<void> openLocationSettings() => _location.openSettings();
+
+  void toggleRouteFilter(String routeCode) {
+    final next = Set<String>.from(state.visibleRouteCodes);
+    if (next.contains(routeCode)) {
+      next.remove(routeCode);
+    } else {
+      next.add(routeCode);
+    }
+    state = state.copyWith(
+      visibleRouteCodes: next,
+      layers: state.layers.copyWith(showJeepneyRoutes: next.isNotEmpty),
+    );
+    unawaited(_loadRoadPolylinesForVisibleRoutes());
+  }
+
+  void showAllRoutes() {
+    final codes = state.jeepneyRoutes.map((r) => r.routeCode).toSet();
+    state = state.copyWith(
+      visibleRouteCodes: codes,
+      layers: state.layers.copyWith(showJeepneyRoutes: true),
+    );
+    unawaited(_loadRoadPolylinesForVisibleRoutes());
+  }
+
+  void clearRouteFilters() {
+    state = state.copyWith(
+      visibleRouteCodes: {},
+      layers: state.layers.copyWith(showJeepneyRoutes: false),
+      clearSelectedRoute: true,
+    );
+  }
+
+  Future<void> _loadRoadPolylinesForVisibleRoutes() async {
+    final polylines = Map<int, List<LatLng>>.from(state.roadRoutePolylines);
+    for (final route in state.filteredJeepneyRoutes) {
+      if (polylines.containsKey(route.routeId)) continue;
+      polylines[route.routeId] = await _jeepneyPaths.roadPolylineForRoute(route);
+      state = state.copyWith(roadRoutePolylines: Map.from(polylines));
+    }
+  }
 
   Future<List<List<LatLng>>> _loadHighwayCorridors() async {
     try {
@@ -145,6 +188,7 @@ class MapNotifier extends Notifier<MapState> {
     );
     state.mapController?.move(point, state.mapController?.camera.zoom ?? 15);
     await _loadPoiData();
+    await _maybeAutoGenerateRoute();
   }
 
   Future<void> searchPlaces(String query) async {
@@ -177,10 +221,16 @@ class MapNotifier extends Notifier<MapState> {
       clearRouteOptions: true,
     );
     state.mapController?.move(location.latLng, 15);
+    await _maybeAutoGenerateRoute();
   }
 
   Future<void> setDestinationFromTap(LatLng point) async {
     await selectDestination(MapLocation.fromLatLng(point));
+  }
+
+  Future<void> _maybeAutoGenerateRoute() async {
+    if (!state.canGenerateRoute || state.isGeneratingRoute) return;
+    await generateRoute();
   }
 
   Future<void> swapEndpoints() async {

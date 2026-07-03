@@ -8,8 +8,8 @@ import 'package:pinpoint/features/explore/domain/place_models.dart' as places;
 /// Layer visibility toggles for map overlays.
 class MapLayerVisibility extends Equatable {
   const MapLayerVisibility({
-    this.showJeepneyRoutes = true,
-    this.showTricycleZones = true,
+    this.showJeepneyRoutes = false,
+    this.showTricycleZones = false,
     this.showTouristLayer = false,
     this.showEmergency = false,
     this.showHighwayCorridors = false,
@@ -76,6 +76,8 @@ class MapState extends Equatable {
     this.poiPlaces = const [],
     this.emergencyContacts = const [],
     this.highwayCorridors = const [],
+    this.visibleRouteCodes = const {},
+    this.roadRoutePolylines = const {},
   });
 
   final bool isLoading;
@@ -104,6 +106,15 @@ class MapState extends Equatable {
   final List<places.Place> poiPlaces;
   final List<places.EmergencyContact> emergencyContacts;
   final List<List<LatLng>> highwayCorridors;
+  final Set<String> visibleRouteCodes;
+  final Map<int, List<LatLng>> roadRoutePolylines;
+
+  List<JeepneyRoute> get filteredJeepneyRoutes {
+    if (visibleRouteCodes.isEmpty) return const [];
+    return jeepneyRoutes
+        .where((route) => visibleRouteCodes.contains(route.routeCode))
+        .toList();
+  }
 
   bool get canGenerateRoute => currentLocation != null && destination != null;
 
@@ -138,6 +149,8 @@ class MapState extends Equatable {
     List<places.Place>? poiPlaces,
     List<places.EmergencyContact>? emergencyContacts,
     List<List<LatLng>>? highwayCorridors,
+    Set<String>? visibleRouteCodes,
+    Map<int, List<LatLng>>? roadRoutePolylines,
     bool clearError = false,
     bool clearLocationWarning = false,
     bool clearTransportWarning = false,
@@ -178,6 +191,8 @@ class MapState extends Equatable {
       poiPlaces: poiPlaces ?? this.poiPlaces,
       emergencyContacts: emergencyContacts ?? this.emergencyContacts,
       highwayCorridors: highwayCorridors ?? this.highwayCorridors,
+      visibleRouteCodes: visibleRouteCodes ?? this.visibleRouteCodes,
+      roadRoutePolylines: roadRoutePolylines ?? this.roadRoutePolylines,
     );
   }
 
@@ -196,5 +211,7 @@ class MapState extends Equatable {
         locationWarning,
         transportWarning,
         tilesUnavailable,
+        visibleRouteCodes,
+        roadRoutePolylines.length,
       ];
 }
