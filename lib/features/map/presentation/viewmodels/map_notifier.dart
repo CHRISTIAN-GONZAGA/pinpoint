@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,7 +29,12 @@ class MapNotifier extends Notifier<MapState> {
   }
 
   Future<void> initialize() async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(
+      isLoading: true,
+      clearError: true,
+      clearLocationWarning: true,
+      tilesUnavailable: false,
+    );
     try {
       final transport = await ref.read(transportRepositoryProvider).loadAllTransportData();
       final highways = await _loadHighwayCorridors();
@@ -38,15 +45,32 @@ class MapNotifier extends Notifier<MapState> {
         fares: transport.fares,
         highwayCorridors: highways,
       );
-      await refreshLocation(animate: true);
-      await _loadPoiData();
+      if (transport.routes.isEmpty) {
+        state = state.copyWith(
+          errorMessage:
+              'Transport overlays could not be loaded. You can still use the map and set pins.',
+        );
+      }
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         errorMessage: _message(e),
       );
+      return;
+    }
+
+    // Show the map immediately; resolve GPS in the background.
+    unawaited(refreshLocation(animate: true));
+    unawaited(_loadPoiData());
+  }
+
+  void onTileLoadError() {
+    if (!state.tilesUnavailable) {
+      state = state.copyWith(tilesUnavailable: true);
     }
   }
+
+  Future<void> openLocationSettings() => _location.openSettings();
 
   Future<List<List<LatLng>>> _loadHighwayCorridors() async {
     try {
@@ -65,7 +89,7 @@ class MapNotifier extends Notifier<MapState> {
   }
 
   Future<void> refreshLocation({bool animate = false}) async {
-    state = state.copyWith(isLocating: true, clearError: true);
+    state = state.copyWith(isLocating: true, clearLocationWarning: true);
     try {
       final location = await _location.getCurrentLocation();
       final address = await _geocoding.reverseGeocode(location.latLng);
@@ -82,7 +106,10 @@ class MapNotifier extends Notifier<MapState> {
       }
       await _loadPoiData();
     } catch (e) {
-      state = state.copyWith(isLocating: false, errorMessage: _message(e));
+      state = state.copyWith(
+        isLocating: false,
+        locationWarning: _message(e),
+      );
     }
   }
 

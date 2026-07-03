@@ -84,7 +84,7 @@ class TransportRepository {
   Future<({List<JeepneyRoute> routes, List<TricycleZone> zones, List<FareConfig> fares})>
       loadAllTransportData() async {
     if (AppConstants.offlineFirstMode) {
-      await Future.wait([_loadOfflineRoutes(), _loadOfflineZones(), _loadOfflineFares()]);
+      await _loadAllOfflineSafe();
       return (
         routes: _cachedRoutes ?? [],
         zones: _cachedZones ?? [],
@@ -95,18 +95,61 @@ class TransportRepository {
       final routesRaw = await _remote.fetchJeepneyRoutesRaw();
       final zonesRaw = await _remote.fetchTricycleZonesRaw();
       final faresRaw = await _remote.fetchFaresRaw();
-      _cachedRoutes = routesRaw.map(JeepneyRoute.fromJson).toList();
-      _cachedZones = zonesRaw.map(TricycleZone.fromJson).toList();
-      _cachedFares = faresRaw.map(FareConfig.fromJson).toList();
-      await _local.saveTransportBundle(routes: routesRaw, zones: zonesRaw, fares: faresRaw);
+      _cachedRoutes = _parseRoutes(routesRaw);
+      _cachedZones = _parseZones(zonesRaw);
+      _cachedFares = _parseFares(faresRaw);
+      if (_cachedRoutes!.isNotEmpty || _cachedZones!.isNotEmpty || _cachedFares!.isNotEmpty) {
+        await _local.saveTransportBundle(routes: routesRaw, zones: zonesRaw, fares: faresRaw);
+      }
     } catch (_) {
-      await Future.wait([_loadOfflineRoutes(), _loadOfflineZones(), _loadOfflineFares()]);
+      await _loadAllOfflineSafe();
+    }
+    if ((_cachedRoutes ?? []).isEmpty) {
+      await _loadAllOfflineSafe();
     }
     return (
       routes: _cachedRoutes ?? [],
       zones: _cachedZones ?? [],
       fares: _cachedFares ?? [],
     );
+  }
+
+  Future<void> _loadAllOfflineSafe() async {
+    await Future.wait([
+      _loadOfflineRoutes(),
+      _loadOfflineZones(),
+      _loadOfflineFares(),
+    ]);
+  }
+
+  List<JeepneyRoute> _parseRoutes(List<Map<String, dynamic>> raw) {
+    final routes = <JeepneyRoute>[];
+    for (final item in raw) {
+      try {
+        routes.add(JeepneyRoute.fromJson(item));
+      } catch (_) {}
+    }
+    return routes;
+  }
+
+  List<TricycleZone> _parseZones(List<Map<String, dynamic>> raw) {
+    final zones = <TricycleZone>[];
+    for (final item in raw) {
+      try {
+        zones.add(TricycleZone.fromJson(item));
+      } catch (_) {}
+    }
+    return zones;
+  }
+
+  List<FareConfig> _parseFares(List<Map<String, dynamic>> raw) {
+    final fares = <FareConfig>[];
+    for (final item in raw) {
+      try {
+        fares.add(FareConfig.fromJson(item));
+      } catch (_) {}
+    }
+    return fares;
   }
 
   Future<List<JeepneyRoute>> _loadOfflineRoutes() async {
@@ -116,7 +159,7 @@ class TransportRepository {
       bundle = await _local.loadTransportBundle();
     }
     if (bundle == null) return _cachedRoutes ?? [];
-    _cachedRoutes = bundle.routes.map(JeepneyRoute.fromJson).toList();
+    _cachedRoutes = _parseRoutes(bundle.routes);
     return _cachedRoutes!;
   }
 
@@ -127,7 +170,7 @@ class TransportRepository {
       bundle = await _local.loadTransportBundle();
     }
     if (bundle == null) return _cachedZones ?? [];
-    _cachedZones = bundle.zones.map(TricycleZone.fromJson).toList();
+    _cachedZones = _parseZones(bundle.zones);
     return _cachedZones!;
   }
 
@@ -138,7 +181,7 @@ class TransportRepository {
       bundle = await _local.loadTransportBundle();
     }
     if (bundle == null) return _cachedFares ?? [];
-    _cachedFares = bundle.fares.map(FareConfig.fromJson).toList();
+    _cachedFares = _parseFares(bundle.fares);
     return _cachedFares!;
   }
 }

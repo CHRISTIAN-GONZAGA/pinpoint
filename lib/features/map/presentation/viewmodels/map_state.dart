@@ -54,6 +54,8 @@ class MapState extends Equatable {
     this.isLocating = false,
     this.isGeneratingRoute = false,
     this.errorMessage,
+    this.locationWarning,
+    this.tilesUnavailable = false,
     this.currentLocation,
     this.currentAddress,
     this.destination,
@@ -79,6 +81,8 @@ class MapState extends Equatable {
   final bool isLocating;
   final bool isGeneratingRoute;
   final String? errorMessage;
+  final String? locationWarning;
+  final bool tilesUnavailable;
   final MapLocation? currentLocation;
   final String? currentAddress;
   final MapLocation? destination;
@@ -110,6 +114,8 @@ class MapState extends Equatable {
     bool? isLocating,
     bool? isGeneratingRoute,
     String? errorMessage,
+    String? locationWarning,
+    bool? tilesUnavailable,
     MapLocation? currentLocation,
     String? currentAddress,
     MapLocation? destination,
@@ -130,6 +136,7 @@ class MapState extends Equatable {
     List<places.EmergencyContact>? emergencyContacts,
     List<List<LatLng>>? highwayCorridors,
     bool clearError = false,
+    bool clearLocationWarning = false,
     bool clearDestination = false,
     bool clearOrigin = false,
     bool clearRoute = false,
@@ -141,6 +148,9 @@ class MapState extends Equatable {
       isLocating: isLocating ?? this.isLocating,
       isGeneratingRoute: isGeneratingRoute ?? this.isGeneratingRoute,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      locationWarning:
+          clearLocationWarning ? null : (locationWarning ?? this.locationWarning),
+      tilesUnavailable: tilesUnavailable ?? this.tilesUnavailable,
       currentLocation: clearOrigin ? null : (currentLocation ?? this.currentLocation),
       currentAddress: clearOrigin ? null : (currentAddress ?? this.currentAddress),
       destination: clearDestination ? null : (destination ?? this.destination),
@@ -177,5 +187,7 @@ class MapState extends Equatable {
         layers,
         jeepneyRoutes.length,
         errorMessage,
+        locationWarning,
+        tilesUnavailable,
       ];
 }

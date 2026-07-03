@@ -18,6 +18,7 @@ import 'package:pinpoint/features/map/presentation/widgets/map_controls.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_pin_bar.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_route_legend.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_search_bar.dart';
+import 'package:pinpoint/features/map/presentation/widgets/map_tile_layer.dart';
 import 'package:pinpoint/features/map/presentation/widgets/route_summary_sheet.dart';
 
 /// Full-screen interactive OpenStreetMap with transport layers.
@@ -49,15 +50,22 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final mapState = ref.watch(mapNotifierProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    ref.listen(mapNotifierProvider.select((s) => s.errorMessage), (previous, next) {
+      if (next != null && next != previous && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next)),
+        );
+      }
+    });
+
     if (mapState.isLoading) {
       return const Scaffold(body: LoadingOverlay(message: 'Loading map...'));
     }
 
-    if (mapState.errorMessage != null &&
-        mapState.jeepneyRoutes.isEmpty &&
-        mapState.currentLocation == null) {
+    if (mapState.errorMessage != null && mapState.jeepneyRoutes.isEmpty) {
       return Scaffold(
         body: ErrorStateWidget(
+          title: 'Map unavailable',
           message: mapState.errorMessage!,
           onRetry: () => ref.read(mapNotifierProvider.notifier).initialize(),
         ),
@@ -74,6 +82,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               initialZoom: AppConstants.defaultMapZoom,
               minZoom: 11,
               maxZoom: 18,
+              interactionOptions: const InteractionOptions(
+                flags: InteractiveFlag.all,
+              ),
               onLongPress: (_, point) {
                 ref.read(mapNotifierProvider.notifier).setDestinationFromTap(point);
               },
@@ -82,9 +93,17 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               },
             ),
             children: [
-              TileLayer(
-                urlTemplate: isDark ? AppConstants.darkTileUrl : AppConstants.osmTileUrl,
-                userAgentPackageName: 'com.pinpoint.butuan',
+              PinpointTileLayer(
+                isDark: isDark,
+                onTileError: (_) =>
+                    ref.read(mapNotifierProvider.notifier).onTileLoadError(),
+              ),
+              RichAttributionWidget(
+                alignment: AttributionAlignment.bottomLeft,
+                attributions: const [
+                  TextSourceAttribution('OpenStreetMap contributors'),
+                  TextSourceAttribution('CARTO'),
+                ],
               ),
               if (mapState.layers.showHighwayCorridors)
                 PolylineLayer(
@@ -181,6 +200,19 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                               color: Theme.of(context).colorScheme.primary,
                             ),
                       ),
+                    ),
+                  if (mapState.locationWarning != null)
+                    _MapBanner(
+                      icon: Icons.location_off_rounded,
+                      message: mapState.locationWarning!,
+                      actionLabel: 'Settings',
+                      onAction: () =>
+                          ref.read(mapNotifierProvider.notifier).openLocationSettings(),
+                    ),
+                  if (mapState.tilesUnavailable)
+                    const _MapBanner(
+                      icon: Icons.map_outlined,
+                      message: 'Map tiles unavailable. Check your internet connection.',
                     ),
                 ],
               ),
@@ -440,6 +472,54 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           ),
           Icon(icon, color: color, size: 36),
         ],
+      ),
+    );
+  }
+}
+
+class _MapBanner extends StatelessWidget {
+  const _MapBanner({
+    required this.icon,
+    required this.message,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final IconData icon;
+  final String message;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Material(
+        elevation: 1,
+        borderRadius: BorderRadius.circular(8),
+        color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.95),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Row(
+            children: [
+              Icon(icon, size: 18, color: Theme.of(context).colorScheme.onErrorContainer),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  message,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                ),
+              ),
+              if (actionLabel != null && onAction != null)
+                TextButton(
+                  onPressed: onAction,
+                  child: Text(actionLabel!),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
