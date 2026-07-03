@@ -55,6 +55,7 @@ class MapState extends Equatable {
     this.isGeneratingRoute = false,
     this.errorMessage,
     this.locationWarning,
+    this.transportWarning,
     this.tilesUnavailable = false,
     this.currentLocation,
     this.currentAddress,
@@ -82,6 +83,7 @@ class MapState extends Equatable {
   final bool isGeneratingRoute;
   final String? errorMessage;
   final String? locationWarning;
+  final String? transportWarning;
   final bool tilesUnavailable;
   final MapLocation? currentLocation;
   final String? currentAddress;
@@ -115,6 +117,7 @@ class MapState extends Equatable {
     bool? isGeneratingRoute,
     String? errorMessage,
     String? locationWarning,
+    String? transportWarning,
     bool? tilesUnavailable,
     MapLocation? currentLocation,
     String? currentAddress,
@@ -137,6 +140,7 @@ class MapState extends Equatable {
     List<List<LatLng>>? highwayCorridors,
     bool clearError = false,
     bool clearLocationWarning = false,
+    bool clearTransportWarning = false,
     bool clearDestination = false,
     bool clearOrigin = false,
     bool clearRoute = false,
@@ -150,6 +154,8 @@ class MapState extends Equatable {
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       locationWarning:
           clearLocationWarning ? null : (locationWarning ?? this.locationWarning),
+      transportWarning:
+          clearTransportWarning ? null : (transportWarning ?? this.transportWarning),
       tilesUnavailable: tilesUnavailable ?? this.tilesUnavailable,
       currentLocation: clearOrigin ? null : (currentLocation ?? this.currentLocation),
       currentAddress: clearOrigin ? null : (currentAddress ?? this.currentAddress),
@@ -188,6 +194,7 @@ class MapState extends Equatable {
         jeepneyRoutes.length,
         errorMessage,
         locationWarning,
+        transportWarning,
         tilesUnavailable,
       ];
 }

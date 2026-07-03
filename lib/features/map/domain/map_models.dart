@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:equatable/equatable.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -79,14 +81,14 @@ class JeepneyRoute extends Equatable {
   });
 
   factory JeepneyRoute.fromJson(Map<String, dynamic> json) {
-    final geojson = json['geojson'] as Map<String, dynamic>;
+    final geojson = _readGeoJsonMap(json['geojson']);
     final geometry = geojson['geometry'] as Map<String, dynamic>;
     final coordinates = (geometry['coordinates'] as List)
         .map((c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
         .toList();
 
     return JeepneyRoute(
-      routeId: json['route_id'] as int,
+      routeId: (json['route_id'] as num).toInt(),
       routeCode: json['route_code'] as String,
       routeName: json['route_name'] as String,
       colorHex: json['color'] as String,
@@ -94,7 +96,7 @@ class JeepneyRoute extends Equatable {
       operatingHours: json['operating_hours'] as String?,
       polyline: coordinates,
       stops: (json['stops'] as List<dynamic>? ?? [])
-          .map((s) => RouteStop.fromJson(s as Map<String, dynamic>))
+          .map((s) => RouteStop.fromJson(Map<String, dynamic>.from(s as Map)))
           .toList(),
     );
   }
@@ -123,7 +125,7 @@ class TricycleZone extends Equatable {
   });
 
   factory TricycleZone.fromJson(Map<String, dynamic> json) {
-    final geojson = json['polygon_geojson'] as Map<String, dynamic>;
+    final geojson = _readGeoJsonMap(json['polygon_geojson']);
     final geometry = geojson['geometry'] as Map<String, dynamic>;
     final ring = (geometry['coordinates'] as List).first as List;
     final polygon = ring
@@ -131,7 +133,7 @@ class TricycleZone extends Equatable {
         .toList();
 
     return TricycleZone(
-      zoneId: json['zone_id'] as int,
+      zoneId: (json['zone_id'] as num).toInt(),
       zoneName: json['zone_name'] as String,
       polygon: polygon,
       baseFare: (json['base_fare'] as num).toDouble(),
@@ -278,4 +280,11 @@ class ColoredRouteSegment extends Equatable {
 
   @override
   List<Object?> get props => [type, polyline.length, colorHex];
+}
+
+Map<String, dynamic> _readGeoJsonMap(Object? value) {
+  if (value is String) {
+    return Map<String, dynamic>.from(jsonDecode(value) as Map);
+  }
+  return Map<String, dynamic>.from(value as Map);
 }

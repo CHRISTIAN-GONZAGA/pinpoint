@@ -9,7 +9,6 @@ import 'package:pinpoint/core/utilities/place_utils.dart';
 import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
 import 'package:pinpoint/core/utilities/color_utils.dart';
-import 'package:pinpoint/core/widgets/error_state_widget.dart';
 import 'package:pinpoint/core/widgets/loading_shimmer.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart';
@@ -60,16 +59,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
     if (mapState.isLoading) {
       return const Scaffold(body: LoadingOverlay(message: 'Loading map...'));
-    }
-
-    if (mapState.errorMessage != null && mapState.jeepneyRoutes.isEmpty) {
-      return Scaffold(
-        body: ErrorStateWidget(
-          title: 'Map unavailable',
-          message: mapState.errorMessage!,
-          onRetry: () => ref.read(mapNotifierProvider.notifier).initialize(),
-        ),
-      );
     }
 
     return Scaffold(
@@ -208,6 +197,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       actionLabel: 'Settings',
                       onAction: () =>
                           ref.read(mapNotifierProvider.notifier).openLocationSettings(),
+                    ),
+                  if (mapState.transportWarning != null)
+                    _MapBanner(
+                      icon: Icons.directions_bus_outlined,
+                      message: mapState.transportWarning!,
+                      actionLabel: 'Retry',
+                      onAction: () =>
+                          ref.read(mapNotifierProvider.notifier).initialize(),
                     ),
                   if (mapState.tilesUnavailable)
                     const _MapBanner(

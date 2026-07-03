@@ -24,102 +24,79 @@ class TransportRepository {
 
   Future<List<JeepneyRoute>> getJeepneyRoutes({bool forceRefresh = false}) async {
     if (_cachedRoutes != null && !forceRefresh) return _cachedRoutes!;
-    if (AppConstants.offlineFirstMode) {
-      return _loadOfflineRoutes();
-    }
-    try {
-      final raw = await _remote.fetchJeepneyRoutesRaw();
-      _cachedRoutes = raw.map(JeepneyRoute.fromJson).toList();
-      await _local.saveTransportBundle(
-        routes: raw,
-        zones: (await _local.loadTransportBundle())?.zones ?? [],
-        fares: (await _local.loadTransportBundle())?.fares ?? [],
-      );
-      return _cachedRoutes!;
-    } catch (_) {
-      return _loadOfflineRoutes();
-    }
+    final data = await loadAllTransportData();
+    return data.routes;
   }
 
   Future<List<TricycleZone>> getTricycleZones({bool forceRefresh = false}) async {
     if (_cachedZones != null && !forceRefresh) return _cachedZones!;
-    if (AppConstants.offlineFirstMode) {
-      return _loadOfflineZones();
-    }
-    try {
-      final raw = await _remote.fetchTricycleZonesRaw();
-      _cachedZones = raw.map(TricycleZone.fromJson).toList();
-      final existing = await _local.loadTransportBundle();
-      await _local.saveTransportBundle(
-        routes: existing?.routes ?? [],
-        zones: raw,
-        fares: existing?.fares ?? [],
-      );
-      return _cachedZones!;
-    } catch (_) {
-      return _loadOfflineZones();
-    }
+    final data = await loadAllTransportData();
+    return data.zones;
   }
 
   Future<List<FareConfig>> getFares({bool forceRefresh = false}) async {
     if (_cachedFares != null && !forceRefresh) return _cachedFares!;
-    if (AppConstants.offlineFirstMode) {
-      return _loadOfflineFares();
-    }
-    try {
-      final raw = await _remote.fetchFaresRaw();
-      _cachedFares = raw.map(FareConfig.fromJson).toList();
-      final existing = await _local.loadTransportBundle();
-      await _local.saveTransportBundle(
-        routes: existing?.routes ?? [],
-        zones: existing?.zones ?? [],
-        fares: raw,
-      );
-      return _cachedFares!;
-    } catch (_) {
-      return _loadOfflineFares();
-    }
+    final data = await loadAllTransportData();
+    return data.fares;
   }
 
   Future<({List<JeepneyRoute> routes, List<TricycleZone> zones, List<FareConfig> fares})>
       loadAllTransportData() async {
-    if (AppConstants.offlineFirstMode) {
-      await _loadAllOfflineSafe();
-      return (
-        routes: _cachedRoutes ?? [],
-        zones: _cachedZones ?? [],
-        fares: _cachedFares ?? [],
-      );
-    }
-    try {
-      final routesRaw = await _remote.fetchJeepneyRoutesRaw();
-      final zonesRaw = await _remote.fetchTricycleZonesRaw();
-      final faresRaw = await _remote.fetchFaresRaw();
-      _cachedRoutes = _parseRoutes(routesRaw);
-      _cachedZones = _parseZones(zonesRaw);
-      _cachedFares = _parseFares(faresRaw);
-      if (_cachedRoutes!.isNotEmpty || _cachedZones!.isNotEmpty || _cachedFares!.isNotEmpty) {
-        await _local.saveTransportBundle(routes: routesRaw, zones: zonesRaw, fares: faresRaw);
+    if (!AppConstants.offlineFirstMode) {
+      try {
+        final routesRaw = await _remote.fetchJeepneyRoutesRaw();
+        final zonesRaw = await _remote.fetchTricycleZonesRaw();
+        final faresRaw = await _remote.fetchFaresRaw();
+        _cachedRoutes = _parseRoutes(routesRaw);
+        _cachedZones = _parseZones(zonesRaw);
+        _cachedFares = _parseFares(faresRaw);
+        if (_hasParsedData) {
+          await _local.saveTransportBundle(
+            routes: routesRaw,
+            zones: zonesRaw,
+            fares: faresRaw,
+          );
+          return _snapshot();
+        }
+      } catch (_) {
+        // Fall through to bundled assets.
       }
-    } catch (_) {
-      await _loadAllOfflineSafe();
     }
-    if ((_cachedRoutes ?? []).isEmpty) {
-      await _loadAllOfflineSafe();
-    }
-    return (
-      routes: _cachedRoutes ?? [],
-      zones: _cachedZones ?? [],
-      fares: _cachedFares ?? [],
-    );
+
+    await _loadFromBundledAssets();
+    return _snapshot();
   }
 
-  Future<void> _loadAllOfflineSafe() async {
-    await Future.wait([
-      _loadOfflineRoutes(),
-      _loadOfflineZones(),
-      _loadOfflineFares(),
-    ]);
+  bool get _hasParsedData =>
+      (_cachedRoutes?.isNotEmpty ?? false) ||
+      (_cachedZones?.isNotEmpty ?? false) ||
+      (_cachedFares?.isNotEmpty ?? false);
+
+  Future<void> _loadFromBundledAssets() async {
+    final routesRaw = await _assets.fetchJeepneyRoutesRaw();
+    final zonesRaw = await _assets.fetchTricycleZonesRaw();
+    final faresRaw = await _assets.fetchFaresRaw();
+
+    _cachedRoutes = _parseRoutes(routesRaw);
+    _cachedZones = _parseZones(zonesRaw);
+    _cachedFares = _parseFares(faresRaw);
+
+    if (_hasParsedData) {
+      await _local.saveTransportBundle(
+        routes: routesRaw,
+        zones: zonesRaw,
+        fares: faresRaw,
+      );
+      return;
+    }
+
+    // Last resort: try Hive cache (may have been seeded at startup).
+    final bundle = await _local.loadTransportBundle();
+    if (bundle != null) {
+      _cachedRoutes = _parseRoutes(bundle.routes);
+      _cachedZones = _parseZones(bundle.zones);
+      _cachedFares = _parseFares(bundle.fares);
+    }
   }
 
   List<JeepneyRoute> _parseRoutes(List<Map<String, dynamic>> raw) {
@@ -152,36 +129,10 @@ class TransportRepository {
     return fares;
   }
 
-  Future<List<JeepneyRoute>> _loadOfflineRoutes() async {
-    var bundle = await _local.loadTransportBundle();
-    if (bundle == null || bundle.routes.isEmpty) {
-      await _assets.cacheToLocal();
-      bundle = await _local.loadTransportBundle();
-    }
-    if (bundle == null) return _cachedRoutes ?? [];
-    _cachedRoutes = _parseRoutes(bundle.routes);
-    return _cachedRoutes!;
-  }
-
-  Future<List<TricycleZone>> _loadOfflineZones() async {
-    var bundle = await _local.loadTransportBundle();
-    if (bundle == null || bundle.zones.isEmpty) {
-      await _assets.cacheToLocal();
-      bundle = await _local.loadTransportBundle();
-    }
-    if (bundle == null) return _cachedZones ?? [];
-    _cachedZones = _parseZones(bundle.zones);
-    return _cachedZones!;
-  }
-
-  Future<List<FareConfig>> _loadOfflineFares() async {
-    var bundle = await _local.loadTransportBundle();
-    if (bundle == null || bundle.fares.isEmpty) {
-      await _assets.cacheToLocal();
-      bundle = await _local.loadTransportBundle();
-    }
-    if (bundle == null) return _cachedFares ?? [];
-    _cachedFares = _parseFares(bundle.fares);
-    return _cachedFares!;
-  }
+  ({List<JeepneyRoute> routes, List<TricycleZone> zones, List<FareConfig> fares})
+      _snapshot() => (
+        routes: _cachedRoutes ?? [],
+        zones: _cachedZones ?? [],
+        fares: _cachedFares ?? [],
+      );
 }

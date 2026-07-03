@@ -33,6 +33,7 @@ class MapNotifier extends Notifier<MapState> {
       isLoading: true,
       clearError: true,
       clearLocationWarning: true,
+      clearTransportWarning: true,
       tilesUnavailable: false,
     );
     try {
@@ -44,19 +45,20 @@ class MapNotifier extends Notifier<MapState> {
         tricycleZones: transport.zones,
         fares: transport.fares,
         highwayCorridors: highways,
+        transportWarning: transport.routes.isEmpty
+            ? 'Jeepney route lines are unavailable. The map and pins still work.'
+            : null,
+        clearTransportWarning: transport.routes.isNotEmpty,
       );
-      if (transport.routes.isEmpty) {
-        state = state.copyWith(
-          errorMessage:
-              'Transport overlays could not be loaded. You can still use the map and set pins.',
-        );
-      }
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: _message(e),
+        jeepneyRoutes: const [],
+        tricycleZones: const [],
+        fares: const [],
+        transportWarning:
+            'Using map without transport overlays. Tap Start/Destination to set pins.',
       );
-      return;
     }
 
     // Show the map immediately; resolve GPS in the background.
