@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:pinpoint/app/constants.dart';
 import 'package:pinpoint/features/map/data/common_destinations.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
+import 'package:pinpoint/features/routing/domain/route_planning_models.dart';
 import 'package:pinpoint/features/explore/domain/place_models.dart' as places;
 
 /// Layer visibility toggles for map overlays.
@@ -92,6 +93,7 @@ class MapState extends Equatable {
     this.plannedRoute,
     this.routeOptions = const [],
     this.selectedVehicleMode = VehicleMode.auto,
+    this.routePreference = RoutePreference.balanced,
     this.pinMode = MapPinMode.none,
     this.layers = const MapLayerVisibility(),
     this.selectedRoute,
@@ -105,7 +107,7 @@ class MapState extends Equatable {
     this.visibleRouteCodes = const {},
     this.roadRoutePolylines = const {},
     this.mapZoom = AppConstants.defaultMapZoom,
-    this.previewVehicleMode,
+    this.previewOptionId,
     this.highlightedStepIndex,
     this.isNavigating = false,
   });
@@ -127,6 +129,7 @@ class MapState extends Equatable {
   final PlannedRoute? plannedRoute;
   final List<PlannedRoute> routeOptions;
   final VehicleMode selectedVehicleMode;
+  final RoutePreference routePreference;
   final MapPinMode pinMode;
   final MapLayerVisibility layers;
   final JeepneyRoute? selectedRoute;
@@ -140,7 +143,7 @@ class MapState extends Equatable {
   final Set<String> visibleRouteCodes;
   final Map<int, List<LatLng>> roadRoutePolylines;
   final double mapZoom;
-  final VehicleMode? previewVehicleMode;
+  final String? previewOptionId;
   final int? highlightedStepIndex;
   final bool isNavigating;
 
@@ -175,6 +178,7 @@ class MapState extends Equatable {
     PlannedRoute? plannedRoute,
     List<PlannedRoute>? routeOptions,
     VehicleMode? selectedVehicleMode,
+    RoutePreference? routePreference,
     MapPinMode? pinMode,
     MapLayerVisibility? layers,
     JeepneyRoute? selectedRoute,
@@ -188,10 +192,10 @@ class MapState extends Equatable {
     Set<String>? visibleRouteCodes,
     Map<int, List<LatLng>>? roadRoutePolylines,
     double? mapZoom,
-    VehicleMode? previewVehicleMode,
+    String? previewOptionId,
     int? highlightedStepIndex,
     bool? isNavigating,
-    bool clearPreviewVehicleMode = false,
+    bool clearPreviewOption = false,
     bool clearHighlightedStep = false,
     bool clearError = false,
     bool clearLocationWarning = false,
@@ -223,6 +227,7 @@ class MapState extends Equatable {
       plannedRoute: clearRoute ? null : (plannedRoute ?? this.plannedRoute),
       routeOptions: clearRouteOptions ? const [] : (routeOptions ?? this.routeOptions),
       selectedVehicleMode: selectedVehicleMode ?? this.selectedVehicleMode,
+      routePreference: routePreference ?? this.routePreference,
       pinMode: pinMode ?? this.pinMode,
       layers: layers ?? this.layers,
       selectedRoute:
@@ -237,8 +242,8 @@ class MapState extends Equatable {
       visibleRouteCodes: visibleRouteCodes ?? this.visibleRouteCodes,
       roadRoutePolylines: roadRoutePolylines ?? this.roadRoutePolylines,
       mapZoom: mapZoom ?? this.mapZoom,
-      previewVehicleMode:
-          clearPreviewVehicleMode ? null : (previewVehicleMode ?? this.previewVehicleMode),
+      previewOptionId:
+          clearPreviewOption ? null : (previewOptionId ?? this.previewOptionId),
       highlightedStepIndex:
           clearHighlightedStep ? null : (highlightedStepIndex ?? this.highlightedStepIndex),
       isNavigating: isNavigating ?? this.isNavigating,
@@ -253,6 +258,7 @@ class MapState extends Equatable {
         plannedRoute,
         routeOptions.length,
         selectedVehicleMode,
+        routePreference,
         pinMode,
         layers,
         jeepneyRoutes.length,

@@ -3,35 +3,20 @@
     {
       "route_id": 1,
       "route_code": "R1",
-      "route_name": "R1 \u2014 City Proper to Libertad",
-      "color": "#E63946",
-      "description": "Serves downtown Butuan and Libertad market area.",
-      "operating_hours": "5:00 AM \u2013 8:00 PM",
+      "route_name": "R1 — North Montilla to Dumalagan",
+      "color": "#1D3557",
+      "description": "LPTRP R1: North Montilla Blvd → City Proper Loop → BCES/ANHS → South Montilla Blvd → J.C. Aquino Ave → Libertad → Bancasi → Crossing Dumalagan (vice versa).",
+      "operating_hours": "5:00 AM – 8:00 PM",
       "geojson": {
         "type": "Feature",
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [
-              125.528,
-              8.955
-            ],
-            [
-              125.532,
-              8.951
-            ],
-            [
-              125.538,
-              8.947
-            ],
-            [
-              125.545,
-              8.942
-            ],
-            [
-              125.552,
-              8.938
-            ]
+            [125.5315, 8.9515],
+            [125.532, 8.951],
+            [125.538, 8.947],
+            [125.545, 8.942],
+            [125.552, 8.938]
           ]
         },
         "properties": {}
@@ -42,8 +27,8 @@
           "stop_id": 11,
           "route_id": 1,
           "stop_name": "City Hall Terminal",
-          "latitude": 8.955,
-          "longitude": 125.528,
+          "latitude": 8.9515,
+          "longitude": 125.5315,
           "stop_order": 1
         },
         {
@@ -75,31 +60,19 @@
     {
       "route_id": 2,
       "route_code": "R2",
-      "route_name": "R2 \u2014 Junction to Robinsons",
-      "color": "#F4A261",
-      "description": "Connects Baan KM 3 junction to Robinsons Place Butuan.",
-      "operating_hours": "5:30 AM \u2013 8:30 PM",
+      "route_name": "R2 — JAQNO to Dumalagan",
+      "color": "#E63946",
+      "description": "LPTRP R2: JAQNO → BCES/ANHS → A. D. Curato St → G. Flores Ave → North Montilla Blvd → Jeepney Terminal → Langihan → Rosales Ave → Libertad → Bancasi → Crossing Dumalagan (vice versa).",
+      "operating_hours": "5:30 AM – 8:30 PM",
       "geojson": {
         "type": "Feature",
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [
-              125.535,
-              8.96
-            ],
-            [
-              125.54,
-              8.952
-            ],
-            [
-              125.545,
-              8.946
-            ],
-            [
-              125.55,
-              8.94
-            ]
+            [125.535, 8.96],
+            [125.54, 8.952],
+            [125.545, 8.946],
+            [125.55, 8.94]
           ]
         },
         "properties": {}
@@ -133,7 +106,7 @@
         {
           "stop_id": 24,
           "route_id": 2,
-          "stop_name": "Robinsons Place",
+          "stop_name": "Robinsons Place Butuan",
           "latitude": 8.94,
           "longitude": 125.55,
           "stop_order": 4
@@ -143,35 +116,20 @@
     {
       "route_id": 3,
       "route_code": "R3",
-      "route_name": "R3 \u2014 Downtown to SM Butuan",
+      "route_name": "R3 — Ampayon-Libertad",
       "color": "#2A9D8F",
-      "description": "Main corridor from city center to SM City Butuan.",
-      "operating_hours": "6:00 AM \u2013 9:00 PM",
+      "description": "LPTRP R3: Libertad → JAQNO → FSUU/Plaza → Ampayon Public Market → Ampayon Triangle (vice versa).",
+      "operating_hours": "6:00 AM – 9:00 PM",
       "geojson": {
         "type": "Feature",
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [
-              125.53,
-              8.953
-            ],
-            [
-              125.536,
-              8.949
-            ],
-            [
-              125.542,
-              8.945
-            ],
-            [
-              125.548,
-              8.941
-            ],
-            [
-              125.554,
-              8.937
-            ]
+            [125.53, 8.953],
+            [125.536, 8.949],
+            [125.542, 8.945],
+            [125.548, 8.941],
+            [125.554, 8.937]
           ]
         },
         "properties": {}
@@ -215,35 +173,20 @@
     {
       "route_id": 4,
       "route_code": "R4",
-      "route_name": "R4 \u2014 Agusan Bridge Loop",
-      "color": "#457B9D",
-      "description": "Crosses Agusan River connecting east and west districts.",
-      "operating_hours": "5:00 AM \u2013 7:30 PM",
+      "route_name": "R4 — De Oro Loop",
+      "color": "#F72585",
+      "description": "LPTRP R4 loop: Jeepney Terminal → Rosales Ave → JAQNO → R. Calo St → Ampayon → De Oro → back via North Montilla Blvd.",
+      "operating_hours": "5:00 AM – 7:30 PM",
       "geojson": {
         "type": "Feature",
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [
-              125.525,
-              8.948
-            ],
-            [
-              125.532,
-              8.946
-            ],
-            [
-              125.54,
-              8.944
-            ],
-            [
-              125.548,
-              8.946
-            ],
-            [
-              125.552,
-              8.95
-            ]
+            [125.525, 8.948],
+            [125.532, 8.946],
+            [125.54, 8.944],
+            [125.548, 8.946],
+            [125.552, 8.95]
           ]
         },
         "properties": {}
@@ -253,7 +196,7 @@
         {
           "stop_id": 41,
           "route_id": 4,
-          "stop_name": "West Bridge Approach",
+          "stop_name": "Jeepney Terminal",
           "latitude": 8.948,
           "longitude": 125.525,
           "stop_order": 1
@@ -269,7 +212,7 @@
         {
           "stop_id": 43,
           "route_id": 4,
-          "stop_name": "East Side Terminal",
+          "stop_name": "De Oro",
           "latitude": 8.95,
           "longitude": 125.552,
           "stop_order": 3
@@ -279,31 +222,19 @@
     {
       "route_id": 5,
       "route_code": "R5",
-      "route_name": "R5 \u2014 Ampayon to City Proper",
-      "color": "#8338EC",
-      "description": "Serves Ampayon and surrounding residential areas.",
-      "operating_hours": "5:00 AM \u2013 8:00 PM",
+      "route_name": "R5 — Santo Niño Loop",
+      "color": "#FB8500",
+      "description": "LPTRP R5 loop: Jeepney Terminal → North Montilla Blvd → JAQNO → R. Calo St → Ampayon → Santo Niño → back via Langihan.",
+      "operating_hours": "5:00 AM – 8:00 PM",
       "geojson": {
         "type": "Feature",
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [
-              125.548,
-              8.962
-            ],
-            [
-              125.544,
-              8.955
-            ],
-            [
-              125.54,
-              8.95
-            ],
-            [
-              125.536,
-              8.945
-            ]
+            [125.548, 8.962],
+            [125.544, 8.955],
+            [125.54, 8.95],
+            [125.536, 8.945]
           ]
         },
         "properties": {}
@@ -339,31 +270,19 @@
     {
       "route_id": 6,
       "route_code": "R6",
-      "route_name": "R6 \u2014 Bancasi Airport Route",
-      "color": "#FB5607",
-      "description": "Airport connection from city center.",
-      "operating_hours": "6:00 AM \u2013 7:00 PM",
+      "route_name": "R6 — Maguinda",
+      "color": "#FFB703",
+      "description": "LPTRP R6: Capitol Terminal → Capitol Drive → Guingona Ave → Montilla Blvd → Mayor Democrito D. Plaza II Ave → Mahay → Lemon → Maguinda (vice versa).",
+      "operating_hours": "6:00 AM – 7:00 PM",
       "geojson": {
         "type": "Feature",
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [
-              125.536,
-              8.948
-            ],
-            [
-              125.542,
-              8.944
-            ],
-            [
-              125.55,
-              8.938
-            ],
-            [
-              125.558,
-              8.93
-            ]
+            [125.536, 8.948],
+            [125.542, 8.944],
+            [125.55, 8.938],
+            [125.558, 8.93]
           ]
         },
         "properties": {}
@@ -373,7 +292,7 @@
         {
           "stop_id": 61,
           "route_id": 6,
-          "stop_name": "City Center",
+          "stop_name": "Provincial Capitol Terminal",
           "latitude": 8.948,
           "longitude": 125.536,
           "stop_order": 1
@@ -381,7 +300,7 @@
         {
           "stop_id": 62,
           "route_id": 6,
-          "stop_name": "Bancasi Road",
+          "stop_name": "Timberlanes",
           "latitude": 8.938,
           "longitude": 125.55,
           "stop_order": 2
@@ -389,7 +308,7 @@
         {
           "stop_id": 63,
           "route_id": 6,
-          "stop_name": "Airport Gate",
+          "stop_name": "Maguinda",
           "latitude": 8.93,
           "longitude": 125.558,
           "stop_order": 3
@@ -399,31 +318,19 @@
     {
       "route_id": 7,
       "route_code": "R7",
-      "route_name": "R7 \u2014 Bayanihan Route",
+      "route_name": "R7 — Tungao",
       "color": "#06D6A0",
-      "description": "Serves Bayanihan and nearby barangays.",
-      "operating_hours": "5:30 AM \u2013 8:00 PM",
+      "description": "LPTRP R7: Capitol Terminal → Rosales Ave → S. Calo St → Montilla Blvd → San Vicente → Tungao (vice versa).",
+      "operating_hours": "5:30 AM – 8:00 PM",
       "geojson": {
         "type": "Feature",
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [
-              125.532,
-              8.942
-            ],
-            [
-              125.538,
-              8.938
-            ],
-            [
-              125.544,
-              8.934
-            ],
-            [
-              125.55,
-              8.93
-            ]
+            [125.532, 8.942],
+            [125.538, 8.938],
+            [125.544, 8.934],
+            [125.55, 8.93]
           ]
         },
         "properties": {}
@@ -433,7 +340,7 @@
         {
           "stop_id": 71,
           "route_id": 7,
-          "stop_name": "Bayanihan Terminal",
+          "stop_name": "Capitol Terminal",
           "latitude": 8.942,
           "longitude": 125.532,
           "stop_order": 1
@@ -441,7 +348,7 @@
         {
           "stop_id": 72,
           "route_id": 7,
-          "stop_name": "Doongan",
+          "stop_name": "San Vicente",
           "latitude": 8.938,
           "longitude": 125.538,
           "stop_order": 2
@@ -449,7 +356,7 @@
         {
           "stop_id": 73,
           "route_id": 7,
-          "stop_name": "Bading",
+          "stop_name": "Tungao",
           "latitude": 8.93,
           "longitude": 125.55,
           "stop_order": 3

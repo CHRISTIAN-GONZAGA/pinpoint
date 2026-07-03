@@ -205,8 +205,8 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
                 PolylineLayer(
                   polylines: _buildColoredRoutePolylines(
                     mapState.plannedRoute!,
-                    dimmed: mapState.previewVehicleMode != null &&
-                        mapState.previewVehicleMode != mapState.plannedRoute!.primaryMode,
+                    dimmed: mapState.previewOptionId != null &&
+                        mapState.previewOptionId != mapState.plannedRoute!.optionId,
                   ),
                 ),
               if (mapState.plannedRoute != null)
@@ -360,12 +360,14 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
                 destinationLabel:
                     mapState.destinationAddress ?? mapState.destination?.label,
                 selectedVehicleMode: mapState.selectedVehicleMode,
+                selectedRoutePreference: mapState.routePreference,
                 highlightedStepIndex: mapState.highlightedStepIndex,
                 onGenerate: () => notifier.generateRoute(),
                 onSelectOption: (option) => notifier.selectRouteOption(option),
                 onPreviewOption: (option) => notifier.previewRouteOption(option),
                 onStepTap: (index) => notifier.focusRouteStep(index),
                 onVehicleModeChanged: (mode) => notifier.setVehicleMode(mode),
+                onPreferenceChanged: (pref) => notifier.setRoutePreference(pref),
                 onClose: () => notifier.clearRoute(),
                 onDismiss: () => setState(() => _showRoutePanel = false),
               ),

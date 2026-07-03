@@ -7,6 +7,7 @@ import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
 import 'package:pinpoint/core/utilities/color_utils.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
+import 'package:pinpoint/features/routing/domain/route_planning_models.dart';
 import 'package:pinpoint/features/routing/domain/transport_colors.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -21,6 +22,8 @@ class RouteSummarySheet extends StatelessWidget {
     required this.onGenerate,
     required this.onSelectOption,
     required this.onVehicleModeChanged,
+    this.onPreferenceChanged,
+    this.selectedRoutePreference = RoutePreference.balanced,
     this.onPreviewOption,
     this.onStepTap,
     this.isGenerating = false,
@@ -40,6 +43,8 @@ class RouteSummarySheet extends StatelessWidget {
   final ValueChanged<PlannedRoute?>? onPreviewOption;
   final ValueChanged<int>? onStepTap;
   final ValueChanged<VehicleMode> onVehicleModeChanged;
+  final ValueChanged<RoutePreference>? onPreferenceChanged;
+  final RoutePreference selectedRoutePreference;
   final bool isGenerating;
   final bool canGenerate;
   final String? originLabel;
@@ -116,6 +121,13 @@ class RouteSummarySheet extends StatelessWidget {
           selected: selectedVehicleMode,
           onChanged: onVehicleModeChanged,
         ),
+        if (onPreferenceChanged != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          _PreferenceSelector(
+            selected: selectedRoutePreference,
+            onChanged: onPreferenceChanged!,
+          ),
+        ],
         const SizedBox(height: AppSpacing.md),
         FilledButton.icon(
           onPressed: canGenerate && !isGenerating ? onGenerate : null,
@@ -148,6 +160,8 @@ class RouteSummarySheet extends StatelessWidget {
         ],
         if (routeOptions.length > 1) ...[
           const SizedBox(height: AppSpacing.md),
+          Text('${routeOptions.length} options', style: Theme.of(context).textTheme.labelLarge),
+          const SizedBox(height: AppSpacing.sm),
           _RouteOptionPicker(
             options: routeOptions,
             selected: route!,
@@ -155,17 +169,43 @@ class RouteSummarySheet extends StatelessWidget {
             onPreview: onPreviewOption,
           ),
         ],
+        if (route!.explanation != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            route!.explanation!,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+          ),
+        ],
         const SizedBox(height: AppSpacing.md),
+        if (route!.summaryTitle != null)
+          Text(
+            route!.summaryTitle!,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+          ),
+        const SizedBox(height: AppSpacing.sm),
         Row(
           children: [
             _StatChip(icon: Icons.schedule, label: route!.durationLabel),
             const SizedBox(width: AppSpacing.sm),
-            _StatChip(icon: Icons.straighten, label: route!.distanceLabel),
+            _StatChip(icon: Icons.flag_outlined, label: route!.arrivalLabel),
             const SizedBox(width: AppSpacing.sm),
             _StatChip(
               icon: Icons.payments_outlined,
               label: '₱${route!.estimatedFare.toStringAsFixed(0)}',
             ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          children: [
+            _StatChip(
+              icon: Icons.directions_walk,
+              label: '${route!.walkingDistanceMeters.round()} m walk',
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            _StatChip(icon: Icons.flag_outlined, label: route!.arrivalLabel),
           ],
         ),
         if (route!.transferCount > 0) ...[
@@ -214,6 +254,43 @@ class RouteSummarySheet extends StatelessWidget {
   }
 }
 
+class _PreferenceSelector extends StatelessWidget {
+  const _PreferenceSelector({required this.selected, required this.onChanged});
+
+  final RoutePreference selected;
+  final ValueChanged<RoutePreference> onChanged;
+
+  static const _prefs = [
+    (RoutePreference.balanced, 'Balanced'),
+    (RoutePreference.cheapest, 'Cheapest'),
+    (RoutePreference.fastest, 'Fastest'),
+    (RoutePreference.leastWalking, 'Less walk'),
+    (RoutePreference.fewestTransfers, 'Direct'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 34,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: _prefs.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 6),
+        itemBuilder: (context, index) {
+          final (pref, label) = _prefs[index];
+          return FilterChip(
+            label: Text(label, style: const TextStyle(fontSize: 12)),
+            selected: selected == pref,
+            onSelected: (_) => onChanged(pref),
+            visualDensity: VisualDensity.compact,
+            showCheckmark: false,
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _VehicleModeSelector extends StatelessWidget {
   const _VehicleModeSelector({required this.selected, required this.onChanged});
 
@@ -222,6 +299,7 @@ class _VehicleModeSelector extends StatelessWidget {
 
   static const _modes = [
     (VehicleMode.auto, Icons.auto_awesome, 'Auto'),
+    (VehicleMode.walk, Icons.directions_walk, 'Walk'),
     (VehicleMode.jeepney, Icons.directions_bus, 'Jeep'),
     (VehicleMode.tricycle, Icons.moped, 'Trike'),
     (VehicleMode.taxi, Icons.local_taxi, 'Taxi'),
@@ -266,16 +344,15 @@ class _RouteOptionPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 108,
+      height: 120,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: options.length,
         separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
         itemBuilder: (context, index) {
           final option = options[index];
-          final isSelected = option.primaryMode == selected.primaryMode;
+          final isSelected = option.optionId == selected.optionId;
           final color = _modeColor(option.primaryMode);
-          final stars = _ratingStars(option);
           return InkWell(
             onTap: () => onSelect(option),
             onHighlightChanged: (highlighted) {
@@ -284,7 +361,7 @@ class _RouteOptionPicker extends StatelessWidget {
             },
             borderRadius: BorderRadius.circular(AppRadius.md),
             child: Container(
-              width: 136,
+              width: 156,
               padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppRadius.md),
@@ -304,12 +381,19 @@ class _RouteOptionPicker extends StatelessWidget {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          option.isRecommended ? 'Recommended' : _modeLabel(option.primaryMode),
+                          option.isRecommended ? '⭐ Recommended' : _cardLabel(option),
                           style: Theme.of(context).textTheme.labelMedium,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    option.summaryTitle ?? _modeLabel(option.primaryMode),
+                    style: Theme.of(context).textTheme.labelSmall,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -319,16 +403,6 @@ class _RouteOptionPicker extends StatelessWidget {
                   Text(
                     '${option.walkingDistanceMeters.round()} m walk',
                     style: Theme.of(context).textTheme.labelSmall,
-                  ),
-                  Row(
-                    children: List.generate(
-                      5,
-                      (i) => Icon(
-                        i < stars ? Icons.star_rounded : Icons.star_outline_rounded,
-                        size: 12,
-                        color: AppColors.accent,
-                      ),
-                    ),
                   ),
                   if (option.warningMessage != null)
                     Text(
@@ -346,19 +420,18 @@ class _RouteOptionPicker extends StatelessWidget {
     );
   }
 
-  int _ratingStars(PlannedRoute option) {
-    var score = 3;
-    if (option.isRecommended) score += 1;
-    if (option.walkingDistanceMeters < 300) score += 1;
-    if (option.transferCount == 0) score += 1;
-    if (option.estimatedFare > 80) score -= 1;
-    return score.clamp(1, 5);
+  String _cardLabel(PlannedRoute option) {
+    if (option.estimatedFare == options.map((o) => o.estimatedFare).reduce((a, b) => a < b ? a : b)) {
+      return '💰 Cheapest';
+    }
+    return _modeLabel(option.primaryMode);
   }
 
   Color _modeColor(VehicleMode mode) => switch (mode) {
         VehicleMode.jeepney => TransportColors.jeepney('R1'),
         VehicleMode.tricycle => TransportColors.tricycle,
         VehicleMode.taxi => TransportColors.taxi,
+        VehicleMode.walk => TransportColors.walk,
         VehicleMode.auto => AppColors.primary,
       };
 
@@ -366,6 +439,7 @@ class _RouteOptionPicker extends StatelessWidget {
         VehicleMode.jeepney => Icons.directions_bus_rounded,
         VehicleMode.tricycle => Icons.moped_rounded,
         VehicleMode.taxi => Icons.local_taxi_rounded,
+        VehicleMode.walk => Icons.directions_walk_rounded,
         VehicleMode.auto => Icons.auto_awesome_rounded,
       };
 
@@ -373,6 +447,7 @@ class _RouteOptionPicker extends StatelessWidget {
         VehicleMode.jeepney => 'Jeepney',
         VehicleMode.tricycle => 'Tricycle',
         VehicleMode.taxi => 'Taxi',
+        VehicleMode.walk => 'Walk',
         VehicleMode.auto => 'Best',
       };
 }

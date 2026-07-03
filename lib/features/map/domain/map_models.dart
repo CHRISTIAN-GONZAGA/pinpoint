@@ -185,7 +185,7 @@ class FareConfig extends Equatable {
 enum RouteStepType { walk, jeepney, tricycle, taxi, transfer }
 
 /// Preferred vehicle mode for route planning.
-enum VehicleMode { auto, jeepney, tricycle, taxi }
+enum VehicleMode { auto, walk, jeepney, tricycle, taxi }
 
 /// Map pin placement mode for tagging start / destination.
 enum MapPinMode { none, origin, destination }
@@ -229,10 +229,15 @@ class PlannedRoute extends Equatable {
     required this.transferCount,
     required this.fullPolyline,
     required this.walkingDistanceMeters,
+    required this.optionId,
     this.primaryMode = VehicleMode.jeepney,
     this.isRecommended = false,
     this.warningMessage,
     this.coloredSegments = const [],
+    this.summaryTitle,
+    this.explanation,
+    this.stopCount = 0,
+    this.rankScore,
   });
 
   final List<RouteStep> steps;
@@ -242,10 +247,15 @@ class PlannedRoute extends Equatable {
   final int transferCount;
   final List<LatLng> fullPolyline;
   final double walkingDistanceMeters;
+  final String optionId;
   final VehicleMode primaryMode;
   final bool isRecommended;
   final String? warningMessage;
   final List<ColoredRouteSegment> coloredSegments;
+  final String? summaryTitle;
+  final String? explanation;
+  final int stopCount;
+  final double? rankScore;
 
   String get durationLabel {
     final minutes = (totalDurationSeconds / 60).ceil();
@@ -259,9 +269,43 @@ class PlannedRoute extends Equatable {
     return '${totalDistanceMeters.round()} m';
   }
 
+  String get arrivalLabel {
+    final arrival = DateTime.now().add(Duration(seconds: totalDurationSeconds));
+    final hour = arrival.hour > 12 ? arrival.hour - 12 : (arrival.hour == 0 ? 12 : arrival.hour);
+    final amPm = arrival.hour >= 12 ? 'PM' : 'AM';
+    final min = arrival.minute.toString().padLeft(2, '0');
+    return '$hour:$min $amPm';
+  }
+
+  PlannedRoute copyWith({
+    bool? isRecommended,
+    String? warningMessage,
+    String? explanation,
+    double? rankScore,
+  }) {
+    return PlannedRoute(
+      steps: steps,
+      totalDistanceMeters: totalDistanceMeters,
+      totalDurationSeconds: totalDurationSeconds,
+      estimatedFare: estimatedFare,
+      transferCount: transferCount,
+      fullPolyline: fullPolyline,
+      walkingDistanceMeters: walkingDistanceMeters,
+      optionId: optionId,
+      primaryMode: primaryMode,
+      isRecommended: isRecommended ?? this.isRecommended,
+      warningMessage: warningMessage ?? this.warningMessage,
+      coloredSegments: coloredSegments,
+      summaryTitle: summaryTitle,
+      explanation: explanation ?? this.explanation,
+      stopCount: stopCount,
+      rankScore: rankScore ?? this.rankScore,
+    );
+  }
+
   @override
   List<Object?> get props =>
-      [steps, estimatedFare, totalDurationSeconds, primaryMode, isRecommended];
+      [optionId, steps, estimatedFare, totalDurationSeconds, primaryMode, isRecommended];
 }
 
 /// A map polyline segment with its transport color.

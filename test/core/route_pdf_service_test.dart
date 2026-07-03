@@ -6,6 +6,7 @@ import 'package:pinpoint/features/map/domain/map_models.dart';
 void main() {
   test('RoutePdfService generates non-empty PDF bytes', () async {
     final route = PlannedRoute(
+      optionId: 'test-walk',
       steps: const [
         RouteStep(
           type: RouteStepType.walk,

@@ -15,6 +15,7 @@ import 'package:pinpoint/core/services/location_service.dart';
 import 'package:pinpoint/core/services/routing_service.dart';
 import 'package:pinpoint/features/map/data/common_destinations.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
+import 'package:pinpoint/features/routing/domain/route_planning_models.dart';
 import 'package:pinpoint/features/map/presentation/utils/map_camera_helper.dart';
 import 'package:pinpoint/features/map/presentation/utils/map_camera_utils.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_state.dart';
@@ -409,12 +410,12 @@ class MapNotifier extends Notifier<MapState> {
   }
 
   void previewRouteOption(PlannedRoute? option) {
-    if (option == null || option.primaryMode == state.plannedRoute?.primaryMode) {
-      state = state.copyWith(clearPreviewVehicleMode: true);
+    if (option == null || option.optionId == state.plannedRoute?.optionId) {
+      state = state.copyWith(clearPreviewOption: true);
       if (state.plannedRoute != null) _fitRoute(state.plannedRoute!);
       return;
     }
-    state = state.copyWith(previewVehicleMode: option.primaryMode);
+    state = state.copyWith(previewOptionId: option.optionId);
     _fitRoute(option);
   }
 
@@ -523,6 +524,11 @@ class MapNotifier extends Notifier<MapState> {
     );
   }
 
+  void setRoutePreference(RoutePreference preference) {
+    state = state.copyWith(routePreference: preference, clearRoute: true, clearRouteOptions: true);
+    if (state.canGenerateRoute) generateRoute();
+  }
+
   void setVehicleMode(VehicleMode mode) {
     state = state.copyWith(selectedVehicleMode: mode, clearRoute: true, clearRouteOptions: true);
     if (state.canGenerateRoute) {
@@ -533,7 +539,7 @@ class MapNotifier extends Notifier<MapState> {
   void selectRouteOption(PlannedRoute option) {
     state = state.copyWith(
       plannedRoute: option,
-      clearPreviewVehicleMode: true,
+      clearPreviewOption: true,
       clearHighlightedStep: true,
     );
     _fitRoute(option);
@@ -573,6 +579,7 @@ class MapNotifier extends Notifier<MapState> {
         tricycleZones: state.tricycleZones,
         fares: state.fares,
         preferredMode: state.selectedVehicleMode,
+        preference: state.routePreference,
       );
       final selected = options.first;
       state = state.copyWith(
