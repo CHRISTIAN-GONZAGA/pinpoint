@@ -29,6 +29,8 @@ class ScoringWeights {
     required this.fare,
     required this.transfers,
     this.taxiPenalty = 0,
+    this.tricyclePenalty = 0,
+    this.jeepneyBonus = 0,
   });
 
   final double walkingDistance;
@@ -36,6 +38,8 @@ class ScoringWeights {
   final double fare;
   final double transfers;
   final double taxiPenalty;
+  final double tricyclePenalty;
+  final double jeepneyBonus;
 
   static ScoringWeights forPreference(RoutePreference preference) => switch (preference) {
         RoutePreference.cheapest => const ScoringWeights(
@@ -63,11 +67,13 @@ class ScoringWeights {
               transfers: 0.40,
             ),
         RoutePreference.balanced => const ScoringWeights(
-              walkingDistance: 0.40,
-              travelTime: 0.30,
-              fare: 0.20,
-              transfers: 0.10,
-              taxiPenalty: 35,
+              walkingDistance: 0.25,
+              travelTime: 0.25,
+              fare: 0.15,
+              transfers: 0.05,
+              taxiPenalty: 100,
+              tricyclePenalty: 55,
+              jeepneyBonus: 35,
             ),
       };
 

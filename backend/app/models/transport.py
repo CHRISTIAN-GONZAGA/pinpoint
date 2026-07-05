@@ -33,18 +33,46 @@ class JeepneyRoute(db.Model):
   )
 
   def to_dict(self, include_stops: bool = True) -> dict:
+    geo = json.loads(self.geojson)
+    if geo.get("type") == "Feature":
+      corridor = geo.get("geometry") or {}
+    else:
+      corridor = geo
+
     data = {
       "route_id": self.route_id,
+      "code": self.route_code,
       "route_code": self.route_code,
+      "name": self.route_name,
       "route_name": self.route_name,
       "color": self.color,
       "description": self.description,
       "operating_hours": self.operating_hours,
-      "geojson": json.loads(self.geojson),
+      "geojson": geo,
+      "corridor_geojson": corridor,
+      "bidirectional": True,
       "active_status": self.active_status,
     }
     if include_stops:
-      data["stops"] = [stop.to_dict() for stop in self.stops]
+      ordered = []
+      for stop in sorted(self.stops, key=lambda s: s.stop_order):
+        ordered.append(
+          {
+            "id": f"{self.route_code.lower()}_{stop.stop_order}",
+            "stop_id": stop.stop_id,
+            "route_id": stop.route_id,
+            "name": stop.stop_name,
+            "stop_name": stop.stop_name,
+            "lat": stop.latitude,
+            "lng": stop.longitude,
+            "latitude": stop.latitude,
+            "longitude": stop.longitude,
+            "stop_order": stop.stop_order,
+            "verified": True,
+          }
+        )
+      data["ordered_stops"] = ordered
+      data["stops"] = ordered
     return data
 
 

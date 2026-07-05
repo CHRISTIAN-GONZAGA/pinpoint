@@ -1,147 +1,601 @@
 {
   "ordinance": "City Ordinance No. 7194-2024 (LPTRP)",
   "map_version": "2025-10-24",
-  "note": "Pending geocoding — do NOT ship in app. All stops verified=false until manual review.",
+  "note": "LPTRP 2024 restructure — pending geocoding workflow.",
   "routes": [
     {
       "code": "R1",
       "route_id": 1,
-      "name": "City Proper Loop",
+      "name": "West and East Loop",
       "color": "#1D3557",
       "bidirectional": true,
-      "termini": ["North Montilla Blvd", "Crossing Dumalagan"],
-      "street_segments": ["North Montilla Blvd", "South Montilla Blvd", "J.C. Aquino Ave"],
+      "termini": [
+        "Crossing Dumalagan Off-Street Terminal",
+        "F. Durano & South Montilla Blvd"
+      ],
+      "street_segments": [
+        "South Montilla Boulevard",
+        "J.C. Aquino Avenue",
+        "North Montilla Boulevard",
+        "T. Calo Street",
+        "Ester Luna Street",
+        "A.D. Curato Street"
+      ],
+      "operating_hours": "5:00 AM – 8:00 PM",
+      "description": "Crossing Dumalagan ↔ F. Durano & South Montilla Blvd via JC Aquino Ave, Bancasi Airport, and city-proper loop (former R1+R2).",
       "ordered_stops": [
-        {"id": "r1_north_montilla", "name": "North Montilla Blvd", "lat": null, "lng": null, "verified": false, "aliases": ["7-Eleven Montilla"]},
-        {"id": "r1_city_proper_loop", "name": "City Proper Loop", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r1_bces_anhs", "name": "BCES / Agusan National HS", "lat": null, "lng": null, "verified": false, "aliases": ["Butuan Central ES", "ANHS"]},
-        {"id": "r1_south_montilla", "name": "South Montilla Blvd", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r1_jaqno", "name": "J.C. Aquino Ave (JAQNO)", "lat": null, "lng": null, "verified": false, "aliases": ["Butuan National Museum"]},
-        {"id": "r1_libertad", "name": "Libertad", "lat": null, "lng": null, "verified": false, "aliases": ["Libertad Market"]},
-        {"id": "r1_bancasi", "name": "Bancasi", "lat": null, "lng": null, "verified": false, "aliases": ["Bancasi Airport area"]},
-        {"id": "r1_dumalagan", "name": "Crossing Dumalagan", "lat": null, "lng": null, "verified": false, "aliases": ["Dumalagan Crossing"]}
+        {
+          "id": "r1_dumalagan",
+          "name": "Crossing Dumalagan Off-Street Terminal",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r1_bancasi_airport",
+          "name": "Bancasi Airport",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": [
+            "Bancasi Airport area"
+          ]
+        },
+        {
+          "id": "r1_libertad",
+          "name": "Libertad Overpass",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": [
+            "Libertad Market"
+          ]
+        },
+        {
+          "id": "r1_jaqno",
+          "name": "J.C. Aquino Avenue",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": [
+            "JAQNO",
+            "Butuan National Museum"
+          ]
+        },
+        {
+          "id": "r1_south_montilla",
+          "name": "South Montilla Boulevard",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r1_t_calo",
+          "name": "T. Calo Street",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r1_ester_luna",
+          "name": "Ester Luna Street",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r1_ad_curato",
+          "name": "A.D. Curato Street",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r1_f_durano",
+          "name": "F. Durano & South Montilla Blvd",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": [
+            "East terminus"
+          ]
+        }
       ],
       "corridor_geojson": null
     },
     {
       "code": "R2",
       "route_id": 2,
-      "name": "JAQNO to Dumalagan",
+      "name": "City Loop via Airport",
       "color": "#E63946",
       "bidirectional": true,
-      "termini": ["J.C. Aquino Ave (JAQNO)", "Crossing Dumalagan"],
-      "street_segments": ["J.C. Aquino Ave", "North Montilla Blvd", "Rosales Ave", "Langihan"],
+      "termini": [
+        "Butuan Integrated Jeepney Terminal",
+        "Crossing Dumalagan Off-Street Terminal"
+      ],
+      "street_segments": [
+        "S. Calo Street",
+        "Magsaysay Street",
+        "Langihan Road",
+        "J. Rosales Avenue",
+        "J.C. Aquino Avenue",
+        "G. Flores Avenue",
+        "North Montilla Boulevard"
+      ],
+      "operating_hours": "5:00 AM – 8:00 PM",
+      "description": "Butuan Integrated Jeepney Terminal ↔ Crossing Dumalagan via city loop, Langihan, Rosales, JC Aquino, Bancasi (former R4).",
       "ordered_stops": [
-        {"id": "r2_jaqno", "name": "J.C. Aquino Ave (JAQNO)", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r2_bces_anhs", "name": "BCES / Agusan National HS", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r2_ad_curato", "name": "A.D. Curato St", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r2_g_flores", "name": "G. Flores Ave", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r2_north_montilla", "name": "North Montilla Blvd", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r2_jeepney_terminal", "name": "Jeepney Terminal", "lat": null, "lng": null, "verified": false, "aliases": ["Langihan Jeepney Terminal", "City Hall Terminal"]},
-        {"id": "r2_langihan", "name": "Langihan", "lat": null, "lng": null, "verified": false, "aliases": ["Langihan Public Market", "Langihan Bus-Jeep Terminal"]},
-        {"id": "r2_rosales", "name": "Rosales Ave", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r2_libertad", "name": "Libertad", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r2_bancasi", "name": "Bancasi", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r2_dumalagan", "name": "Crossing Dumalagan", "lat": null, "lng": null, "verified": false, "aliases": []}
+        {
+          "id": "r2_dumalagan",
+          "name": "Crossing Dumalagan Off-Street Terminal",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r2_bancasi",
+          "name": "Bancasi Airport",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r2_jaqno",
+          "name": "J.C. Aquino Avenue",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r2_rosales",
+          "name": "J. Rosales Avenue",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r2_langihan",
+          "name": "Langihan Jeepney Terminal",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": [
+            "Langihan Public Market"
+          ]
+        },
+        {
+          "id": "r2_integrated",
+          "name": "Butuan Integrated Jeepney Terminal",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": [
+            "Langihan Terminal"
+          ]
+        },
+        {
+          "id": "r2_g_flores",
+          "name": "G. Flores Avenue",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r2_ad_curato",
+          "name": "A.D. Curato Street",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": [
+            "South A.D. Curato St"
+          ]
+        },
+        {
+          "id": "r2_north_montilla",
+          "name": "North Montilla Boulevard",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r2_m_calo",
+          "name": "M. Calo Street",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r2_t_sanchez",
+          "name": "T. Sanchez Street",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        }
       ],
       "corridor_geojson": null
     },
     {
       "code": "R3",
       "route_id": 3,
-      "name": "Ampayon–Libertad",
+      "name": "Ampayon to Libertad",
       "color": "#2A9D8F",
       "bidirectional": true,
-      "termini": ["Libertad", "Ampayon Triangle"],
-      "street_segments": ["Libertad", "J.C. Aquino Ave", "FSUU Plaza"],
+      "termini": [
+        "Ampayon Triangle Off-Street Terminal",
+        "Libertad Overpass"
+      ],
+      "street_segments": [
+        "Surigao-Butuan National Highway",
+        "J.C. Aquino Avenue"
+      ],
+      "operating_hours": "5:00 AM – 8:00 PM",
+      "description": "Ampayon Triangle ↔ Libertad Overpass via JC Aquino Ave (former R10).",
       "ordered_stops": [
-        {"id": "r3_libertad", "name": "Libertad", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r3_jaqno", "name": "J.C. Aquino Ave (JAQNO)", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r3_fsuu", "name": "FSUU / Plaza", "lat": null, "lng": null, "verified": false, "aliases": ["FSUU Urios", "Guingona Park"]},
-        {"id": "r3_ampayon_market", "name": "Ampayon Public Market", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r3_ampayon_triangle", "name": "Ampayon Triangle", "lat": null, "lng": null, "verified": false, "aliases": []}
+        {
+          "id": "r3_libertad",
+          "name": "Libertad Overpass",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r3_jaqno",
+          "name": "J.C. Aquino Avenue",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r3_ampayon_market",
+          "name": "Ampayon Public Market",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r3_ampayon_triangle",
+          "name": "Ampayon Triangle Off-Street Terminal",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        }
       ],
       "corridor_geojson": null
     },
     {
       "code": "R4",
       "route_id": 4,
-      "name": "De Oro Loop",
+      "name": "De Oro to City Proper",
       "color": "#F72585",
       "bidirectional": true,
-      "termini": ["Jeepney Terminal", "De Oro"],
-      "street_segments": ["Rosales Ave", "R. Calo St", "J.C. Aquino Ave"],
+      "termini": [
+        "De Oro Barangay Hall Off-Street Terminal",
+        "Butuan Integrated Jeepney Terminal"
+      ],
+      "street_segments": [
+        "Davao-Agusan National Highway",
+        "Surigao-Butuan National Highway",
+        "J. Rosales Avenue",
+        "North Montilla Boulevard"
+      ],
+      "operating_hours": "5:00 AM – 8:00 PM",
+      "description": "De Oro Barangay Hall ↔ Butuan Integrated Jeepney Terminal (former R7).",
       "ordered_stops": [
-        {"id": "r4_terminal", "name": "Jeepney Terminal", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r4_rosales", "name": "Rosales Ave", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r4_r_calo", "name": "R. Calo St", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r4_sanchez", "name": "Sanchez St", "lat": null, "lng": null, "verified": false, "aliases": ["T. Sanchez St"]},
-        {"id": "r4_m_calo", "name": "M. Calo St", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r4_ampayon", "name": "Ampayon", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r4_de_oro", "name": "De Oro", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r4_jaqno", "name": "J.C. Aquino Ave (JAQNO)", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r4_rosales_st", "name": "Rosales St", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r4_north_montilla", "name": "North Montilla Blvd", "lat": null, "lng": null, "verified": false, "aliases": []}
+        {
+          "id": "r4_de_oro",
+          "name": "De Oro Barangay Hall Off-Street Terminal",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r4_ampayon_market",
+          "name": "Ampayon Public Market",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r4_m_calo",
+          "name": "M. Calo Street",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r4_sanchez",
+          "name": "T. Sanchez Street",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r4_jaqno",
+          "name": "J.C. Aquino Avenue",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r4_rosales",
+          "name": "J. Rosales Avenue",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r4_r_calo",
+          "name": "R. Calo Street",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r4_north_montilla",
+          "name": "North Montilla Boulevard",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r4_integrated",
+          "name": "Butuan Integrated Jeepney Terminal",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        }
       ],
       "corridor_geojson": null
     },
     {
       "code": "R5",
       "route_id": 5,
-      "name": "Santo Niño Loop",
+      "name": "Santo Niño to City Proper",
       "color": "#FB8500",
       "bidirectional": true,
-      "termini": ["Jeepney Terminal", "Santo Niño"],
-      "street_segments": ["North Montilla Blvd", "J.C. Aquino Ave", "R. Calo St"],
+      "termini": [
+        "Santo Niño Barangay Hall Off-Street Terminal",
+        "Butuan Integrated Jeepney Terminal"
+      ],
+      "street_segments": [
+        "Surigao-Butuan National Highway",
+        "J.C. Aquino Avenue",
+        "Langihan Road",
+        "North Montilla Boulevard"
+      ],
+      "operating_hours": "5:00 AM – 8:00 PM",
+      "description": "Santo Niño Barangay Hall ↔ Butuan Integrated Jeepney Terminal (former R8).",
       "ordered_stops": [
-        {"id": "r5_terminal", "name": "Jeepney Terminal", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r5_north_montilla", "name": "North Montilla Blvd", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r5_jaqno", "name": "J.C. Aquino Ave (JAQNO)", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r5_t_sanchez", "name": "T. Sanchez St", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r5_m_calo", "name": "M. Calo St", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r5_ampayon", "name": "Ampayon", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r5_santo_nino", "name": "Santo Niño", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r5_rosales", "name": "Rosales St", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r5_langihan_terminal", "name": "Langihan Jeepney Terminal", "lat": null, "lng": null, "verified": false, "aliases": []}
+        {
+          "id": "r5_santo_nino",
+          "name": "Santo Niño Barangay Hall Off-Street Terminal",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r5_ampayon_market",
+          "name": "Ampayon Public Market",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r5_m_calo",
+          "name": "M. Calo Street",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r5_jaqno",
+          "name": "J.C. Aquino Avenue",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r5_rosales",
+          "name": "J. Rosales Avenue",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r5_langihan",
+          "name": "Langihan Jeepney Terminal",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r5_integrated",
+          "name": "Butuan Integrated Jeepney Terminal",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        }
       ],
       "corridor_geojson": null
     },
     {
       "code": "R6",
       "route_id": 6,
-      "name": "Maguinda",
+      "name": "Maguinda to Provincial Capitol",
       "color": "#FFB703",
       "bidirectional": true,
-      "termini": ["Capitol Terminal", "Maguinda"],
-      "street_segments": ["Capitol Drive", "Guingona Ave", "Montilla Blvd", "Mayor Democrito D. Plaza II Ave"],
+      "termini": [
+        "Maguinda Covered Court Off-Street Terminal",
+        "Agusan del Norte Provincial Capitol Off-Street Terminal"
+      ],
+      "street_segments": [
+        "Butuan-Las Nieves Road",
+        "South Montilla Boulevard",
+        "T. Guingona Sr Avenue",
+        "Bonbon-Capitol Drive"
+      ],
+      "operating_hours": "5:00 AM – 8:00 PM",
+      "description": "Maguinda Covered Court ↔ Agusan del Norte Provincial Capitol via Las Nieves Rd and Montilla Blvd (new route).",
       "ordered_stops": [
-        {"id": "r6_capitol", "name": "Capitol Terminal", "lat": null, "lng": null, "verified": false, "aliases": ["Provincial Capitol"]},
-        {"id": "r6_capitol_drive", "name": "Capitol Drive", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r6_guingona", "name": "Guingona Ave", "lat": null, "lng": null, "verified": false, "aliases": ["Guingona Park"]},
-        {"id": "r6_pizarro", "name": "Z. Pizarro St", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r6_montilla_drive", "name": "Montilla Drive", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r6_mddp", "name": "Mayor Demecrito D. Plaza II Ave", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r6_mahay", "name": "Mahay", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r6_lemon", "name": "Lemon", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r6_maguinda", "name": "Maguinda", "lat": null, "lng": null, "verified": false, "aliases": []}
+        {
+          "id": "r6_maguinda",
+          "name": "Maguinda Covered Court Off-Street Terminal",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r6_villa_kananga",
+          "name": "Villa Kananga Road",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r6_d_plaza",
+          "name": "D Plaza II Avenue",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r6_south_montilla",
+          "name": "South Montilla Boulevard",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r6_guingona",
+          "name": "T. Guingona Sr Avenue",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r6_capitol",
+          "name": "Agusan del Norte Provincial Capitol Off-Street Terminal",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        }
       ],
       "corridor_geojson": null
     },
     {
       "code": "R7",
       "route_id": 7,
-      "name": "Tungao",
+      "name": "Tungao to Provincial Capitol",
       "color": "#06D6A0",
       "bidirectional": true,
-      "termini": ["Capitol Terminal", "Tungao"],
-      "street_segments": ["Rosales Ave", "Montilla Blvd"],
+      "termini": [
+        "Tungao Off-Street Terminal",
+        "Agusan del Norte Provincial Capitol Off-Street Terminal"
+      ],
+      "street_segments": [
+        "Butuan City-Malaybalay Road",
+        "Montilla Boulevard",
+        "S. Calo Street",
+        "J. Rosales Avenue"
+      ],
+      "operating_hours": "5:00 AM – 8:00 PM",
+      "description": "Tungao ↔ Agusan del Norte Provincial Capitol via Butuan City-Malaybalay Rd, Montilla Blvd, Rosales (former R12).",
       "ordered_stops": [
-        {"id": "r7_capitol", "name": "Capitol Terminal", "lat": null, "lng": null, "verified": false, "aliases": ["Provincial Capitol"]},
-        {"id": "r7_rosales", "name": "Rosales Ave", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r7_s_calo", "name": "S. Calo St", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r7_montilla", "name": "Montilla Blvd", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r7_san_vicente", "name": "San Vicente", "lat": null, "lng": null, "verified": false, "aliases": []},
-        {"id": "r7_tungao", "name": "Tungao", "lat": null, "lng": null, "verified": false, "aliases": []}
+        {
+          "id": "r7_tungao",
+          "name": "Tungao Off-Street Terminal",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r7_malaybalay_rd",
+          "name": "Butuan City-Malaybalay Road",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r7_san_vicente",
+          "name": "San Vicente",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r7_montilla",
+          "name": "Montilla Boulevard",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r7_s_calo",
+          "name": "S. Calo Street",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r7_rosales",
+          "name": "J. Rosales Avenue",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        },
+        {
+          "id": "r7_capitol",
+          "name": "Agusan del Norte Provincial Capitol Off-Street Terminal",
+          "lat": null,
+          "lng": null,
+          "verified": false,
+          "aliases": []
+        }
       ],
       "corridor_geojson": null
     }

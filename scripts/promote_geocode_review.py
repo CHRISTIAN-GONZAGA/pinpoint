@@ -30,13 +30,13 @@ ROUTE_COLORS = {
 }
 
 ROUTE_DESCRIPTIONS = {
-    "R1": "North Montilla Blvd → City Proper Loop → BCES/ANHS → South Montilla Blvd → J.C. Aquino Ave → Libertad → Bancasi → Crossing Dumalagan (vice versa).",
-    "R2": "JAQNO → BCES/ANHS → A.D. Curato St → G. Flores Ave → North Montilla Blvd → Jeepney Terminal → Langihan → Rosales Ave → Libertad → Bancasi → Crossing Dumalagan (vice versa).",
-    "R3": "Libertad → JAQNO → FSUU/Plaza → Ampayon Public Market → Ampayon Triangle (vice versa).",
-    "R4": "Jeepney Terminal → Rosales Ave → R. Calo St → Sanchez St → M. Calo St → Ampayon → De Oro → JAQNO → R. Calo St → Rosales St → North Montilla Blvd → Jeepney Terminal (vice versa).",
-    "R5": "Jeepney Terminal → North Montilla Blvd → JAQNO → T. Sanchez St → M. Calo St → Ampayon → Santo Niño → JAQNO → Rosales St → Langihan Jeepney Terminal (vice versa).",
-    "R6": "Capitol Terminal → Guingona Ave → Montilla Blvd → Mahay → Lemon → Maguinda (vice versa).",
-    "R7": "Capitol Terminal → Rosales Ave → Montilla Blvd → San Vicente → Tungao (vice versa).",
+    "R1": "Crossing Dumalagan ↔ F. Durano & South Montilla Blvd via JC Aquino Ave and Bancasi Airport (West/East Loop, former R1+R2).",
+    "R2": "Butuan Integrated Jeepney Terminal ↔ Crossing Dumalagan via city loop, Langihan, Rosales, JC Aquino, Bancasi (former R4).",
+    "R3": "Ampayon Triangle ↔ Libertad Overpass via JC Aquino Ave (former R10).",
+    "R4": "De Oro Barangay Hall ↔ Butuan Integrated Jeepney Terminal (former R7).",
+    "R5": "Santo Niño Barangay Hall ↔ Butuan Integrated Jeepney Terminal (former R8).",
+    "R6": "Maguinda Covered Court ↔ Agusan del Norte Provincial Capitol via Las Nieves Rd (new route).",
+    "R7": "Tungao ↔ Agusan del Norte Provincial Capitol via Butuan City-Malaybalay Rd (former R12).",
 }
 
 

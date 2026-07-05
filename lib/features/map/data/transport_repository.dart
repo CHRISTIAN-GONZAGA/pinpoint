@@ -67,6 +67,8 @@ class TransportRepository {
       refreshFromRemote() async {
     if (AppConstants.offlineFirstMode) return _snapshot();
 
+    final bundledBefore = _cachedRoutes ?? [];
+
     try {
       final results = await Future.wait([
         _remote.fetchJeepneyRoutesRaw().timeout(_apiTimeout),
@@ -74,13 +76,23 @@ class TransportRepository {
         _remote.fetchFaresRaw().timeout(_apiTimeout),
       ]).timeout(const Duration(seconds: 10));
 
-      _cachedRoutes = _parseRoutes(results[0]);
-      _cachedZones = _parseZones(results[1]);
-      _cachedFares = _parseFares(results[2]);
+      final remoteRoutes = _parseRoutes(results[0]);
+      final remoteZones = _parseZones(results[1]);
+      final remoteFares = _parseFares(results[2]);
+
+      // Keep bundled LPTRP data if Render API still serves stale/legacy routes.
+      if (_shouldUseRemoteRoutes(bundledBefore, remoteRoutes)) {
+        _cachedRoutes = remoteRoutes;
+      }
+
+      if (remoteZones.isNotEmpty) _cachedZones = remoteZones;
+      if (remoteFares.isNotEmpty) _cachedFares = remoteFares;
 
       if (_hasParsedData) {
         await _local.saveTransportBundle(
-          routes: results[0],
+          routes: (_cachedRoutes ?? [])
+              .map((r) => _routeToJson(r))
+              .toList(),
           zones: results[1],
           fares: results[2],
         );
@@ -90,6 +102,57 @@ class TransportRepository {
     }
 
     return _snapshot();
+  }
+
+  /// Prefer remote routes only when they look like LPTRP 2024 data.
+  bool _shouldUseRemoteRoutes(
+    List<JeepneyRoute> bundled,
+    List<JeepneyRoute> remote,
+  ) {
+    if (remote.isEmpty) return false;
+    if (remote.length < 7) return false;
+
+    final remoteR1 = remote.where((r) => r.routeCode == 'R1').firstOrNull;
+    if (remoteR1 == null) return false;
+    if (!remoteR1.routeName.contains('West and East Loop')) return false;
+
+    final bundledVerified = bundled
+        .map((r) => r.verifiedStops.length)
+        .fold(0, (a, b) => a + b);
+    final remoteVerified =
+        remote.map((r) => r.verifiedStops.length).fold(0, (a, b) => a + b);
+
+    return remoteVerified >= bundledVerified;
+  }
+
+  Map<String, dynamic> _routeToJson(JeepneyRoute route) {
+    return {
+      'route_id': route.routeId,
+      'code': route.routeCode,
+      'name': route.routeName,
+      'color': route.colorHex,
+      'description': route.description,
+      'operating_hours': route.operatingHours,
+      'bidirectional': route.bidirectional,
+      'street_segments': route.streetSegments,
+      'ordered_stops': route.stops
+          .map(
+            (s) => {
+              'id': s.stopKey ?? '${route.routeCode}_${s.order}',
+              'name': s.name,
+              'lat': s.latitude,
+              'lng': s.longitude,
+              'verified': s.verified,
+            },
+          )
+          .toList(),
+      'corridor_geojson': {
+        'type': 'LineString',
+        'coordinates': route.polyline
+            .map((p) => [p.longitude, p.latitude])
+            .toList(),
+      },
+    };
   }
 
   bool get _hasParsedData =>

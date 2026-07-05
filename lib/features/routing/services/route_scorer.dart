@@ -27,19 +27,21 @@ class RouteScorer {
       total += weights.taxiPenalty;
     }
 
-    if (route.warningMessage != null && route.primaryMode == VehicleMode.tricycle) {
-      total += 50;
+    if (route.primaryMode == VehicleMode.tricycle) {
+      total += weights.tricyclePenalty;
+      if (route.warningMessage != null) total += 25;
     }
 
-    // Prefer public transport multimodal over single-mode taxi for balanced scoring.
-    if (route.primaryMode == VehicleMode.jeepney && weights.taxiPenalty > 0) {
-      total -= 8;
+    if (route.primaryMode == VehicleMode.jeepney) {
+      total -= weights.jeepneyBonus;
+      // Transfers on PUJ are normal in Butuan — do not over-penalize.
+      if (route.transferCount > 0) total -= 8;
     }
 
     if (route.primaryMode == VehicleMode.walk &&
         route.walkingDistanceMeters < 800 &&
         route.coloredSegments.every((s) => s.type == RouteStepType.walk)) {
-      total -= 8;
+      total -= 12;
     }
 
     return total;

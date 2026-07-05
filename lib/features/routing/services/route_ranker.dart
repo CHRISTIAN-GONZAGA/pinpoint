@@ -66,8 +66,8 @@ class RouteRanker {
 
       if (jeepneyOptions.isNotEmpty) {
         final shortWalk = walkOption != null &&
-            walkOption.walkingDistanceMeters < 700 &&
-            walkOption.totalDistanceMeters < 1200;
+            walkOption.walkingDistanceMeters < 600 &&
+            walkOption.totalDistanceMeters < 900;
         recommendedIdx = shortWalk
             ? scored.indexOf(walkOption)
             : scored.indexOf(jeepneyOptions.first);

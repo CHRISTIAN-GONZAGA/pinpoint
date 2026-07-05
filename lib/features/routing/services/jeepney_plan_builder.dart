@@ -24,10 +24,10 @@ class JeepneyPlanBuilder {
   final TransferOptimizer _transfers;
 
   static const walkOnlyMaxMeters = 1400.0;
-  static const maxDetourRatio = 3.5;
+  static const maxDetourRatio = 4.0;
   static const jeepneySpeedMps = 200 / 60;
-  static const maxPlans = 24;
-  static const minJeepneyLegMeters = 40.0;
+  static const maxPlans = 32;
+  static const minJeepneyLegMeters = 30.0;
 
   Future<List<JeepneyPlan>> findAllPlans({
     required LatLng origin,
@@ -99,7 +99,9 @@ class JeepneyPlanBuilder {
     required LatLng destination,
     required double directMeters,
   }) async {
-    final roadPoly = await _jeepneyPaths.roadPolylineForRoute(route);
+    final roadPoly = route.polyline.length >= 2
+        ? route.polyline
+        : await _jeepneyPaths.roadPolylineForRoute(route);
     if (roadPoly.length < 2 && route.verifiedStops.length < 2) return [];
 
     final polyline = roadPoly.length >= 2 ? roadPoly : route.polyline;
@@ -244,8 +246,12 @@ class JeepneyPlanBuilder {
 
     for (final boardStop in boardCandidates) {
       for (final alightStop in alightCandidates) {
-        final originPoly = await _jeepneyPaths.roadPolylineForRoute(originRoute);
-        final destPoly = await _jeepneyPaths.roadPolylineForRoute(destRoute);
+        final originPoly = originRoute.polyline.length >= 2
+            ? originRoute.polyline
+            : await _jeepneyPaths.roadPolylineForRoute(originRoute);
+        final destPoly = destRoute.polyline.length >= 2
+            ? destRoute.polyline
+            : await _jeepneyPaths.roadPolylineForRoute(destRoute);
         final oPoly = originPoly.length >= 2 ? originPoly : originRoute.polyline;
         final dPoly = destPoly.length >= 2 ? destPoly : destRoute.polyline;
 

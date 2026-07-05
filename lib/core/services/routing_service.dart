@@ -4,11 +4,21 @@ import 'package:pinpoint/app/constants.dart';
 
 /// OSRM walking route between two points.
 class RoutingService {
-  RoutingService({Dio? dio, this.offlineMode = false}) : _dio = dio ?? Dio();
+  RoutingService({Dio? dio, this.offlineMode = false})
+      : _dio = dio ??
+            Dio(
+              BaseOptions(
+                connectTimeout: const Duration(seconds: 3),
+                receiveTimeout: const Duration(seconds: 3),
+                sendTimeout: const Duration(seconds: 3),
+              ),
+            );
 
   final Dio _dio;
   final bool offlineMode;
   final Distance _distance = const Distance();
+
+  static const osrmTimeout = Duration(seconds: 3);
 
   /// Fetches a walking route polyline from OSRM.
   Future<({List<LatLng> polyline, double distanceMeters, int durationSeconds})>

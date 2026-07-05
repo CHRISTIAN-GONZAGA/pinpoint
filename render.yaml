@@ -9,7 +9,7 @@ services:
     region: singapore
     plan: free
     dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    dockerContext: .
     healthCheckPath: /health
     envVars:
       - key: FLASK_ENV

@@ -214,54 +214,59 @@ def _polygon_geojson(coordinates: list[list[float]]) -> str:
 
 def seed_transport_data() -> None:
   """Populate jeepney routes, tricycle zones, and fares if empty."""
-  if JeepneyRoute.query.count() > 0:
-    return
+  from app.utilities.lptrp_loader import import_lptrp_routes, needs_lptrp_upgrade
 
-  for route_def in _ROUTE_DEFINITIONS:
-    route = JeepneyRoute(
-      route_code=route_def["route_code"],
-      route_name=route_def["route_name"],
-      color=route_def["color"],
-      description=route_def["description"],
-      operating_hours=route_def["operating_hours"],
-      geojson=_line_geojson(route_def["coordinates"]),
-      active_status=True,
-    )
-    db.session.add(route)
-    db.session.flush()
+  if needs_lptrp_upgrade():
+    import_lptrp_routes(force=JeepneyRoute.query.count() > 0)
 
-    for order, (name, lat, lng) in enumerate(route_def["stops"], start=1):
+  if JeepneyRoute.query.count() == 0:
+    for route_def in _ROUTE_DEFINITIONS:
+      route = JeepneyRoute(
+        route_code=route_def["route_code"],
+        route_name=route_def["route_name"],
+        color=route_def["color"],
+        description=route_def["description"],
+        operating_hours=route_def["operating_hours"],
+        geojson=_line_geojson(route_def["coordinates"]),
+        active_status=True,
+      )
+      db.session.add(route)
+      db.session.flush()
+
+      for order, (name, lat, lng) in enumerate(route_def["stops"], start=1):
+        db.session.add(
+          RouteStop(
+            route_id=route.route_id,
+            stop_name=name,
+            latitude=lat,
+            longitude=lng,
+            stop_order=order,
+          )
+        )
+
+  if TricycleZone.query.count() == 0:
+    for zone_def in _TRICYCLE_ZONES:
       db.session.add(
-        RouteStop(
-          route_id=route.route_id,
-          stop_name=name,
-          latitude=lat,
-          longitude=lng,
-          stop_order=order,
+        TricycleZone(
+          zone_name=zone_def["zone_name"],
+          polygon_geojson=_polygon_geojson(zone_def["polygon"]),
+          base_fare=zone_def["base_fare"],
+          notes=zone_def["notes"],
+          active_status=True,
         )
       )
 
-  for zone_def in _TRICYCLE_ZONES:
-    db.session.add(
-      TricycleZone(
-        zone_name=zone_def["zone_name"],
-        polygon_geojson=_polygon_geojson(zone_def["polygon"]),
-        base_fare=zone_def["base_fare"],
-        notes=zone_def["notes"],
-        active_status=True,
+  if FareMatrix.query.count() == 0:
+    today = date.today()
+    for fare_def in _FARES:
+      db.session.add(
+        FareMatrix(
+          transport_type=fare_def["transport_type"],
+          minimum_fare=fare_def["minimum_fare"],
+          succeeding_rate=fare_def["succeeding_rate"],
+          effective_date=today,
+        )
       )
-    )
-
-  today = date.today()
-  for fare_def in _FARES:
-    db.session.add(
-      FareMatrix(
-        transport_type=fare_def["transport_type"],
-        minimum_fare=fare_def["minimum_fare"],
-        succeeding_rate=fare_def["succeeding_rate"],
-        effective_date=today,
-      )
-    )
 
   db.session.commit()
 

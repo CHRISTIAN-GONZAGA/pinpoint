@@ -10,44 +10,23 @@ class JeepneyPathService {
   final RoutingService _routing;
   final Map<int, List<LatLng>> _cache = {};
 
-  /// Returns a polyline that follows drivable roads between jeepney stops.
+  /// Returns the route corridor polyline for planning and map display.
+  ///
+  /// Uses bundled [JeepneyRoute.polyline] from LPTRP data. OSRM corridor
+  /// refinement is done offline at build time — not during trip planning.
   Future<List<LatLng>> roadPolylineForRoute(JeepneyRoute route) async {
     final cached = _cache[route.routeId];
     if (cached != null && cached.isNotEmpty) return cached;
 
-    if (route.verifiedStops.length >= 2) {
-      final points = <LatLng>[];
-      final stops = route.verifiedStops;
-      for (var i = 0; i < stops.length - 1; i++) {
-        final from = stops[i].latLng;
-        final to = stops[i + 1].latLng;
-        final leg = await _roadLeg(from, to);
-        if (points.isEmpty) {
-          points.addAll(leg);
-        } else if (leg.isNotEmpty) {
-          points.addAll(leg.skip(1));
-        }
-      }
-      if (points.length >= 2) {
-        _cache[route.routeId] = points;
-        return points;
-      }
+    if (route.polyline.length >= 2) {
+      _cache[route.routeId] = route.polyline;
+      return route.polyline;
     }
 
-    if (route.polyline.length >= 2) {
-      final points = <LatLng>[];
-      for (var i = 0; i < route.polyline.length - 1; i++) {
-        final leg = await _roadLeg(route.polyline[i], route.polyline[i + 1]);
-        if (points.isEmpty) {
-          points.addAll(leg);
-        } else if (leg.isNotEmpty) {
-          points.addAll(leg.skip(1));
-        }
-      }
-      if (points.length >= 2) {
-        _cache[route.routeId] = points;
-        return points;
-      }
+    if (route.verifiedStops.length >= 2) {
+      final points = route.verifiedStops.map((s) => s.latLng).toList();
+      _cache[route.routeId] = points;
+      return points;
     }
 
     _cache[route.routeId] = route.polyline;

@@ -40,42 +40,53 @@ class CandidateRouteGenerator {
       candidates.add(route);
     }
 
-    add(await _assembler.buildWalkRoute(origin: origin, destination: destination));
-
-    final jeepneyPlanList = await _jeepneyPlans.findAllPlans(
+    final walkFuture = _assembler.buildWalkRoute(origin: origin, destination: destination);
+    final jeepneyPlansFuture = _jeepneyPlans.findAllPlans(
       origin: origin.latLng,
       destination: destination.latLng,
       jeepneyRoutes: jeepneyRoutes,
     );
+    final tricycleFuture = _assembler.buildTricycleRoute(
+      origin: origin,
+      destination: destination,
+    );
+    final taxiFuture = _assembler.buildTaxiRoute(origin: origin, destination: destination);
 
-    for (final plan in jeepneyPlanList) {
-      add(await _assembler.buildFromJeepneyPlan(
+    add(await walkFuture);
+
+    final jeepneyPlanList = await jeepneyPlansFuture;
+
+    final jeepneyAssembly = jeepneyPlanList.map((plan) async {
+      final direct = await _assembler.buildFromJeepneyPlan(
         origin: origin,
         destination: destination,
         plan: plan,
         zones: tricycleZones,
-      ));
-
+      );
       final feeder = await _tricycle.originFeeder(
         origin: origin.latLng,
         boardStop: plan.boardStop,
         zones: tricycleZones,
       );
-      if (feeder != null) {
-        add(await _assembler.buildFromJeepneyPlan(
-          origin: origin,
-          destination: destination,
-          plan: plan,
-          zones: tricycleZones,
-          originFeeder: feeder,
-        ));
+      final withFeeder = feeder != null
+          ? await _assembler.buildFromJeepneyPlan(
+              origin: origin,
+              destination: destination,
+              plan: plan,
+              zones: tricycleZones,
+              originFeeder: feeder,
+            )
+          : null;
+      return [direct, withFeeder];
+    });
+
+    for (final batch in await Future.wait(jeepneyAssembly)) {
+      for (final route in batch) {
+        add(route);
       }
     }
 
-    final triDrive = await _assembler.buildTricycleRoute(
-      origin: origin,
-      destination: destination,
-    );
+    final triDrive = await tricycleFuture;
     if (triDrive != null) {
       final polyline = triDrive.fullPolyline;
       String? warning;
@@ -86,7 +97,7 @@ class CandidateRouteGenerator {
       add(triDrive.copyWith(warningMessage: warning));
     }
 
-    add(await _assembler.buildTaxiRoute(origin: origin, destination: destination));
+    add(await taxiFuture);
 
     if (candidates.isEmpty) {
       final walk = await _assembler.buildWalkRoute(origin: origin, destination: destination);

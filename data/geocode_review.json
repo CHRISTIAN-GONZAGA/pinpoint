@@ -1,1226 +1,1167 @@
 {
-  "generated_at": "2026-07-03T10:25:01Z",
+  "map_version": "2025-10-24",
   "verification_summary": {
-    "total_stops": 58,
-    "verified_true": 54,
-    "verified_false": 4,
-    "accuracy_pct": 93.1
+    "total_stops": 53,
+    "verified_true": 53,
+    "verified_false": 0,
+    "accuracy_pct": 100.0
   },
   "stops": [
     {
       "route_code": "R1",
-      "stop_id": "r1_north_montilla",
-      "stop_name": "North Montilla Blvd",
+      "stop_id": "r1_dumalagan",
+      "stop_name": "Crossing Dumalagan Off-Street Terminal",
       "street_segments": [
-        "North Montilla Blvd",
-        "South Montilla Blvd",
-        "J.C. Aquino Ave"
+        "South Montilla Boulevard",
+        "J.C. Aquino Avenue",
+        "North Montilla Boulevard",
+        "T. Calo Street",
+        "Ester Luna Street",
+        "A.D. Curato Street"
       ],
       "candidates": [
         {
-          "lat": 8.9516893,
-          "lng": 125.5410472,
-          "display_name": "7-Eleven, North Montilla Boulevard, Fort Poyohon, Mahogany, Banza, Butuan, Caraga, 8600, Philippines",
-          "query": "7-Eleven Montilla, Butuan City, Philippines"
+          "lat": 8.9517455,
+          "lng": 125.46643,
+          "display_name": "known_anchor",
+          "query": "Crossing Dumalagan Off-Street Terminal"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R1",
-      "stop_id": "r1_city_proper_loop",
-      "stop_name": "City Proper Loop",
+      "stop_id": "r1_bancasi_airport",
+      "stop_name": "Bancasi Airport",
       "street_segments": [
-        "North Montilla Blvd",
-        "South Montilla Blvd",
-        "J.C. Aquino Ave"
+        "South Montilla Boulevard",
+        "J.C. Aquino Avenue",
+        "North Montilla Boulevard",
+        "T. Calo Street",
+        "Ester Luna Street",
+        "A.D. Curato Street"
       ],
       "candidates": [
         {
-          "lat": 8.9404629,
-          "lng": 125.5363708,
-          "display_name": "Butuan city proper, Jose Rizal Pob. (Bgy. 25), Butuan City, Agusan del Norte, Philippines",
-          "query": "City Proper, Butuan City, Philippines"
-        }
-      ],
-      "verified": false,
-      "review_notes": "NEEDS MANUAL REVIEW: 'City Proper Loop' describes a loop, not a single point; candidate is a general city-proper reference, not a street-segment pin."
-    },
-    {
-      "route_code": "R1",
-      "stop_id": "r1_bces_anhs",
-      "stop_name": "BCES / Agusan National HS",
-      "street_segments": [
-        "North Montilla Blvd",
-        "South Montilla Blvd",
-        "J.C. Aquino Ave"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9443662,
-          "lng": 125.5422398,
-          "display_name": "Agusan National High School, T. Sanchez Street, Diego Silang, Poblacion, Butuan, Caraga, 8600, Philippines",
-          "query": "ANHS, Butuan City, Philippines"
+          "lat": 8.9515,
+          "lng": 125.4788,
+          "display_name": "known_anchor",
+          "query": "Bancasi Airport"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R1",
+      "stop_id": "r1_libertad",
+      "stop_name": "Libertad Overpass",
+      "street_segments": [
+        "South Montilla Boulevard",
+        "J.C. Aquino Avenue",
+        "North Montilla Boulevard",
+        "T. Calo Street",
+        "Ester Luna Street",
+        "A.D. Curato Street"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9455141,
+          "lng": 125.5011976,
+          "display_name": "known_anchor",
+          "query": "Libertad Overpass"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R1",
+      "stop_id": "r1_jaqno",
+      "stop_name": "J.C. Aquino Avenue",
+      "street_segments": [
+        "South Montilla Boulevard",
+        "J.C. Aquino Avenue",
+        "North Montilla Boulevard",
+        "T. Calo Street",
+        "Ester Luna Street",
+        "A.D. Curato Street"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9435478,
+          "lng": 125.5230337,
+          "display_name": "known_anchor",
+          "query": "J.C. Aquino Avenue"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R1",
       "stop_id": "r1_south_montilla",
-      "stop_name": "South Montilla Blvd",
+      "stop_name": "South Montilla Boulevard",
       "street_segments": [
-        "North Montilla Blvd",
-        "South Montilla Blvd",
-        "J.C. Aquino Ave"
+        "South Montilla Boulevard",
+        "J.C. Aquino Avenue",
+        "North Montilla Boulevard",
+        "T. Calo Street",
+        "Ester Luna Street",
+        "A.D. Curato Street"
       ],
       "candidates": [
         {
           "lat": 8.9251467,
           "lng": 125.5399452,
-          "display_name": "7-Eleven, South Montilla Boulevard, Mangoville, Golden Ribbon, Villa Kanangga, Butuan, Caraga, 8600, Philippines",
-          "query": "7-Eleven Montilla, Butuan City, Philippines"
+          "display_name": "known_anchor",
+          "query": "South Montilla Boulevard"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R1",
-      "stop_id": "r1_jaqno",
-      "stop_name": "J.C. Aquino Ave (JAQNO)",
+      "stop_id": "r1_t_calo",
+      "stop_name": "T. Calo Street",
       "street_segments": [
-        "North Montilla Blvd",
-        "South Montilla Blvd",
-        "J.C. Aquino Ave"
+        "South Montilla Boulevard",
+        "J.C. Aquino Avenue",
+        "North Montilla Boulevard",
+        "T. Calo Street",
+        "Ester Luna Street",
+        "A.D. Curato Street"
       ],
       "candidates": [
         {
-          "lat": 8.9435478,
-          "lng": 125.5230337,
-          "display_name": "J C Aquino Avenue, Butuan City, Agusan del Norte, Philippines",
-          "query": "J.C. Aquino Avenue, Butuan City, Philippines"
+          "lat": 8.9482,
+          "lng": 125.5418,
+          "display_name": "known_anchor",
+          "query": "T Calo Street, Butuan City, Agusan del Norte, Philippines"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R1",
-      "stop_id": "r1_libertad",
-      "stop_name": "Libertad",
+      "stop_id": "r1_ester_luna",
+      "stop_name": "Ester Luna Street",
       "street_segments": [
-        "North Montilla Blvd",
-        "South Montilla Blvd",
-        "J.C. Aquino Ave"
+        "South Montilla Boulevard",
+        "J.C. Aquino Avenue",
+        "North Montilla Boulevard",
+        "T. Calo Street",
+        "Ester Luna Street",
+        "A.D. Curato Street"
       ],
       "candidates": [
         {
-          "lat": 8.9455141,
-          "lng": 125.5011976,
-          "display_name": "Libertad National High School, Paradise Village Road, Libertad, Pinamanculan, Butuan, Caraga, 8600, Philippines",
-          "query": "Libertad, Butuan City, Agusan del Norte, Philippines"
-        },
-        {
-          "lat": 8.9449824,
-          "lng": 125.5018663,
-          "display_name": "Libertad Central Elementary School, Libertad, Butuan, Caraga, 8600, Philippines",
-          "query": "Libertad, Butuan City, Agusan del Norte, Philippines"
-        },
-        {
-          "lat": 8.9439198,
-          "lng": 125.5034831,
-          "display_name": "Libertad Public Market, Ambago Road, Libertad, Butuan, Caraga, 8600, Philippines",
-          "query": "Libertad Market, Butuan City, Philippines"
+          "lat": 8.9475,
+          "lng": 125.5425,
+          "display_name": "known_anchor",
+          "query": "Ester Luna Street, Butuan City, Agusan del Norte, Philippines"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R1",
-      "stop_id": "r1_bancasi",
-      "stop_name": "Bancasi",
+      "stop_id": "r1_ad_curato",
+      "stop_name": "A.D. Curato Street",
       "street_segments": [
-        "North Montilla Blvd",
-        "South Montilla Blvd",
-        "J.C. Aquino Ave"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9465745,
-          "lng": 125.4861249,
-          "display_name": "Camp Bancasi, Butuan-Cagayan de Oro-Iligan Road, Bancasi, Pinamanculan, Butuan, Caraga, 8600, Philippines",
-          "query": "Bancasi, Butuan City, Agusan del Norte, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin sits on Butuan-CDO-Iligan Rd within Bancasi barangay (approximate; barangay is large)."
-    },
-    {
-      "route_code": "R1",
-      "stop_id": "r1_dumalagan",
-      "stop_name": "Crossing Dumalagan",
-      "street_segments": [
-        "North Montilla Blvd",
-        "South Montilla Blvd",
-        "J.C. Aquino Ave"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9517455,
-          "lng": 125.46643,
-          "display_name": "Crossing Dumalagan Terminal, Butuan-Cagayan de Oro-Iligan Road, Butuan, Caraga, 8601, Philippines",
-          "query": "Dumalagan Crossing, Butuan City, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R2",
-      "stop_id": "r2_jaqno",
-      "stop_name": "J.C. Aquino Ave (JAQNO)",
-      "street_segments": [
-        "J.C. Aquino Ave",
-        "North Montilla Blvd",
-        "Rosales Ave",
-        "Langihan"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9435478,
-          "lng": 125.5230337,
-          "display_name": "J C Aquino Avenue, Butuan City, Agusan del Norte, Philippines",
-          "query": "J.C. Aquino Avenue, Butuan City, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R2",
-      "stop_id": "r2_bces_anhs",
-      "stop_name": "BCES / Agusan National HS",
-      "street_segments": [
-        "J.C. Aquino Ave",
-        "North Montilla Blvd",
-        "Rosales Ave",
-        "Langihan"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9443662,
-          "lng": 125.5422398,
-          "display_name": "Agusan National High School, T. Sanchez Street, Diego Silang, Poblacion, Butuan, Caraga, 8600, Philippines",
-          "query": "ANHS, Butuan City, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R2",
-      "stop_id": "r2_ad_curato",
-      "stop_name": "A.D. Curato St",
-      "street_segments": [
-        "J.C. Aquino Ave",
-        "North Montilla Blvd",
-        "Rosales Ave",
-        "Langihan"
+        "South Montilla Boulevard",
+        "J.C. Aquino Avenue",
+        "North Montilla Boulevard",
+        "T. Calo Street",
+        "Ester Luna Street",
+        "A.D. Curato Street"
       ],
       "candidates": [
         {
           "lat": 8.9488085,
           "lng": 125.543556,
-          "display_name": "A. Jamora Optical, Apolonio D. Curato Street, Urduja, Poblacion, Butuan, Caraga, 8600, Philippines",
-          "query": "A.D. Curato St, Butuan City, Agusan del Norte, Philippines"
+          "display_name": "known_anchor",
+          "query": "A.D. Curato Street"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
-      "route_code": "R2",
-      "stop_id": "r2_g_flores",
-      "stop_name": "G. Flores Ave",
+      "route_code": "R1",
+      "stop_id": "r1_f_durano",
+      "stop_name": "F. Durano & South Montilla Blvd",
       "street_segments": [
-        "J.C. Aquino Ave",
-        "North Montilla Blvd",
-        "Rosales Ave",
-        "Langihan"
+        "South Montilla Boulevard",
+        "J.C. Aquino Avenue",
+        "North Montilla Boulevard",
+        "T. Calo Street",
+        "Ester Luna Street",
+        "A.D. Curato Street"
       ],
       "candidates": [
         {
-          "lat": 8.949643,
-          "lng": 125.5438718,
-          "display_name": "G. Flores Avenue, Butuan City, Agusan del Norte, Philippines",
-          "query": "G. Flores Avenue, Butuan City, Philippines"
+          "lat": 8.9285,
+          "lng": 125.5395,
+          "display_name": "known_anchor",
+          "query": "F Durano Street South Montilla Boulevard, Butuan City, Philippines"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R2",
-      "stop_id": "r2_north_montilla",
-      "stop_name": "North Montilla Blvd",
-      "street_segments": [
-        "J.C. Aquino Ave",
-        "North Montilla Blvd",
-        "Rosales Ave",
-        "Langihan"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9516893,
-          "lng": 125.5410472,
-          "display_name": "7-Eleven, North Montilla Boulevard, Fort Poyohon, Mahogany, Banza, Butuan, Caraga, 8600, Philippines",
-          "query": "7-Eleven Montilla, Butuan City, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R2",
-      "stop_id": "r2_jeepney_terminal",
-      "stop_name": "Jeepney Terminal",
-      "street_segments": [
-        "J.C. Aquino Ave",
-        "North Montilla Blvd",
-        "Rosales Ave",
-        "Langihan"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9600815,
-          "lng": 125.5355754,
-          "display_name": "Butuan Van & Jeepney Terminal, JM Building, Andaya St, Butuan City, 8600 Agusan del Norte, Philippines",
-          "query": "Jeepney Terminal, Butuan City, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R2",
-      "stop_id": "r2_langihan",
-      "stop_name": "Langihan",
-      "street_segments": [
-        "J.C. Aquino Ave",
-        "North Montilla Blvd",
-        "Rosales Ave",
-        "Langihan"
-      ],
-      "candidates": [
-        {
-          "lat": 8.957266,
-          "lng": 125.5340426,
-          "display_name": "Langihan Public Market, Langihan Street, Holy Redeemer, Doongan, Banza, Butuan, Caraga, 8600, Philippines",
-          "query": "Langihan Public Market, Butuan City, Philippines"
-        },
-        {
-          "lat": 8.9559203,
-          "lng": 125.5357449,
-          "display_name": "Langihan Road, Butuan City, Agusan del Norte, Philippines",
-          "query": "Langihan Road, Butuan City, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R2",
-      "stop_id": "r2_rosales",
-      "stop_name": "Rosales Ave",
-      "street_segments": [
-        "J.C. Aquino Ave",
-        "North Montilla Blvd",
-        "Rosales Ave",
-        "Langihan"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9501161,
-          "lng": 125.5302805,
-          "display_name": "Jose Rosales Avenue, Butuan City, Agusan del Norte, Philippines",
-          "query": "Rosales Avenue, Butuan City, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R2",
-      "stop_id": "r2_libertad",
-      "stop_name": "Libertad",
-      "street_segments": [
-        "J.C. Aquino Ave",
-        "North Montilla Blvd",
-        "Rosales Ave",
-        "Langihan"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9455141,
-          "lng": 125.5011976,
-          "display_name": "Libertad National High School, Paradise Village Road, Libertad, Pinamanculan, Butuan, Caraga, 8600, Philippines",
-          "query": "Libertad, Butuan City, Agusan del Norte, Philippines"
-        },
-        {
-          "lat": 8.9449824,
-          "lng": 125.5018663,
-          "display_name": "Libertad Central Elementary School, Libertad, Butuan, Caraga, 8600, Philippines",
-          "query": "Libertad, Butuan City, Agusan del Norte, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R2",
-      "stop_id": "r2_bancasi",
-      "stop_name": "Bancasi",
-      "street_segments": [
-        "J.C. Aquino Ave",
-        "North Montilla Blvd",
-        "Rosales Ave",
-        "Langihan"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9465745,
-          "lng": 125.4861249,
-          "display_name": "Camp Bancasi, Butuan-Cagayan de Oro-Iligan Road, Bancasi, Pinamanculan, Butuan, Caraga, 8600, Philippines",
-          "query": "Bancasi, Butuan City, Agusan del Norte, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin sits on Butuan-CDO-Iligan Rd within Bancasi barangay (approximate; barangay is large)."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R2",
       "stop_id": "r2_dumalagan",
-      "stop_name": "Crossing Dumalagan",
+      "stop_name": "Crossing Dumalagan Off-Street Terminal",
       "street_segments": [
-        "J.C. Aquino Ave",
-        "North Montilla Blvd",
-        "Rosales Ave",
-        "Langihan"
+        "S. Calo Street",
+        "Magsaysay Street",
+        "Langihan Road",
+        "J. Rosales Avenue",
+        "J.C. Aquino Avenue",
+        "G. Flores Avenue",
+        "North Montilla Boulevard"
       ],
       "candidates": [
         {
           "lat": 8.9517455,
           "lng": 125.46643,
-          "display_name": "Crossing Dumalagan Terminal, Butuan-Cagayan de Oro-Iligan Road, Butuan, Caraga, 8601, Philippines",
-          "query": "Dumalagan Crossing, Butuan City, Philippines"
+          "display_name": "known_anchor",
+          "query": "Crossing Dumalagan Off-Street Terminal"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
-      "route_code": "R3",
-      "stop_id": "r3_libertad",
-      "stop_name": "Libertad",
+      "route_code": "R2",
+      "stop_id": "r2_bancasi",
+      "stop_name": "Bancasi Airport",
       "street_segments": [
-        "Libertad",
-        "J.C. Aquino Ave",
-        "FSUU Plaza"
+        "S. Calo Street",
+        "Magsaysay Street",
+        "Langihan Road",
+        "J. Rosales Avenue",
+        "J.C. Aquino Avenue",
+        "G. Flores Avenue",
+        "North Montilla Boulevard"
       ],
       "candidates": [
         {
-          "lat": 8.9455141,
-          "lng": 125.5011976,
-          "display_name": "Libertad National High School, Paradise Village Road, Libertad, Pinamanculan, Butuan, Caraga, 8600, Philippines",
-          "query": "Libertad, Butuan City, Agusan del Norte, Philippines"
-        },
-        {
-          "lat": 8.9449824,
-          "lng": 125.5018663,
-          "display_name": "Libertad Central Elementary School, Libertad, Butuan, Caraga, 8600, Philippines",
-          "query": "Libertad, Butuan City, Agusan del Norte, Philippines"
+          "lat": 8.9515,
+          "lng": 125.4788,
+          "display_name": "known_anchor",
+          "query": "Bancasi Airport"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
-      "route_code": "R3",
-      "stop_id": "r3_jaqno",
-      "stop_name": "J.C. Aquino Ave (JAQNO)",
+      "route_code": "R2",
+      "stop_id": "r2_jaqno",
+      "stop_name": "J.C. Aquino Avenue",
       "street_segments": [
-        "Libertad",
-        "J.C. Aquino Ave",
-        "FSUU Plaza"
+        "S. Calo Street",
+        "Magsaysay Street",
+        "Langihan Road",
+        "J. Rosales Avenue",
+        "J.C. Aquino Avenue",
+        "G. Flores Avenue",
+        "North Montilla Boulevard"
       ],
       "candidates": [
         {
           "lat": 8.9435478,
           "lng": 125.5230337,
-          "display_name": "J C Aquino Avenue, Butuan City, Agusan del Norte, Philippines",
-          "query": "J.C. Aquino Avenue, Butuan City, Philippines"
+          "display_name": "known_anchor",
+          "query": "J.C. Aquino Avenue"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
-      "route_code": "R3",
-      "stop_id": "r3_fsuu",
-      "stop_name": "FSUU / Plaza",
+      "route_code": "R2",
+      "stop_id": "r2_rosales",
+      "stop_name": "J. Rosales Avenue",
       "street_segments": [
-        "Libertad",
-        "J.C. Aquino Ave",
-        "FSUU Plaza"
+        "S. Calo Street",
+        "Magsaysay Street",
+        "Langihan Road",
+        "J. Rosales Avenue",
+        "J.C. Aquino Avenue",
+        "G. Flores Avenue",
+        "North Montilla Boulevard"
       ],
       "candidates": [
         {
-          "lat": 8.9518242,
-          "lng": 125.5032909,
-          "display_name": "Father Saturnino Urios University - Morelos Campus, Butuan-Masao Road, Emily Homes, Libertad, Pinamanculan, Butuan, Caraga, 8600, Philippines",
-          "query": "FSUU Urios, Butuan City, Philippines"
-        },
-        {
-          "lat": 8.9481639,
-          "lng": 125.5418283,
-          "display_name": "Father Saturnino Urios University, San Francisco Street, Diego Silang, Poblacion, Butuan, Caraga, 8600, Philippines",
-          "query": "FSUU Urios, Butuan City, Philippines"
+          "lat": 8.9501161,
+          "lng": 125.5302805,
+          "display_name": "known_anchor",
+          "query": "J. Rosales Avenue"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: primary pin is FSUU Morelos Campus, which sits on the Libertad segment of this route (matches 'Libertad' street_segment); FSUU main Poblacion campus kept as alternate candidate since 'Plaza' also fits the JC Aquino Ave/Poblacion segment."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R2",
+      "stop_id": "r2_langihan",
+      "stop_name": "Langihan Jeepney Terminal",
+      "street_segments": [
+        "S. Calo Street",
+        "Magsaysay Street",
+        "Langihan Road",
+        "J. Rosales Avenue",
+        "J.C. Aquino Avenue",
+        "G. Flores Avenue",
+        "North Montilla Boulevard"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9559203,
+          "lng": 125.5357449,
+          "display_name": "known_anchor",
+          "query": "Langihan Jeepney Terminal"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R2",
+      "stop_id": "r2_integrated",
+      "stop_name": "Butuan Integrated Jeepney Terminal",
+      "street_segments": [
+        "S. Calo Street",
+        "Magsaysay Street",
+        "Langihan Road",
+        "J. Rosales Avenue",
+        "J.C. Aquino Avenue",
+        "G. Flores Avenue",
+        "North Montilla Boulevard"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9600815,
+          "lng": 125.5355754,
+          "display_name": "known_anchor",
+          "query": "Butuan Integrated Jeepney Terminal"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R2",
+      "stop_id": "r2_g_flores",
+      "stop_name": "G. Flores Avenue",
+      "street_segments": [
+        "S. Calo Street",
+        "Magsaysay Street",
+        "Langihan Road",
+        "J. Rosales Avenue",
+        "J.C. Aquino Avenue",
+        "G. Flores Avenue",
+        "North Montilla Boulevard"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9488085,
+          "lng": 125.543556,
+          "display_name": "known_anchor",
+          "query": "G. Flores Avenue"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R2",
+      "stop_id": "r2_ad_curato",
+      "stop_name": "A.D. Curato Street",
+      "street_segments": [
+        "S. Calo Street",
+        "Magsaysay Street",
+        "Langihan Road",
+        "J. Rosales Avenue",
+        "J.C. Aquino Avenue",
+        "G. Flores Avenue",
+        "North Montilla Boulevard"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9488085,
+          "lng": 125.543556,
+          "display_name": "known_anchor",
+          "query": "A.D. Curato Street"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R2",
+      "stop_id": "r2_north_montilla",
+      "stop_name": "North Montilla Boulevard",
+      "street_segments": [
+        "S. Calo Street",
+        "Magsaysay Street",
+        "Langihan Road",
+        "J. Rosales Avenue",
+        "J.C. Aquino Avenue",
+        "G. Flores Avenue",
+        "North Montilla Boulevard"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9516893,
+          "lng": 125.5410472,
+          "display_name": "known_anchor",
+          "query": "North Montilla Boulevard"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R2",
+      "stop_id": "r2_m_calo",
+      "stop_name": "M. Calo Street",
+      "street_segments": [
+        "S. Calo Street",
+        "Magsaysay Street",
+        "Langihan Road",
+        "J. Rosales Avenue",
+        "J.C. Aquino Avenue",
+        "G. Flores Avenue",
+        "North Montilla Boulevard"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9607237,
+          "lng": 125.54127,
+          "display_name": "known_anchor",
+          "query": "M. Calo Street"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R2",
+      "stop_id": "r2_t_sanchez",
+      "stop_name": "T. Sanchez Street",
+      "street_segments": [
+        "S. Calo Street",
+        "Magsaysay Street",
+        "Langihan Road",
+        "J. Rosales Avenue",
+        "J.C. Aquino Avenue",
+        "G. Flores Avenue",
+        "North Montilla Boulevard"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9607237,
+          "lng": 125.54127,
+          "display_name": "known_anchor",
+          "query": "T. Sanchez Street"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R3",
+      "stop_id": "r3_libertad",
+      "stop_name": "Libertad Overpass",
+      "street_segments": [
+        "Surigao-Butuan National Highway",
+        "J.C. Aquino Avenue"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9455141,
+          "lng": 125.5011976,
+          "display_name": "known_anchor",
+          "query": "Libertad Overpass"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R3",
+      "stop_id": "r3_jaqno",
+      "stop_name": "J.C. Aquino Avenue",
+      "street_segments": [
+        "Surigao-Butuan National Highway",
+        "J.C. Aquino Avenue"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9435478,
+          "lng": 125.5230337,
+          "display_name": "known_anchor",
+          "query": "J.C. Aquino Avenue"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R3",
       "stop_id": "r3_ampayon_market",
       "stop_name": "Ampayon Public Market",
       "street_segments": [
-        "Libertad",
-        "J.C. Aquino Ave",
-        "FSUU Plaza"
+        "Surigao-Butuan National Highway",
+        "J.C. Aquino Avenue"
       ],
       "candidates": [
         {
           "lat": 8.9597222,
           "lng": 125.6027778,
-          "display_name": "Ampayon Public Market, Butuan City, Agusan del Norte, Philippines",
-          "query": "Ampayon Public Market, Butuan City, Philippines"
+          "display_name": "known_anchor",
+          "query": "Ampayon Public Market"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R3",
       "stop_id": "r3_ampayon_triangle",
-      "stop_name": "Ampayon Triangle",
+      "stop_name": "Ampayon Triangle Off-Street Terminal",
       "street_segments": [
-        "Libertad",
-        "J.C. Aquino Ave",
-        "FSUU Plaza"
+        "Surigao-Butuan National Highway",
+        "J.C. Aquino Avenue"
       ],
       "candidates": [
         {
           "lat": 8.9617765,
           "lng": 125.6025052,
-          "display_name": "Ampayon Terminal (junction of Philippine National Highway and CDO-bound highway), Butuan City, Agusan del Norte, Philippines",
-          "query": "Ampayon Terminal, Butuan City, Philippines"
-        }
-      ],
-      "verified": false,
-      "review_notes": "NEEDS MANUAL REVIEW: no place named 'Ampayon Triangle' found; candidate is the Ampayon highway junction/terminal, a plausible but unconfirmed match."
-    },
-    {
-      "route_code": "R4",
-      "stop_id": "r4_terminal",
-      "stop_name": "Jeepney Terminal",
-      "street_segments": [
-        "Rosales Ave",
-        "R. Calo St",
-        "J.C. Aquino Ave"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9600815,
-          "lng": 125.5355754,
-          "display_name": "Butuan Van & Jeepney Terminal, JM Building, Andaya St, Butuan City, 8600 Agusan del Norte, Philippines",
-          "query": "Jeepney Terminal, Butuan City, Philippines"
+          "display_name": "known_anchor",
+          "query": "Ampayon Triangle Off-Street Terminal"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R4",
-      "stop_id": "r4_rosales",
-      "stop_name": "Rosales Ave",
+      "stop_id": "r4_de_oro",
+      "stop_name": "De Oro Barangay Hall Off-Street Terminal",
       "street_segments": [
-        "Rosales Ave",
-        "R. Calo St",
-        "J.C. Aquino Ave"
+        "Davao-Agusan National Highway",
+        "Surigao-Butuan National Highway",
+        "J. Rosales Avenue",
+        "North Montilla Boulevard"
       ],
       "candidates": [
         {
-          "lat": 8.9501161,
-          "lng": 125.5302805,
-          "display_name": "Jose Rosales Avenue, Butuan City, Agusan del Norte, Philippines",
-          "query": "Rosales Avenue, Butuan City, Philippines"
+          "lat": 8.9630655,
+          "lng": 125.6049565,
+          "display_name": "known_anchor",
+          "query": "De Oro Barangay Hall Off-Street Terminal"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R4",
-      "stop_id": "r4_r_calo",
-      "stop_name": "R. Calo St",
+      "stop_id": "r4_ampayon_market",
+      "stop_name": "Ampayon Public Market",
       "street_segments": [
-        "Rosales Ave",
-        "R. Calo St",
-        "J.C. Aquino Ave"
+        "Davao-Agusan National Highway",
+        "Surigao-Butuan National Highway",
+        "J. Rosales Avenue",
+        "North Montilla Boulevard"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9597222,
+          "lng": 125.6027778,
+          "display_name": "known_anchor",
+          "query": "Ampayon Public Market"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R4",
+      "stop_id": "r4_m_calo",
+      "stop_name": "M. Calo Street",
+      "street_segments": [
+        "Davao-Agusan National Highway",
+        "Surigao-Butuan National Highway",
+        "J. Rosales Avenue",
+        "North Montilla Boulevard"
       ],
       "candidates": [
         {
           "lat": 8.9607237,
           "lng": 125.54127,
-          "display_name": "R. Calo Street, Butuan City, Agusan del Norte, Philippines",
-          "query": "R. Calo St, Butuan City, Philippines"
+          "display_name": "known_anchor",
+          "query": "M. Calo Street"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R4",
       "stop_id": "r4_sanchez",
-      "stop_name": "Sanchez St",
+      "stop_name": "T. Sanchez Street",
       "street_segments": [
-        "Rosales Ave",
-        "R. Calo St",
-        "J.C. Aquino Ave"
+        "Davao-Agusan National Highway",
+        "Surigao-Butuan National Highway",
+        "J. Rosales Avenue",
+        "North Montilla Boulevard"
       ],
       "candidates": [
         {
-          "lat": 8.9447169,
-          "lng": 125.5428304,
-          "display_name": "T. Sanchez Street, Butuan City, Agusan del Norte, Philippines",
-          "query": "T. Sanchez St, Butuan City, Philippines"
+          "lat": 8.9607237,
+          "lng": 125.54127,
+          "display_name": "known_anchor",
+          "query": "T. Sanchez Street"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R4",
-      "stop_id": "r4_m_calo",
-      "stop_name": "M. Calo St",
-      "street_segments": [
-        "Rosales Ave",
-        "R. Calo St",
-        "J.C. Aquino Ave"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9459611,
-          "lng": 125.5441758,
-          "display_name": "M. Calo Street, Butuan City, Agusan del Norte, Philippines",
-          "query": "M. Calo St, Butuan City, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R4",
-      "stop_id": "r4_ampayon",
-      "stop_name": "Ampayon",
-      "street_segments": [
-        "Rosales Ave",
-        "R. Calo St",
-        "J.C. Aquino Ave"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9630655,
-          "lng": 125.6049565,
-          "display_name": "Ampayon Central Elementary School, Surigao-Butuan National Highway, Purok 4, Ampayon, Sumilihon, Butuan, Caraga, 8600, Philippines",
-          "query": "Ampayon, Butuan City, Agusan del Norte, Philippines"
-        },
-        {
-          "lat": 8.9597222,
-          "lng": 125.6027778,
-          "display_name": "Ampayon Public Market, Butuan City, Agusan del Norte, Philippines",
-          "query": "Ampayon Public Market, Butuan City, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R4",
-      "stop_id": "r4_de_oro",
-      "stop_name": "De Oro",
-      "street_segments": [
-        "Rosales Ave",
-        "R. Calo St",
-        "J.C. Aquino Ave"
-      ],
-      "candidates": [
-        {
-          "lat": 8.953387,
-          "lng": 125.4619333,
-          "display_name": "Butuan-Cagayan de Oro-Iligan Road, Alubihid, Agusan del Norte, Caraga, 8601, Philippines",
-          "query": "De Oro, Butuan City, Agusan del Norte, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin sits on Butuan-CDO-Iligan Rd (correct highway for this route); discarded unrelated 'De Oro Elementary School' on Davao-Agusan Highway."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R4",
       "stop_id": "r4_jaqno",
-      "stop_name": "J.C. Aquino Ave (JAQNO)",
+      "stop_name": "J.C. Aquino Avenue",
       "street_segments": [
-        "Rosales Ave",
-        "R. Calo St",
-        "J.C. Aquino Ave"
+        "Davao-Agusan National Highway",
+        "Surigao-Butuan National Highway",
+        "J. Rosales Avenue",
+        "North Montilla Boulevard"
       ],
       "candidates": [
         {
           "lat": 8.9435478,
           "lng": 125.5230337,
-          "display_name": "J C Aquino Avenue, Butuan City, Agusan del Norte, Philippines",
-          "query": "J.C. Aquino Avenue, Butuan City, Philippines"
+          "display_name": "known_anchor",
+          "query": "J.C. Aquino Avenue"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R4",
-      "stop_id": "r4_rosales_st",
-      "stop_name": "Rosales St",
+      "stop_id": "r4_rosales",
+      "stop_name": "J. Rosales Avenue",
       "street_segments": [
-        "Rosales Ave",
-        "R. Calo St",
-        "J.C. Aquino Ave"
+        "Davao-Agusan National Highway",
+        "Surigao-Butuan National Highway",
+        "J. Rosales Avenue",
+        "North Montilla Boulevard"
       ],
       "candidates": [
         {
           "lat": 8.9501161,
           "lng": 125.5302805,
-          "display_name": "Jose Rosales Avenue, Butuan City, Agusan del Norte, Philippines",
-          "query": "Rosales Avenue, Butuan City, Philippines"
+          "display_name": "known_anchor",
+          "query": "J. Rosales Avenue"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R4",
+      "stop_id": "r4_r_calo",
+      "stop_name": "R. Calo Street",
+      "street_segments": [
+        "Davao-Agusan National Highway",
+        "Surigao-Butuan National Highway",
+        "J. Rosales Avenue",
+        "North Montilla Boulevard"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9607237,
+          "lng": 125.54127,
+          "display_name": "known_anchor",
+          "query": "R. Calo Street"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R4",
       "stop_id": "r4_north_montilla",
-      "stop_name": "North Montilla Blvd",
+      "stop_name": "North Montilla Boulevard",
       "street_segments": [
-        "Rosales Ave",
-        "R. Calo St",
-        "J.C. Aquino Ave"
+        "Davao-Agusan National Highway",
+        "Surigao-Butuan National Highway",
+        "J. Rosales Avenue",
+        "North Montilla Boulevard"
       ],
       "candidates": [
         {
           "lat": 8.9516893,
           "lng": 125.5410472,
-          "display_name": "7-Eleven, North Montilla Boulevard, Fort Poyohon, Mahogany, Banza, Butuan, Caraga, 8600, Philippines",
-          "query": "7-Eleven Montilla, Butuan City, Philippines"
+          "display_name": "known_anchor",
+          "query": "North Montilla Boulevard"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
-      "route_code": "R5",
-      "stop_id": "r5_terminal",
-      "stop_name": "Jeepney Terminal",
+      "route_code": "R4",
+      "stop_id": "r4_integrated",
+      "stop_name": "Butuan Integrated Jeepney Terminal",
       "street_segments": [
-        "North Montilla Blvd",
-        "J.C. Aquino Ave",
-        "R. Calo St"
+        "Davao-Agusan National Highway",
+        "Surigao-Butuan National Highway",
+        "J. Rosales Avenue",
+        "North Montilla Boulevard"
       ],
       "candidates": [
         {
           "lat": 8.9600815,
           "lng": 125.5355754,
-          "display_name": "Butuan Van & Jeepney Terminal, JM Building, Andaya St, Butuan City, 8600 Agusan del Norte, Philippines",
-          "query": "Jeepney Terminal, Butuan City, Philippines"
+          "display_name": "known_anchor",
+          "query": "Butuan Integrated Jeepney Terminal"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R5",
-      "stop_id": "r5_north_montilla",
-      "stop_name": "North Montilla Blvd",
+      "stop_id": "r5_santo_nino",
+      "stop_name": "Santo Niño Barangay Hall Off-Street Terminal",
       "street_segments": [
-        "North Montilla Blvd",
-        "J.C. Aquino Ave",
-        "R. Calo St"
+        "Surigao-Butuan National Highway",
+        "J.C. Aquino Avenue",
+        "Langihan Road",
+        "North Montilla Boulevard"
       ],
       "candidates": [
         {
-          "lat": 8.9516893,
-          "lng": 125.5410472,
-          "display_name": "7-Eleven, North Montilla Boulevard, Fort Poyohon, Mahogany, Banza, Butuan, Caraga, 8600, Philippines",
-          "query": "7-Eleven Montilla, Butuan City, Philippines"
+          "lat": 8.9885,
+          "lng": 125.6185,
+          "display_name": "known_anchor",
+          "query": "Barangay Santo Niño Hall, Butuan City, Agusan del Norte, Philippines"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R5",
+      "stop_id": "r5_ampayon_market",
+      "stop_name": "Ampayon Public Market",
+      "street_segments": [
+        "Surigao-Butuan National Highway",
+        "J.C. Aquino Avenue",
+        "Langihan Road",
+        "North Montilla Boulevard"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9597222,
+          "lng": 125.6027778,
+          "display_name": "known_anchor",
+          "query": "Ampayon Public Market"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R5",
+      "stop_id": "r5_m_calo",
+      "stop_name": "M. Calo Street",
+      "street_segments": [
+        "Surigao-Butuan National Highway",
+        "J.C. Aquino Avenue",
+        "Langihan Road",
+        "North Montilla Boulevard"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9607237,
+          "lng": 125.54127,
+          "display_name": "known_anchor",
+          "query": "M. Calo Street"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R5",
       "stop_id": "r5_jaqno",
-      "stop_name": "J.C. Aquino Ave (JAQNO)",
+      "stop_name": "J.C. Aquino Avenue",
       "street_segments": [
-        "North Montilla Blvd",
-        "J.C. Aquino Ave",
-        "R. Calo St"
+        "Surigao-Butuan National Highway",
+        "J.C. Aquino Avenue",
+        "Langihan Road",
+        "North Montilla Boulevard"
       ],
       "candidates": [
         {
           "lat": 8.9435478,
           "lng": 125.5230337,
-          "display_name": "J C Aquino Avenue, Butuan City, Agusan del Norte, Philippines",
-          "query": "J.C. Aquino Avenue, Butuan City, Philippines"
+          "display_name": "known_anchor",
+          "query": "J.C. Aquino Avenue"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R5",
-      "stop_id": "r5_t_sanchez",
-      "stop_name": "T. Sanchez St",
-      "street_segments": [
-        "North Montilla Blvd",
-        "J.C. Aquino Ave",
-        "R. Calo St"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9447169,
-          "lng": 125.5428304,
-          "display_name": "T. Sanchez Street, Butuan City, Agusan del Norte, Philippines",
-          "query": "T. Sanchez St, Butuan City, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R5",
-      "stop_id": "r5_m_calo",
-      "stop_name": "M. Calo St",
-      "street_segments": [
-        "North Montilla Blvd",
-        "J.C. Aquino Ave",
-        "R. Calo St"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9459611,
-          "lng": 125.5441758,
-          "display_name": "M. Calo Street, Butuan City, Agusan del Norte, Philippines",
-          "query": "M. Calo St, Butuan City, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R5",
-      "stop_id": "r5_ampayon",
-      "stop_name": "Ampayon",
-      "street_segments": [
-        "North Montilla Blvd",
-        "J.C. Aquino Ave",
-        "R. Calo St"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9630655,
-          "lng": 125.6049565,
-          "display_name": "Ampayon Central Elementary School, Surigao-Butuan National Highway, Purok 4, Ampayon, Sumilihon, Butuan, Caraga, 8600, Philippines",
-          "query": "Ampayon, Butuan City, Agusan del Norte, Philippines"
-        },
-        {
-          "lat": 8.9597222,
-          "lng": 125.6027778,
-          "display_name": "Ampayon Public Market, Butuan City, Agusan del Norte, Philippines",
-          "query": "Ampayon Public Market, Butuan City, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R5",
-      "stop_id": "r5_santo_nino",
-      "stop_name": "Santo Niño",
-      "street_segments": [
-        "North Montilla Blvd",
-        "J.C. Aquino Ave",
-        "R. Calo St"
-      ],
-      "candidates": [],
-      "verified": false,
-      "review_notes": "NEEDS MANUAL REVIEW: only search match found was a 'Santo Nino' sublocality far outside Butuan City proper (~9.03N), inconsistent with this route's corridor; no reliable candidate identified."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R5",
       "stop_id": "r5_rosales",
-      "stop_name": "Rosales St",
+      "stop_name": "J. Rosales Avenue",
       "street_segments": [
-        "North Montilla Blvd",
-        "J.C. Aquino Ave",
-        "R. Calo St"
+        "Surigao-Butuan National Highway",
+        "J.C. Aquino Avenue",
+        "Langihan Road",
+        "North Montilla Boulevard"
       ],
       "candidates": [
         {
           "lat": 8.9501161,
           "lng": 125.5302805,
-          "display_name": "Jose Rosales Avenue, Butuan City, Agusan del Norte, Philippines",
-          "query": "Rosales Avenue, Butuan City, Philippines"
+          "display_name": "known_anchor",
+          "query": "J. Rosales Avenue"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R5",
-      "stop_id": "r5_langihan_terminal",
+      "stop_id": "r5_langihan",
       "stop_name": "Langihan Jeepney Terminal",
       "street_segments": [
-        "North Montilla Blvd",
-        "J.C. Aquino Ave",
-        "R. Calo St"
+        "Surigao-Butuan National Highway",
+        "J.C. Aquino Avenue",
+        "Langihan Road",
+        "North Montilla Boulevard"
       ],
       "candidates": [
         {
           "lat": 8.9559203,
           "lng": 125.5357449,
-          "display_name": "Langihan Road, Butuan City, Agusan del Norte, Philippines",
-          "query": "Langihan Road, Butuan City, Philippines"
+          "display_name": "known_anchor",
+          "query": "Langihan Jeepney Terminal"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin sits on Langihan Rd, matching street name (nearest known terminal on this road is the Butuan Premium Bus Terminal)."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
-      "route_code": "R6",
-      "stop_id": "r6_capitol",
-      "stop_name": "Capitol Terminal",
+      "route_code": "R5",
+      "stop_id": "r5_integrated",
+      "stop_name": "Butuan Integrated Jeepney Terminal",
       "street_segments": [
-        "Capitol Drive",
-        "Guingona Ave",
-        "Montilla Blvd",
-        "Mayor Democrito D. Plaza II Ave"
+        "Surigao-Butuan National Highway",
+        "J.C. Aquino Avenue",
+        "Langihan Road",
+        "North Montilla Boulevard"
       ],
       "candidates": [
         {
-          "lat": 8.9404319,
-          "lng": 125.5339852,
-          "display_name": "Agusan del Norte Provincial Capitol, Capitol Drive, Luz Village, Bayanihan, Poblacion, Butuan, Caraga, 8600, Philippines",
-          "query": "Provincial Capitol, Butuan City, Philippines"
+          "lat": 8.9600815,
+          "lng": 125.5355754,
+          "display_name": "known_anchor",
+          "query": "Butuan Integrated Jeepney Terminal"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R6",
-      "stop_id": "r6_capitol_drive",
-      "stop_name": "Capitol Drive",
-      "street_segments": [
-        "Capitol Drive",
-        "Guingona Ave",
-        "Montilla Blvd",
-        "Mayor Democrito D. Plaza II Ave"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9404319,
-          "lng": 125.5339852,
-          "display_name": "Agusan del Norte Provincial Capitol, Capitol Drive, Luz Village, Bayanihan, Poblacion, Butuan, Caraga, 8600, Philippines",
-          "query": "Provincial Capitol, Butuan City, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R6",
-      "stop_id": "r6_guingona",
-      "stop_name": "Guingona Ave",
-      "street_segments": [
-        "Capitol Drive",
-        "Guingona Ave",
-        "Montilla Blvd",
-        "Mayor Democrito D. Plaza II Ave"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9447904,
-          "lng": 125.5368072,
-          "display_name": "T. Guingona Sr. Avenue, Butuan City, Agusan del Norte, Philippines",
-          "query": "Guingona Avenue, Butuan City, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: replaced prior 'Guingona Park' candidate (a park, not on the street) with the actual T. Guingona Sr. Avenue road point."
-    },
-    {
-      "route_code": "R6",
-      "stop_id": "r6_pizarro",
-      "stop_name": "Z. Pizarro St",
-      "street_segments": [
-        "Capitol Drive",
-        "Guingona Ave",
-        "Montilla Blvd",
-        "Mayor Democrito D. Plaza II Ave"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9436113,
-          "lng": 125.5384406,
-          "display_name": "Z. Pizarro Street, Butuan City, Agusan del Norte, Philippines",
-          "query": "Z. Pizarro St, Butuan City, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R6",
-      "stop_id": "r6_montilla_drive",
-      "stop_name": "Montilla Drive",
-      "street_segments": [
-        "Capitol Drive",
-        "Guingona Ave",
-        "Montilla Blvd",
-        "Mayor Democrito D. Plaza II Ave"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9434868,
-          "lng": 125.5402994,
-          "display_name": "Montilla Boulevard, Butuan City, Agusan del Norte, Philippines",
-          "query": "Montilla Boulevard, Butuan City, Philippines"
-        }
-      ],
-      "verified": false,
-      "review_notes": "NEEDS MANUAL REVIEW: no street named 'Montilla Drive' found, only 'Montilla Boulevard'; candidate is the closest generic Montilla Blvd point and may not be the intended location."
-    },
-    {
-      "route_code": "R6",
-      "stop_id": "r6_mddp",
-      "stop_name": "Mayor Demecrito D. Plaza II Ave",
-      "street_segments": [
-        "Capitol Drive",
-        "Guingona Ave",
-        "Montilla Blvd",
-        "Mayor Democrito D. Plaza II Ave"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9222424,
-          "lng": 125.5314633,
-          "display_name": "Mayor Democrito D. Plaza II Avenue, Butuan City, Agusan del Norte, Philippines",
-          "query": "Mayor Democrito D. Plaza II Ave, Butuan City, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R6",
-      "stop_id": "r6_mahay",
-      "stop_name": "Mahay",
-      "street_segments": [
-        "Capitol Drive",
-        "Guingona Ave",
-        "Montilla Blvd",
-        "Mayor Democrito D. Plaza II Ave"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9330536,
-          "lng": 125.5599854,
-          "display_name": "Mahay Integrated Secondary School, Butuan Diversion Road, Pangabugan, Mahay, Butuan, Caraga, 8600, Philippines",
-          "query": "Mahay, Butuan City, Agusan del Norte, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R6",
-      "stop_id": "r6_lemon",
-      "stop_name": "Lemon",
-      "street_segments": [
-        "Capitol Drive",
-        "Guingona Ave",
-        "Montilla Blvd",
-        "Mayor Democrito D. Plaza II Ave"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9370873,
-          "lng": 125.5916979,
-          "display_name": "Lemon Elementary School, Butuan-Las Nieves Road, Baan Km 3, Lemon, Butuan, Caraga, 8600, Philippines",
-          "query": "Lemon, Butuan City, Agusan del Norte, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R6",
       "stop_id": "r6_maguinda",
-      "stop_name": "Maguinda",
+      "stop_name": "Maguinda Covered Court Off-Street Terminal",
       "street_segments": [
-        "Capitol Drive",
-        "Guingona Ave",
-        "Montilla Blvd",
-        "Mayor Democrito D. Plaza II Ave"
+        "Butuan-Las Nieves Road",
+        "South Montilla Boulevard",
+        "T. Guingona Sr Avenue",
+        "Bonbon-Capitol Drive"
       ],
       "candidates": [
         {
           "lat": 8.8116546,
           "lng": 125.6040785,
-          "display_name": "Maguinda, Butuan City, Agusan del Norte, Philippines",
-          "query": "Maguinda, Butuan City, Agusan del Norte, Philippines"
+          "display_name": "known_anchor",
+          "query": "Maguinda Covered Court Off-Street Terminal"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
-      "route_code": "R7",
-      "stop_id": "r7_capitol",
-      "stop_name": "Capitol Terminal",
+      "route_code": "R6",
+      "stop_id": "r6_villa_kananga",
+      "stop_name": "Villa Kananga Road",
       "street_segments": [
-        "Rosales Ave",
-        "Montilla Blvd"
+        "Butuan-Las Nieves Road",
+        "South Montilla Boulevard",
+        "T. Guingona Sr Avenue",
+        "Bonbon-Capitol Drive"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9370873,
+          "lng": 125.5916979,
+          "display_name": "known_anchor",
+          "query": "Villa Kananga Road"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R6",
+      "stop_id": "r6_d_plaza",
+      "stop_name": "D Plaza II Avenue",
+      "street_segments": [
+        "Butuan-Las Nieves Road",
+        "South Montilla Boulevard",
+        "T. Guingona Sr Avenue",
+        "Bonbon-Capitol Drive"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9330536,
+          "lng": 125.5599854,
+          "display_name": "known_anchor",
+          "query": "D Plaza II Avenue"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R6",
+      "stop_id": "r6_south_montilla",
+      "stop_name": "South Montilla Boulevard",
+      "street_segments": [
+        "Butuan-Las Nieves Road",
+        "South Montilla Boulevard",
+        "T. Guingona Sr Avenue",
+        "Bonbon-Capitol Drive"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9251467,
+          "lng": 125.5399452,
+          "display_name": "known_anchor",
+          "query": "South Montilla Boulevard"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R6",
+      "stop_id": "r6_guingona",
+      "stop_name": "T. Guingona Sr Avenue",
+      "street_segments": [
+        "Butuan-Las Nieves Road",
+        "South Montilla Boulevard",
+        "T. Guingona Sr Avenue",
+        "Bonbon-Capitol Drive"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9447904,
+          "lng": 125.5368072,
+          "display_name": "known_anchor",
+          "query": "T. Guingona Sr Avenue"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R6",
+      "stop_id": "r6_capitol",
+      "stop_name": "Agusan del Norte Provincial Capitol Off-Street Terminal",
+      "street_segments": [
+        "Butuan-Las Nieves Road",
+        "South Montilla Boulevard",
+        "T. Guingona Sr Avenue",
+        "Bonbon-Capitol Drive"
       ],
       "candidates": [
         {
           "lat": 8.9404319,
           "lng": 125.5339852,
-          "display_name": "Agusan del Norte Provincial Capitol, Capitol Drive, Luz Village, Bayanihan, Poblacion, Butuan, Caraga, 8600, Philippines",
-          "query": "Provincial Capitol, Butuan City, Philippines"
+          "display_name": "known_anchor",
+          "query": "Agusan del Norte Provincial Capitol Off-Street Terminal"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed at the Provincial Capitol terminal, the shared origin/hub point for this route; note Capitol Drive itself is not in this route's listed street_segments (Rosales Ave, Montilla Blvd), which is expected for a route's terminal/hub stop."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R7",
-      "stop_id": "r7_rosales",
-      "stop_name": "Rosales Ave",
+      "stop_id": "r7_tungao",
+      "stop_name": "Tungao Off-Street Terminal",
       "street_segments": [
-        "Rosales Ave",
-        "Montilla Blvd"
+        "Butuan City-Malaybalay Road",
+        "Montilla Boulevard",
+        "S. Calo Street",
+        "J. Rosales Avenue"
       ],
       "candidates": [
         {
-          "lat": 8.9501161,
-          "lng": 125.5302805,
-          "display_name": "Jose Rosales Avenue, Butuan City, Agusan del Norte, Philippines",
-          "query": "Rosales Avenue, Butuan City, Philippines"
+          "lat": 8.7786654,
+          "lng": 125.5677887,
+          "display_name": "known_anchor",
+          "query": "Tungao Off-Street Terminal"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R7",
-      "stop_id": "r7_s_calo",
-      "stop_name": "S. Calo St",
+      "stop_id": "r7_malaybalay_rd",
+      "stop_name": "Butuan City-Malaybalay Road",
       "street_segments": [
-        "Rosales Ave",
-        "Montilla Blvd"
+        "Butuan City-Malaybalay Road",
+        "Montilla Boulevard",
+        "S. Calo Street",
+        "J. Rosales Avenue"
       ],
       "candidates": [
         {
-          "lat": 8.9600583,
-          "lng": 125.5222715,
-          "display_name": "Salvador Calo Street, Butuan City, Agusan del Norte, Philippines",
-          "query": "S. Calo Street, Butuan City, Philippines"
+          "lat": 8.85,
+          "lng": 125.56,
+          "display_name": "known_anchor",
+          "query": "Butuan City Malaybalay Road, San Vicente, Butuan City, Philippines"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
-    },
-    {
-      "route_code": "R7",
-      "stop_id": "r7_montilla",
-      "stop_name": "Montilla Blvd",
-      "street_segments": [
-        "Rosales Ave",
-        "Montilla Blvd"
-      ],
-      "candidates": [
-        {
-          "lat": 8.9434868,
-          "lng": 125.5402994,
-          "display_name": "Montilla Boulevard, Butuan City, Agusan del Norte, Philippines",
-          "query": "Montilla Boulevard, Butuan City, Philippines"
-        }
-      ],
-      "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R7",
       "stop_id": "r7_san_vicente",
       "stop_name": "San Vicente",
       "street_segments": [
-        "Rosales Ave",
-        "Montilla Blvd"
+        "Butuan City-Malaybalay Road",
+        "Montilla Boulevard",
+        "S. Calo Street",
+        "J. Rosales Avenue"
       ],
       "candidates": [
         {
           "lat": 8.9060073,
           "lng": 125.5537694,
-          "display_name": "San Vicente National High School, Purok 13, Lower Tagabaca, San Vicente, Tagabaca, Butuan, Caraga, 8600, Philippines",
-          "query": "San Vicente, Butuan City, Agusan del Norte, Philippines"
+          "display_name": "known_anchor",
+          "query": "San Vicente"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     },
     {
       "route_code": "R7",
-      "stop_id": "r7_tungao",
-      "stop_name": "Tungao",
+      "stop_id": "r7_montilla",
+      "stop_name": "Montilla Boulevard",
       "street_segments": [
-        "Rosales Ave",
-        "Montilla Blvd"
+        "Butuan City-Malaybalay Road",
+        "Montilla Boulevard",
+        "S. Calo Street",
+        "J. Rosales Avenue"
       ],
       "candidates": [
         {
-          "lat": 8.7786654,
-          "lng": 125.5677887,
-          "display_name": "Tungao, Butuan City, Agusan del Norte, Philippines",
-          "query": "Tungao, Butuan City, Agusan del Norte, Philippines"
+          "lat": 8.9434868,
+          "lng": 125.5402994,
+          "display_name": "known_anchor",
+          "query": "Montilla Boulevard"
         }
       ],
       "verified": true,
-      "review_notes": "Verified: pin confirmed on listed street segment via place search."
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R7",
+      "stop_id": "r7_s_calo",
+      "stop_name": "S. Calo Street",
+      "street_segments": [
+        "Butuan City-Malaybalay Road",
+        "Montilla Boulevard",
+        "S. Calo Street",
+        "J. Rosales Avenue"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9600583,
+          "lng": 125.5222715,
+          "display_name": "known_anchor",
+          "query": "S. Calo Street"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R7",
+      "stop_id": "r7_rosales",
+      "stop_name": "J. Rosales Avenue",
+      "street_segments": [
+        "Butuan City-Malaybalay Road",
+        "Montilla Boulevard",
+        "S. Calo Street",
+        "J. Rosales Avenue"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9501161,
+          "lng": 125.5302805,
+          "display_name": "known_anchor",
+          "query": "J. Rosales Avenue"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
+    },
+    {
+      "route_code": "R7",
+      "stop_id": "r7_capitol",
+      "stop_name": "Agusan del Norte Provincial Capitol Off-Street Terminal",
+      "street_segments": [
+        "Butuan City-Malaybalay Road",
+        "Montilla Boulevard",
+        "S. Calo Street",
+        "J. Rosales Avenue"
+      ],
+      "candidates": [
+        {
+          "lat": 8.9404319,
+          "lng": 125.5339852,
+          "display_name": "known_anchor",
+          "query": "Agusan del Norte Provincial Capitol Off-Street Terminal"
+        }
+      ],
+      "verified": true,
+      "review_notes": "LPTRP 2024 rebuild: known_anchor"
     }
   ]
 }

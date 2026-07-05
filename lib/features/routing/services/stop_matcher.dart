@@ -9,10 +9,10 @@ class StopMatcher {
   final RoutingGeometry _geometry;
 
   /// Max walking distance to board/alight at a stop.
-  static const maxWalkToStopMeters = 1600.0;
+  static const maxWalkToStopMeters = 1800.0;
 
   /// If within this distance of the route polyline, all stops on the route are considered.
-  static const corridorAttachMeters = 700.0;
+  static const corridorAttachMeters = 900.0;
 
   static const maxCandidates = 8;
 
