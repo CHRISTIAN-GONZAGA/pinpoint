@@ -29,6 +29,7 @@ class MapNotifier extends Notifier<MapState> {
   late final JeepneyPathService _jeepneyPaths;
   late final RoutingService _routing;
   final _distance = const Distance();
+  int _routeGeneration = 0;
 
   @override
   MapState build() {
@@ -198,9 +199,13 @@ class MapNotifier extends Notifier<MapState> {
 
   Future<void> _loadRoadPolylinesForVisibleRoutes() async {
     final polylines = Map<int, List<LatLng>>.from(state.roadRoutePolylines);
+    var changed = false;
     for (final route in state.filteredJeepneyRoutes) {
       if (polylines.containsKey(route.routeId)) continue;
       polylines[route.routeId] = await _jeepneyPaths.roadPolylineForRoute(route);
+      changed = true;
+    }
+    if (changed) {
       state = state.copyWith(roadRoutePolylines: Map.from(polylines));
     }
   }
@@ -297,16 +302,25 @@ class MapNotifier extends Notifier<MapState> {
   }
 
   /// Returns context data for the tap menu. Caller shows [MapContextSheet].
-  Future<({LatLng snapped, String address, String? nearestStop, double? nearestM})>
-      prepareMapContext(LatLng point) async {
+  Future<
+      ({
+        LatLng snapped,
+        String address,
+        String? nearestStop,
+        String? nearestRouteCode,
+        double? nearestM,
+      })> prepareMapContext(LatLng point) async {
     final snapped = await _snapFast(point);
     final address = await _addressFast(snapped);
-    final nearest = _nearestStop(snapped);
+    final nearest = _nearestVerifiedStop(snapped);
     return (
       snapped: snapped,
       address: address,
-      nearestStop: nearest?.name,
-      nearestM: nearest != null ? _distance.as(LengthUnit.Meter, snapped, nearest.latLng) : null,
+      nearestStop: nearest?.stop.name,
+      nearestRouteCode: nearest?.routeCode,
+      nearestM: nearest != null
+          ? _distance.as(LengthUnit.Meter, snapped, nearest.stop.latLng)
+          : null,
     );
   }
 
@@ -367,20 +381,23 @@ class MapNotifier extends Notifier<MapState> {
     return items;
   }
 
-  RouteStop? _nearestStop(LatLng point) {
-    RouteStop? nearest;
+  ({RouteStop stop, String routeCode})? _nearestVerifiedStop(LatLng point) {
+    ({RouteStop stop, String routeCode})? nearest;
     var best = double.infinity;
     for (final route in state.jeepneyRoutes) {
       for (final stop in route.stops) {
+        if (!stop.verified || !stop.hasCoordinates) continue;
         final d = _distance.as(LengthUnit.Meter, point, stop.latLng);
         if (d < best) {
           best = d;
-          nearest = stop;
+          nearest = (stop: stop, routeCode: route.routeCode);
         }
       }
     }
     return nearest;
   }
+
+  RouteStop? _nearestStop(LatLng point) => _nearestVerifiedStop(point)?.stop;
 
   bool isTransferStop(RouteStop stop) {
     var routes = 0;
@@ -490,12 +507,19 @@ class MapNotifier extends Notifier<MapState> {
   }
 
   Future<void> _ensureTransportLoaded() async {
-    if (state.jeepneyRoutes.isNotEmpty && state.fares.isNotEmpty) return;
+    if (state.jeepneyRoutes.isNotEmpty &&
+        state.fares.isNotEmpty &&
+        state.tricycleZones.isNotEmpty) {
+      return;
+    }
     final transport = await ref.read(transportRepositoryProvider).loadAllTransportData();
     state = state.copyWith(
       jeepneyRoutes: transport.routes,
       tricycleZones: transport.zones,
       fares: transport.fares,
+      transportWarning: transport.routes.isEmpty
+          ? 'Jeepney route lines are unavailable. Using walk/tricycle only.'
+          : null,
       clearTransportWarning: transport.routes.isNotEmpty,
     );
   }
@@ -560,6 +584,8 @@ class MapNotifier extends Notifier<MapState> {
       dest.latLng,
       zoom: MapCameraHelper.zoom(state.mapController, fallback: 15),
     );
+    _fitEndpoints();
+    await _maybeAutoGenerateRoute();
   }
 
   void setRoutePreference(RoutePreference preference) {
@@ -603,6 +629,7 @@ class MapNotifier extends Notifier<MapState> {
       );
       return;
     }
+    final generation = ++_routeGeneration;
     state = state.copyWith(
       isGeneratingRoute: true,
       clearError: true,
@@ -611,6 +638,8 @@ class MapNotifier extends Notifier<MapState> {
     );
     try {
       await _ensureTransportLoaded();
+      if (generation != _routeGeneration) return;
+
       final options = await _planner
           .planRouteOptions(
             origin: origin,
@@ -622,6 +651,9 @@ class MapNotifier extends Notifier<MapState> {
             preference: state.routePreference,
           )
           .timeout(const Duration(seconds: 25));
+
+      if (generation != _routeGeneration) return;
+
       if (options.isEmpty) {
         state = state.copyWith(
           isGeneratingRoute: false,
@@ -629,7 +661,10 @@ class MapNotifier extends Notifier<MapState> {
         );
         return;
       }
-      final selected = options.first;
+      final selected = options.firstWhere(
+        (o) => o.isRecommended,
+        orElse: () => options.first,
+      );
       state = state.copyWith(
         isGeneratingRoute: false,
         plannedRoute: selected,
@@ -640,6 +675,8 @@ class MapNotifier extends Notifier<MapState> {
             originLabel: state.currentAddress ?? 'Start',
             destinationLabel: state.destinationAddress ?? 'Destination',
           );
+      if (generation != _routeGeneration) return;
+
       ref.read(analyticsServiceProvider).track(
         'route_generated',
         metadata: {
@@ -651,6 +688,7 @@ class MapNotifier extends Notifier<MapState> {
       );
       _fitRoute(selected);
     } catch (e) {
+      if (generation != _routeGeneration) return;
       state = state.copyWith(isGeneratingRoute: false, errorMessage: _message(e));
     }
   }

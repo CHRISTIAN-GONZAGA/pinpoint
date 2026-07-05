@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:pinpoint/app/constants.dart';
 
-/// OSRM walking route between two points.
+/// OSRM walking/driving routes with in-memory cache and straight-line fallback.
 class RoutingService {
   RoutingService({Dio? dio, this.offlineMode = false})
       : _dio = dio ??
@@ -19,20 +19,29 @@ class RoutingService {
   final Distance _distance = const Distance();
 
   static const osrmTimeout = Duration(seconds: 3);
+  static const _maxCacheEntries = 256;
+
+  final Map<String, ({List<LatLng> polyline, double distanceMeters, int durationSeconds})>
+      _cache = {};
 
   /// Fetches a walking route polyline from OSRM.
   Future<({List<LatLng> polyline, double distanceMeters, int durationSeconds})>
       getWalkingRoute(LatLng from, LatLng to) =>
       _getRoute(from, to, profile: 'foot');
 
-  /// Fetches a driving route polyline from OSRM (taxi / tricycle path check).
+  /// Fetches a driving route polyline from OSRM (tricycle / taxi).
   Future<({List<LatLng> polyline, double distanceMeters, int durationSeconds})>
       getDrivingRoute(LatLng from, LatLng to) =>
       _getRoute(from, to, profile: 'driving');
 
   Future<({List<LatLng> polyline, double distanceMeters, int durationSeconds})>
       _getRoute(LatLng from, LatLng to, {required String profile}) async {
-    if (offlineMode) return _straightLineFallback(from, to);
+    if (offlineMode) return _straightLineFallback(from, to, profile: profile);
+
+    final key = _cacheKey(from, to, profile);
+    final cached = _cache[key];
+    if (cached != null) return cached;
+
     try {
       final coords =
           '${from.longitude},${from.latitude};${to.longitude},${to.latitude}';
@@ -46,32 +55,53 @@ class RoutingService {
       );
       final data = response.data;
       if (data == null || data['routes'] == null) {
-        return _straightLineFallback(from, to);
+        return _store(key, _straightLineFallback(from, to, profile: profile));
       }
       final routes = data['routes'] as List;
-      if (routes.isEmpty) return _straightLineFallback(from, to);
+      if (routes.isEmpty) {
+        return _store(key, _straightLineFallback(from, to, profile: profile));
+      }
       final route = routes.first as Map<String, dynamic>;
       final geometry = route['geometry'] as Map<String, dynamic>;
       final coordinates = geometry['coordinates'] as List;
       final polyline = coordinates
           .map((c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
           .toList();
-      return (
-        polyline: polyline,
-        distanceMeters: (route['distance'] as num).toDouble(),
-        durationSeconds: (route['duration'] as num).round(),
+      return _store(
+        key,
+        (
+          polyline: polyline,
+          distanceMeters: (route['distance'] as num).toDouble(),
+          durationSeconds: (route['duration'] as num).round(),
+        ),
       );
     } on DioException {
-      return _straightLineFallback(from, to);
+      return _store(key, _straightLineFallback(from, to, profile: profile));
     }
   }
 
+  String _cacheKey(LatLng from, LatLng to, String profile) {
+    String r(double v) => v.toStringAsFixed(4);
+    return '$profile|${r(from.latitude)},${r(from.longitude)}|${r(to.latitude)},${r(to.longitude)}';
+  }
+
+  ({List<LatLng> polyline, double distanceMeters, int durationSeconds}) _store(
+    String key,
+    ({List<LatLng> polyline, double distanceMeters, int durationSeconds}) value,
+  ) {
+    if (_cache.length >= _maxCacheEntries) {
+      _cache.remove(_cache.keys.first);
+    }
+    _cache[key] = value;
+    return value;
+  }
+
   ({List<LatLng> polyline, double distanceMeters, int durationSeconds})
-      _straightLineFallback(LatLng from, LatLng to) {
+      _straightLineFallback(LatLng from, LatLng to, {required String profile}) {
     final meters = distanceMeters(from, to);
     const walkMps = 1.4;
     const driveMps = 8.0;
-    final speed = meters < 2000 ? walkMps : driveMps;
+    final speed = profile == 'foot' ? walkMps : driveMps;
     return (
       polyline: [from, to],
       distanceMeters: meters,

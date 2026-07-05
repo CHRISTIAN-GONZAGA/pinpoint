@@ -8,6 +8,8 @@ class RoutingGeometry {
   final RoutingService _routing;
   final Distance _distance = const Distance();
 
+  static const shortLegMeters = 90.0;
+
   double distanceMeters(LatLng a, LatLng b) => _routing.distanceMeters(a, b);
 
   double polylineLengthMeters(List<LatLng> points) {
@@ -56,6 +58,14 @@ class RoutingGeometry {
 
   Future<({List<LatLng> polyline, double distanceMeters, int durationSeconds})>
       safeWalkingRoute(LatLng from, LatLng to) async {
+    final straight = _routing.distanceMeters(from, to);
+    if (straight <= shortLegMeters) {
+      return (
+        polyline: [from, to],
+        distanceMeters: straight,
+        durationSeconds: (straight / 1.2).round().clamp(30, 99999),
+      );
+    }
     try {
       return await _routing.getWalkingRoute(from, to);
     } catch (_) {
@@ -70,6 +80,14 @@ class RoutingGeometry {
 
   Future<({List<LatLng> polyline, double distanceMeters, int durationSeconds})>
       safeDrivingRoute(LatLng from, LatLng to, {double speedMps = 250 / 60}) async {
+    final straight = _routing.distanceMeters(from, to);
+    if (straight <= shortLegMeters) {
+      return (
+        polyline: [from, to],
+        distanceMeters: straight,
+        durationSeconds: (straight / speedMps).round().clamp(30, 99999),
+      );
+    }
     try {
       return await _routing.getDrivingRoute(from, to);
     } catch (_) {

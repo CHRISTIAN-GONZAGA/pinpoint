@@ -9,6 +9,7 @@ class MapContextSheet extends StatelessWidget {
     required this.point,
     required this.address,
     this.nearestStopName,
+    this.nearestRouteCode,
     this.nearestStopDistanceM,
     required this.onNavigateFrom,
     required this.onNavigateTo,
@@ -18,6 +19,7 @@ class MapContextSheet extends StatelessWidget {
   final LatLng point;
   final String address;
   final String? nearestStopName;
+  final String? nearestRouteCode;
   final double? nearestStopDistanceM;
   final VoidCallback onNavigateFrom;
   final VoidCallback onNavigateTo;
@@ -28,6 +30,7 @@ class MapContextSheet extends StatelessWidget {
     required LatLng point,
     required String address,
     String? nearestStopName,
+    String? nearestRouteCode,
     double? nearestStopDistanceM,
     required VoidCallback onNavigateFrom,
     required VoidCallback onNavigateTo,
@@ -40,6 +43,7 @@ class MapContextSheet extends StatelessWidget {
         point: point,
         address: address,
         nearestStopName: nearestStopName,
+        nearestRouteCode: nearestRouteCode,
         nearestStopDistanceM: nearestStopDistanceM,
         onNavigateFrom: onNavigateFrom,
         onNavigateTo: onNavigateTo,
@@ -66,8 +70,9 @@ class MapContextSheet extends StatelessWidget {
             if (nearestStopName != null) ...[
               const SizedBox(height: 4),
               Text(
-                'Nearest stop: $nearestStopName'
-                '${nearestStopDistanceM != null ? ' (${nearestStopDistanceM!.round()} m)' : ''}',
+                'Nearest PUJ stop: $nearestStopName'
+                '${nearestRouteCode != null ? ' ($nearestRouteCode)' : ''}'
+                '${nearestStopDistanceM != null ? ' · ${nearestStopDistanceM!.round()} m' : ''}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],

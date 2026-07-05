@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:pinpoint/core/services/highway_restriction_service.dart';
 import 'package:pinpoint/core/services/jeepney_path_service.dart';
 import 'package:pinpoint/core/services/routing_service.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';

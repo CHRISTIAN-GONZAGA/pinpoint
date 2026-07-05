@@ -5,6 +5,8 @@ import 'package:pinpoint/features/routing/domain/route_planning_models.dart';
 class RouteScorer {
   const RouteScorer();
 
+  static const longWalkThresholdMeters = 450.0;
+
   double score(
     PlannedRoute route,
     ScoringWeights weights, {
@@ -23,19 +25,29 @@ class RouteScorer {
         fareNorm * weights.fare * 100 +
         transferNorm * weights.transfers * 100;
 
+    final hasJeepney = route.steps.any((s) => s.type == RouteStepType.jeepney);
+    final hasTricycleFeeder = route.steps.any((s) => s.type == RouteStepType.tricycle);
+
     if (route.primaryMode == VehicleMode.taxi) {
       total += weights.taxiPenalty;
     }
 
-    if (route.primaryMode == VehicleMode.tricycle) {
+    if (route.primaryMode == VehicleMode.tricycle && !hasJeepney) {
       total += weights.tricyclePenalty;
       if (route.warningMessage != null) total += 25;
     }
 
-    if (route.primaryMode == VehicleMode.jeepney) {
+    if (hasJeepney) {
       total -= weights.jeepneyBonus;
-      // Transfers on PUJ are normal in Butuan — do not over-penalize.
       if (route.transferCount > 0) total -= 8;
+
+      // Tricycle → PUJ is the practical Butuan pattern for last-mile access.
+      if (hasTricycleFeeder) total -= 22;
+
+      // Penalize long walks to/from PUJ when a tricycle feeder exists in the candidate set.
+      if (route.walkingDistanceMeters > longWalkThresholdMeters && !hasTricycleFeeder) {
+        total += 35;
+      }
     }
 
     if (route.primaryMode == VehicleMode.walk &&

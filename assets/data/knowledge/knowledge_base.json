@@ -6,6 +6,7 @@
       "keywords": [
         "jeep",
         "jeepney",
+        "puj",
         "route",
         "r1",
         "r2",
@@ -14,13 +15,33 @@
         "r5",
         "r6",
         "r7",
+        "lptrp",
         "saan",
-        "which"
+        "which",
+        "asaan"
       ],
-      "title": "Jeepney Routes",
-      "content_en": "PINPOINT covers official Butuan jeepney routes R1 through R7, including City Proper, Libertad, Robinsons, SM City Butuan, Ampayon, Bancasi Airport, and Bayanihan corridors.",
-      "content_tl": "Saklaw ng PINPOINT ang opisyal na ruta ng jeepney R1 hanggang R7 sa Butuan, kasama ang City Proper, Libertad, Robinsons, SM City Butuan, Ampayon, Bancasi Airport, at Bayanihan.",
-      "content_ceb": "Gisakop sa PINPOINT ang opisyal nga ruta sa jeepney R1 hangtod R7 sa Butuan, apil ang City Proper, Libertad, Robinsons, SM City Butuan, Ampayon, Bancasi Airport, ug Bayanihan."
+      "title": "LPTRP Jeepney Routes (Butuan 2024)",
+      "content_en": "PINPOINT uses the official LPTRP 2024 map: R1 West and East Loop, R2 City Proper Loop via Bancasi Airport, R3 Ampayon to Libertad, R4 De Oro, R5 Santo Niño, R6 Maguinda, R7 Tungao. Not every barangay road is on the map — tricycle may be needed to reach the nearest PUJ stop.",
+      "content_tl": "Gumagamit ang PINPOINT ng opisyal na LPTRP 2024: R1 West and East Loop, R2 City Proper Loop via Bancasi Airport, R3 Ampayon to Libertad, R4 De Oro, R5 Santo Niño, R6 Maguinda, R7 Tungao. Hindi lahat ng kalsada ay nasa mapa — maaaring kailanganin ang tricycle papunta sa pinakamalapit na PUJ stop.",
+      "content_ceb": "Gigamit sa PINPOINT ang opisyal nga LPTRP 2024: R1 West and East Loop, R2 City Proper Loop via Bancasi Airport, R3 Ampayon to Libertad, R4 De Oro, R5 Santo Niño, R6 Maguinda, R7 Tungao. Dili tanang dalan anaa sa mapa — tingali kinahanglan ang tricycle padulong sa labing duol nga PUJ stop."
+    },
+    {
+      "id": "tricycle-feeder",
+      "category": "transport",
+      "keywords": [
+        "tricycle",
+        "trike",
+        "feeder",
+        "last mile",
+        "puj",
+        "jeepney",
+        "stop",
+        "terminal"
+      ],
+      "title": "Tricycle to Jeepney (Butuan pattern)",
+      "content_en": "In Butuan, many trips start with a short tricycle ride to the nearest verified PUJ (jeepney) stop, then continue on R1–R7. PINPOINT recommends this when walking to the stop would be long. Tricycles operate in City Proper, Libertad, and Ampayon zones and cannot use national highways.",
+      "content_tl": "Sa Butuan, maraming biyahe ang nagsisimula sa maikling tricycle papunta sa pinakamalapit na PUJ stop, tapos jeepney na sa R1–R7. Inirerekomenda ito ng PINPOINT kapag malayo ang lakad papunta sa stop. Ang tricycle ay sa City Proper, Libertad, at Ampayon zones lang at bawal sa national highway.",
+      "content_ceb": "Sa Butuan, daghang biyahe nagsugod og mubo nga tricycle padulong sa labing duol nga PUJ stop, unya jeepney sa R1–R7. Girekomenda kini sa PINPOINT kung layo ang lakaw padulong sa stop. Ang tricycle sa City Proper, Libertad, ug Ampayon zones ra ug dili moadto sa national highway."
     },
     {
       "id": "fares",
@@ -34,9 +55,9 @@
         "bayad"
       ],
       "title": "Fare Matrix",
-      "content_en": "Jeepney minimum fare is PHP 13.00 with PHP 1.80 per succeeding kilometer. Tricycle base fares start at PHP 15\u201325 depending on the zone.",
-      "content_tl": "Ang minimum na pamasahe sa jeepney ay PHP 13.00 at PHP 1.80 bawat susunod na kilometro. Ang tricycle ay nagsisimula sa PHP 15\u201325 depende sa zone.",
-      "content_ceb": "Ang minimum nga pamasahe sa jeepney kay PHP 13.00 ug PHP 1.80 kada sunod nga kilometro. Ang tricycle nagsugod sa PHP 15\u201325 depende sa zone."
+      "content_en": "Jeepney minimum fare is PHP 13.00 with PHP 1.80 per succeeding kilometer. Tricycle base fares start at PHP 15–25 depending on the zone. Taxi flag-down is PHP 40 with PHP 13.50 per km.",
+      "content_tl": "Ang minimum na pamasahe sa jeepney ay PHP 13.00 at PHP 1.80 bawat susunod na kilometro. Ang tricycle ay nagsisimula sa PHP 15–25 depende sa zone. Ang taxi ay PHP 40 flag-down at PHP 13.50 bawat km.",
+      "content_ceb": "Ang minimum nga pamasahe sa jeepney kay PHP 13.00 ug PHP 1.80 kada sunod nga kilometro. Ang tricycle nagsugod sa PHP 15–25 depende sa zone. Ang taxi kay PHP 40 flag-down ug PHP 13.50 kada km."
     },
     {
       "id": "emergency",
@@ -68,23 +89,27 @@
         "spot"
       ],
       "title": "Tourist Attractions",
-      "content_en": "Popular spots include Balangay Shrine Museum, Butuan National Museum, Guingona Park, and Delta Discovery Park.",
-      "content_tl": "Kasama sa mga sikat na lugar ang Balangay Shrine Museum, Butuan National Museum, Guingona Park, at Delta Discovery Park.",
-      "content_ceb": "Apil sa sikat nga lugar ang Balangay Shrine Museum, Butuan National Museum, Guingona Park, ug Delta Discovery Park."
+      "content_en": "Popular spots include Balangay Shrine Museum, Butuan National Museum, Guingona Park, and Delta Discovery Park. Use PINPOINT to plan jeepney or tricycle routes from your location.",
+      "content_tl": "Kasama sa mga sikat na lugar ang Balangay Shrine Museum, Butuan National Museum, Guingona Park, at Delta Discovery Park. Gamitin ang PINPOINT para magplano ng jeepney o tricycle mula sa inyong lokasyon.",
+      "content_ceb": "Apil sa sikat nga lugar ang Balangay Shrine Museum, Butuan National Museum, Guingona Park, ug Delta Discovery Park. Gamita ang PINPOINT aron magplano og jeepney o tricycle gikan sa imong lokasyon."
     },
     {
-      "id": "sm-robinsons",
+      "id": "malls-terminals",
       "category": "transport",
       "keywords": [
         "sm",
         "robinsons",
         "mall",
-        "shopping"
+        "shopping",
+        "terminal",
+        "integrated",
+        "jaqno",
+        "libertad"
       ],
-      "title": "Mall Routes",
-      "content_en": "Route R2 serves Robinsons Place Butuan. Route R3 serves SM City Butuan from downtown.",
-      "content_tl": "Ang Ruta R2 ay papunta sa Robinsons Place Butuan. Ang Ruta R3 ay papunta sa SM City Butuan mula downtown.",
-      "content_ceb": "Ang Ruta R2 moagi sa Robinsons Place Butuan. Ang Ruta R3 moagi sa SM City Butuan gikan sa downtown."
+      "title": "Malls and Terminals",
+      "content_en": "Robinsons Place and SM City Butuan are served by multiple LPTRP routes depending on direction — check R1, R2, and R3 on the map. The Integrated Terminal (J.C. Aquino) is a major hub for R1, R2, and transfers to Libertad and airport corridors.",
+      "content_tl": "Ang Robinsons Place at SM City Butuan ay pinaglilingkuran ng iba't ibang LPTRP route depende sa direksyon — tingnan ang R1, R2, at R3 sa mapa. Ang Integrated Terminal (J.C. Aquino) ay pangunahing hub para sa R1, R2, at transfer papuntang Libertad at airport.",
+      "content_ceb": "Ang Robinsons Place ug SM City Butuan giserbisyohan sa lain-laing LPTRP route depende sa direksyon — tan-awa ang R1, R2, ug R3 sa mapa. Ang Integrated Terminal (J.C. Aquino) usa ka major hub alang sa R1, R2, ug transfer padulong Libertad ug airport."
     }
   ]
 }

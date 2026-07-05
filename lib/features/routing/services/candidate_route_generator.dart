@@ -57,17 +57,15 @@ class CandidateRouteGenerator {
     final jeepneyPlanList = await jeepneyPlansFuture;
 
     final jeepneyAssembly = jeepneyPlanList.map((plan) async {
-      final direct = await _assembler.buildFromJeepneyPlan(
-        origin: origin,
-        destination: destination,
-        plan: plan,
-        zones: tricycleZones,
-      );
+      final walkToBoard = plan.walkToBoard.distanceMeters;
+      final longWalkToPuj = walkToBoard >= TricycleConnector.feederMinWalkMeters;
+
       final feeder = await _tricycle.originFeeder(
         origin: origin.latLng,
         boardStop: plan.boardStop,
         zones: tricycleZones,
       );
+
       final withFeeder = feeder != null
           ? await _assembler.buildFromJeepneyPlan(
               origin: origin,
@@ -77,7 +75,23 @@ class CandidateRouteGenerator {
               originFeeder: feeder,
             )
           : null;
-      return [direct, withFeeder];
+
+      // Skip long straight-line walks to PUJ when tricycle feeder is available.
+      if (withFeeder != null && longWalkToPuj) {
+        return [withFeeder];
+      }
+
+      final direct = await _assembler.buildFromJeepneyPlan(
+        origin: origin,
+        destination: destination,
+        plan: plan,
+        zones: tricycleZones,
+      );
+
+      if (withFeeder != null) {
+        return [withFeeder, direct];
+      }
+      return [direct];
     });
 
     for (final batch in await Future.wait(jeepneyAssembly)) {

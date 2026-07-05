@@ -88,6 +88,9 @@ class RoutePlannerService {
       preferredMode: mode,
       preference: preference,
     );
+    if (options.isEmpty) {
+      throw StateError(unservedJeepneyMessage);
+    }
     return options.first;
   }
 

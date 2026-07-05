@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 
 from sqlalchemy import text
@@ -17,6 +18,7 @@ _ASSETS_ROUTES = (
 )
 
 _LPTRP_LOCK_ID = 91524001
+_log = logging.getLogger(__name__)
 
 
 def lptrp_asset_path() -> Path:
@@ -89,7 +91,8 @@ def import_lptrp_routes(*, force: bool = False) -> int:
 
   if not _try_advisory_lock():
     db.session.rollback()
-    return 0 if not needs_lptrp_upgrade() else 0
+    _log.warning("LPTRP import skipped: could not acquire advisory lock (another worker may be seeding)")
+    return 0
 
   try:
     if not force and not needs_lptrp_upgrade():

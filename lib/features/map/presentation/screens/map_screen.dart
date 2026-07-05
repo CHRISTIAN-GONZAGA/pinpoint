@@ -146,6 +146,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
                   point: ctx.snapped,
                   address: ctx.address,
                   nearestStopName: ctx.nearestStop,
+                  nearestRouteCode: ctx.nearestRouteCode,
                   nearestStopDistanceM: ctx.nearestM,
                   onNavigateFrom: () => notifier.setOriginFromContext(ctx.snapped),
                   onNavigateTo: () => notifier.setDestinationFromContext(ctx.snapped),
@@ -257,6 +258,48 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
             searchController: _searchController,
             onOpenTools: () => MapToolsSheet.show(context, _searchController),
           ),
+          if (mapState.transportWarning != null || mapState.tilesUnavailable)
+            Positioned(
+              left: AppSpacing.md,
+              right: AppSpacing.md,
+              top: MediaQuery.paddingOf(context).top + 72,
+              child: Material(
+                elevation: 2,
+                borderRadius: BorderRadius.circular(10),
+                color: mapState.tilesUnavailable
+                    ? AppColors.danger.withValues(alpha: 0.92)
+                    : AppColors.warning.withValues(alpha: 0.92),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        mapState.tilesUnavailable
+                            ? Icons.wifi_off_rounded
+                            : Icons.info_outline_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          mapState.tilesUnavailable
+                              ? 'Map tiles unavailable — check your connection.'
+                              : mapState.transportWarning!,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           Positioned(
             right: AppSpacing.md,
             top: MediaQuery.paddingOf(context).top + 96,
@@ -538,7 +581,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
   List<Polyline> _buildPreviewPolylines(MapState mapState) {
     final selected = mapState.plannedRoute!;
     return mapState.routeOptions
-        .where((o) => o.primaryMode != selected.primaryMode)
+        .where((o) => o.optionId != selected.optionId)
         .map((option) {
       final points = option.coloredSegments.isNotEmpty
           ? option.coloredSegments.expand((s) => s.polyline).toList()
