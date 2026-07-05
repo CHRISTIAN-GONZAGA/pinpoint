@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:pinpoint/app/constants.dart';
 import 'package:pinpoint/app/router.dart';
+import 'package:pinpoint/core/config/app_config.dart';
 import 'package:pinpoint/core/utilities/place_utils.dart';
 import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
@@ -162,10 +163,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
               ),
               RichAttributionWidget(
                 alignment: AttributionAlignment.bottomLeft,
-                attributions: const [
-                  TextSourceAttribution('OpenStreetMap contributors'),
-                  TextSourceAttribution('CARTO'),
-                ],
+                attributions: _mapAttributions(),
               ),
               if (mapState.layers.showHighwayCorridors)
                 PolylineLayer(
@@ -792,5 +790,22 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
         ),
       ),
     );
+  }
+
+  List<SourceAttribution> _mapAttributions() {
+    return switch (AppConfig.mapTileProvider) {
+      'maptiler' when AppConfig.mapTileApiKey.isNotEmpty => const [
+          TextSourceAttribution('MapTiler'),
+          TextSourceAttribution('OpenStreetMap contributors'),
+        ],
+      'mapbox' when AppConfig.mapTileApiKey.isNotEmpty => const [
+          TextSourceAttribution('Mapbox'),
+          TextSourceAttribution('OpenStreetMap contributors'),
+        ],
+      _ => const [
+          TextSourceAttribution('OpenStreetMap contributors'),
+          TextSourceAttribution('CARTO'),
+        ],
+    };
   }
 }
