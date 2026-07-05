@@ -14,11 +14,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY backend/requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY backend/ .
-COPY assets/data/routes/jeepney_routes.json /app/data/lptrp_routes.json
+COPY . .
 RUN chmod +x /app/start.sh && mkdir -p /app/instance /app/chroma_data /app/data
 
 EXPOSE 10000
