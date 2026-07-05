@@ -682,13 +682,21 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
     if (route.coloredSegments.isNotEmpty) {
       return route.coloredSegments.map((segment) {
         final isWalk = segment.type == RouteStepType.walk;
+        final color = colorFromHex(segment.colorHex).withValues(alpha: alpha);
+        if (isWalk) {
+          return Polyline(
+            points: segment.polyline,
+            color: color,
+            strokeWidth: 5,
+            pattern: StrokePattern.dashed(segments: [10, 8]),
+          );
+        }
         return Polyline(
           points: segment.polyline,
-          color: colorFromHex(segment.colorHex).withValues(alpha: alpha),
-          strokeWidth: isWalk ? 5 : 8,
-          borderColor: Colors.white.withValues(alpha: isWalk ? 0 : alpha * 0.9),
-          borderStrokeWidth: isWalk ? 0 : 2.5,
-          pattern: isWalk ? StrokePattern.dashed(segments: [10, 8]) : null,
+          color: color,
+          strokeWidth: 8,
+          borderColor: Colors.white.withValues(alpha: alpha * 0.9),
+          borderStrokeWidth: 2.5,
         );
       }).toList();
     }
