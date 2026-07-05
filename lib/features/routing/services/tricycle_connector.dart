@@ -52,23 +52,25 @@ class TricycleConnector {
     return LatLng(lat / zone.polygon.length, lng / zone.polygon.length);
   }
 
-  /// Tricycle from [origin] to jeepney [boardStop] when walking is impractical.
+  /// Tricycle from [origin] to jeepney corridor attach point when walking is impractical.
   Future<FeederLeg?> originFeeder({
     required LatLng origin,
     required RouteStop boardStop,
     required List<TricycleZone> zones,
+    LatLng? attachPoint,
   }) async {
     if (zones.isEmpty) return null;
 
-    final walkDist = _geometry.distanceMeters(origin, boardStop.latLng);
+    final target = attachPoint ?? boardStop.latLng;
+    final walkDist = _geometry.distanceMeters(origin, target);
     if (walkDist < feederMinWalkMeters) return null;
 
-    final zone = zoneFor(origin, zones) ?? zoneFor(boardStop.latLng, zones);
+    final zone = zoneFor(origin, zones) ?? zoneFor(target, zones);
     if (zone == null) return null;
 
     final tri = await _geometry.safeDrivingRoute(
       origin,
-      boardStop.latLng,
+      target,
       speedMps: tricycleSpeedMps,
     );
 
@@ -78,7 +80,7 @@ class TricycleConnector {
 
     return FeederLeg(
       from: origin,
-      to: boardStop.latLng,
+      to: target,
       toLabel: boardStop.name,
       route: tri,
       zone: zone,
@@ -86,29 +88,30 @@ class TricycleConnector {
     );
   }
 
-  /// Last-mile tricycle from jeepney stop to destination.
+  /// Last-mile tricycle from jeepney alight point to destination.
   Future<FeederLeg?> destinationFeeder({
+    required LatLng alightPoint,
     required RouteStop alightStop,
     required LatLng destination,
     required List<TricycleZone> zones,
   }) async {
     if (zones.isEmpty) return null;
 
-    final lastMile = _geometry.distanceMeters(alightStop.latLng, destination);
+    final lastMile = _geometry.distanceMeters(alightPoint, destination);
     if (lastMile <= 30) return null;
     if (lastMile < lastMileWalkMeters) return null;
 
-    final zone = zoneFor(destination, zones) ?? zoneFor(alightStop.latLng, zones);
+    final zone = zoneFor(destination, zones) ?? zoneFor(alightPoint, zones);
     if (zone == null) return null;
 
     final tri = await _geometry.safeDrivingRoute(
-      alightStop.latLng,
+      alightPoint,
       destination,
       speedMps: tricycleSpeedMps,
     );
 
     return FeederLeg(
-      from: alightStop.latLng,
+      from: alightPoint,
       to: destination,
       toLabel: 'destination',
       route: tri,

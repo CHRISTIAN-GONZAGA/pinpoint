@@ -51,14 +51,33 @@ abstract final class AppConstants {
 
   /// Carto basemaps (no API key). Primary tile source for mobile.
   static const List<String> mapTileSubdomains = ['a', 'b', 'c', 'd'];
-  static const String lightTileUrl =
-      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
-  static const String darkTileUrl =
-      'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';
+
+  /// Light basemap with POI labels (Carto Voyager).
+  static String get lightTileUrl => _resolveTileUrl(isDark: false);
+
+  /// Dark basemap — Carto Dark Matter retains more labels than dark_all.
+  static String get darkTileUrl => _resolveTileUrl(isDark: true);
+
+  static String _resolveTileUrl({required bool isDark}) {
+    final key = AppConfig.mapTileApiKey;
+    switch (AppConfig.mapTileProvider) {
+      case 'maptiler' when key.isNotEmpty:
+        final style = isDark ? 'dataviz-dark' : 'streets-v2';
+        return 'https://api.maptiler.com/maps/$style/{z}/{x}/{y}.png?key=$key';
+      case 'mapbox' when key.isNotEmpty:
+        final style = isDark ? 'dark-v11' : 'streets-v12';
+        return 'https://api.mapbox.com/styles/v1/mapbox/$style/tiles/{z}/{x}/{y}?access_token=$key';
+      default:
+        return isDark
+            ? 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter/{z}/{x}/{y}{r}.png'
+            : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+    }
+  }
+
   /// Direct OSM tiles — used as fallback (Wikimedia blocks third-party apps).
   static const String osmTileFallbackUrl =
       'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
   @Deprecated('Use lightTileUrl')
-  static const String osmTileUrl = lightTileUrl;
+  static String get osmTileUrl => lightTileUrl;
 }

@@ -32,6 +32,14 @@ class RouteScorer {
       total += weights.taxiPenalty;
     }
 
+    if (hasJeepney) {
+      final jeepIdx = route.steps.indexWhere((s) => s.type == RouteStepType.jeepney);
+      final triAfterJeepney = route.steps
+          .sublist(jeepIdx + 1)
+          .any((s) => s.type == RouteStepType.tricycle && s.distanceMeters > 30);
+      if (triAfterJeepney) total += 40;
+    }
+
     if (route.primaryMode == VehicleMode.tricycle && !hasJeepney) {
       total += weights.tricyclePenalty;
       if (route.warningMessage != null) total += 25;

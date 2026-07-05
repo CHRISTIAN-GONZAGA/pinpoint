@@ -17,6 +17,18 @@ abstract final class AppConfig {
     defaultValue: false,
   );
 
+  /// Map tile provider: `carto` (free), `maptiler`, or `mapbox`.
+  static const String mapTileProvider = String.fromEnvironment(
+    'MAP_TILE_PROVIDER',
+    defaultValue: 'carto',
+  );
+
+  /// API key for MapTiler or Mapbox raster tiles (optional).
+  static const String mapTileApiKey = String.fromEnvironment(
+    'MAP_TILE_API_KEY',
+    defaultValue: '',
+  );
+
   static bool get usesRenderCloud =>
       apiUrl.contains('onrender.com') || apiUrl.startsWith('https://');
 }

@@ -63,6 +63,7 @@ class CandidateRouteGenerator {
       final feeder = await _tricycle.originFeeder(
         origin: origin.latLng,
         boardStop: plan.boardStop,
+        attachPoint: plan.boardPoint,
         zones: tricycleZones,
       );
 

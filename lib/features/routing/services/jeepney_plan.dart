@@ -7,6 +7,8 @@ class JeepneyPlan {
     required this.boardRoute,
     required this.boardStop,
     required this.alightStop,
+    required this.boardPoint,
+    required this.alightPoint,
     required this.walkToBoard,
     required this.walkFromAlight,
     required this.estimatedTotalMeters,
@@ -31,6 +33,9 @@ class JeepneyPlan {
   final JeepneyRoute boardRoute;
   final RouteStop boardStop;
   final RouteStop alightStop;
+  /// Actual corridor attach / alight coordinates (may differ from stop pins).
+  final LatLng boardPoint;
+  final LatLng alightPoint;
   final ({List<LatLng> polyline, double distanceMeters, int durationSeconds}) walkToBoard;
   final ({List<LatLng> polyline, double distanceMeters, int durationSeconds}) walkFromAlight;
   final double estimatedTotalMeters;

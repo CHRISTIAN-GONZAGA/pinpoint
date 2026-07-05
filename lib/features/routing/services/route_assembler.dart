@@ -166,7 +166,11 @@ class RouteAssembler {
     var stopCount = 2;
 
     if (allowOriginFeeder && originFeeder != null) {
-      _addTricycle(steps, originFeeder, 'Ride tricycle to ${originFeeder.toLabel}');
+      _addTricycle(
+        steps,
+        originFeeder,
+        'Take tricycle to ${plan.boardRoute.routeCode} (${originFeeder.toLabel})',
+      );
       fare += _fares.tricycleFare(
         originFeeder.route.distanceMeters,
         zoneBaseFare: originFeeder.zone.baseFare,
@@ -181,7 +185,7 @@ class RouteAssembler {
         steps,
         route: plan.boardRoute,
         instruction:
-            'Ride ${plan.boardRoute.routeCode} to ${plan.alightStop.name}',
+            'Ride ${plan.boardRoute.routeCode} to nearest point for ${plan.alightStop.name}',
         distanceMeters: plan.jeepneyDistanceMeters,
         durationSeconds: plan.jeepneyDurationSeconds,
         polyline: plan.jeepneyPolyline,
@@ -228,6 +232,7 @@ class RouteAssembler {
     FeederLeg? destFeeder;
     if (allowDestFeeder) {
       destFeeder = await _tricycle.destinationFeeder(
+        alightPoint: plan.alightPoint,
         alightStop: plan.alightStop,
         destination: destination.latLng,
         zones: zones,
