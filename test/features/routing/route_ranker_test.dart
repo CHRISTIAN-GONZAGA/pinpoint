@@ -115,6 +115,23 @@ void main() {
     );
   });
 
+  test('balanced prefers direct tricycle for short city trips', () {
+    final ranked = ranker.rank(
+      candidates: [
+        _route(
+          id: 'trike',
+          mode: VehicleMode.tricycle,
+          fare: 18,
+          duration: 480,
+        ),
+        _route(id: 'jeep', mode: VehicleMode.jeepney, fare: 28, duration: 720, walk: 650),
+      ],
+      preference: RoutePreference.balanced,
+    );
+
+    expect(ranked.firstWhere((r) => r.isRecommended).optionId, 'trike');
+  });
+
   test('vehicle mode filter overrides preference recommendation', () {
     final ranked = ranker.rank(
       candidates: [

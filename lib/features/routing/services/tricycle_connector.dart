@@ -10,7 +10,7 @@ class TricycleConnector {
 
   /// Suggest tricycle when walking to the PUJ stop would be this long or more.
   static const feederMinWalkMeters = 320.0;
-  static const lastMileWalkMeters = 350.0;
+  static const lastMileWalkMeters = 450.0;
   static const tricycleSpeedMps = 150 / 60;
   static const maxZoneLookupMeters = 3000.0;
 

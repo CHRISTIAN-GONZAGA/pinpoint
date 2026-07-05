@@ -26,8 +26,8 @@ class JeepneyPlanBuilder {
   static const walkOnlyMaxMeters = 1400.0;
   static const maxDetourRatio = 4.0;
   static const jeepneySpeedMps = 200 / 60;
-  static const maxPlans = 32;
-  static const minJeepneyLegMeters = 30.0;
+  static const maxPlans = 7;
+  static const minJeepneyLegMeters = 250.0;
   static const maxAlightToDestMeters = 1200.0;
 
   Future<List<JeepneyPlan>> findAllPlans({
@@ -48,8 +48,18 @@ class JeepneyPlanBuilder {
     final activeRoutes = <JeepneyRoute>{
       ...servingOrigin,
       ...servingDest,
-      ...routable,
     }.toList();
+
+    if (activeRoutes.length < 4) {
+      for (final route in routable) {
+        if (activeRoutes.any((r) => r.routeId == route.routeId)) continue;
+        final nearOrigin =
+            _geometry.distancePointToPolylineMeters(origin, route.polyline) <= 1500;
+        final nearDest =
+            _geometry.distancePointToPolylineMeters(destination, route.polyline) <= 1500;
+        if (nearOrigin || nearDest) activeRoutes.add(route);
+      }
+    }
 
     for (final route in activeRoutes) {
       final plan = await _tryOptimalSameRoute(
@@ -62,7 +72,8 @@ class JeepneyPlanBuilder {
     }
 
     final sameRouteCount = scored.length;
-    if (sameRouteCount < 4) {
+    // Only suggest PUJ-to-PUJ transfers when no single route serves the trip.
+    if (scored.isEmpty) {
       for (var i = 0; i < activeRoutes.length; i++) {
         for (var j = 0; j < activeRoutes.length; j++) {
           if (i == j) continue;

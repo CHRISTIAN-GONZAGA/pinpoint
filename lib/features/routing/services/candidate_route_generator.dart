@@ -4,6 +4,7 @@ import 'package:pinpoint/features/routing/domain/route_planning_models.dart';
 import 'package:pinpoint/features/routing/services/jeepney_plan_builder.dart';
 import 'package:pinpoint/features/routing/services/route_assembler.dart';
 import 'package:pinpoint/features/routing/services/route_ranker.dart';
+import 'package:pinpoint/features/routing/services/route_scorer.dart';
 import 'package:pinpoint/features/routing/services/tricycle_connector.dart';
 
 /// Generates every feasible multimodal itinerary before ranking.
@@ -33,12 +34,6 @@ class CandidateRouteGenerator {
     VehicleMode preferredMode = VehicleMode.auto,
   }) async {
     final candidates = <PlannedRoute>[];
-    final seen = <String>{};
-
-    void add(PlannedRoute? route) {
-      if (route == null || !seen.add(route.optionId)) return;
-      candidates.add(route);
-    }
 
     final walkFuture = _assembler.buildWalkRoute(origin: origin, destination: destination);
     final jeepneyPlansFuture = _jeepneyPlans.findAllPlans(
@@ -52,13 +47,11 @@ class CandidateRouteGenerator {
     );
     final taxiFuture = _assembler.buildTaxiRoute(origin: origin, destination: destination);
 
-    add(await walkFuture);
-
     final jeepneyPlanList = await jeepneyPlansFuture;
 
     final jeepneyAssembly = jeepneyPlanList.map((plan) async {
       final walkToBoard = plan.walkToBoard.distanceMeters;
-      final longWalkToPuj = walkToBoard >= TricycleConnector.feederMinWalkMeters;
+      final needsFeeder = walkToBoard >= TricycleConnector.feederMinWalkMeters;
 
       final feeder = await _tricycle.originFeeder(
         origin: origin.latLng,
@@ -77,8 +70,8 @@ class CandidateRouteGenerator {
             )
           : null;
 
-      // Skip long straight-line walks to PUJ when tricycle feeder is available.
-      if (withFeeder != null && longWalkToPuj) {
+      // Always use tricycle feeder when walk to PUJ corridor would be long.
+      if (withFeeder != null && needsFeeder) {
         return [withFeeder];
       }
 
@@ -89,7 +82,7 @@ class CandidateRouteGenerator {
         zones: tricycleZones,
       );
 
-      if (withFeeder != null) {
+      if (withFeeder != null && direct != null) {
         return [withFeeder, direct];
       }
       return [direct];
@@ -97,9 +90,11 @@ class CandidateRouteGenerator {
 
     for (final batch in await Future.wait(jeepneyAssembly)) {
       for (final route in batch) {
-        add(route);
+        _addCandidate(candidates, route);
       }
     }
+
+    _addCandidate(candidates, await walkFuture);
 
     final triDrive = await tricycleFuture;
     if (triDrive != null) {
@@ -109,10 +104,12 @@ class CandidateRouteGenerator {
         warning =
             'Direct tricycle route crosses a national highway. Tricycles must use barangay roads only — consider Jeepney or Taxi.';
       }
-      add(triDrive.copyWith(warningMessage: warning));
+      _addCandidate(candidates, triDrive.copyWith(warningMessage: warning));
     }
 
-    add(await taxiFuture);
+    _addCandidate(candidates, await taxiFuture);
+
+    _pruneInferiorJeepneyOptions(candidates, triDrive);
 
     if (candidates.isEmpty) {
       final walk = await _assembler.buildWalkRoute(origin: origin, destination: destination);
@@ -152,5 +149,43 @@ class CandidateRouteGenerator {
     }
 
     return ranked;
+  }
+
+  void _addCandidate(List<PlannedRoute> list, PlannedRoute? route) {
+    if (route == null) return;
+    final existing = list.indexWhere((r) => r.optionId == route.optionId);
+    if (existing >= 0) {
+      if ((route.rankScore ?? 999) < (list[existing].rankScore ?? 999)) {
+        list[existing] = route;
+      }
+      return;
+    }
+    list.add(route);
+  }
+
+  /// Drops jeepney-only options that cost more and take longer than direct tricycle
+  /// on short city trips only.
+  void _pruneInferiorJeepneyOptions(List<PlannedRoute> candidates, PlannedRoute? tricycle) {
+    if (tricycle == null) return;
+    if (tricycle.totalDistanceMeters > RouteScorer.shortTricycleBoostMeters) return;
+
+    candidates.removeWhere((route) {
+      if (!route.steps.any((s) => s.type == RouteStepType.jeepney)) return false;
+
+      final hasOriginFeeder = _hasOriginFeeder(route);
+      if (hasOriginFeeder) return false;
+
+      final worseFare = route.estimatedFare > tricycle.estimatedFare + 3;
+      final worseTime = route.totalDurationSeconds > tricycle.totalDurationSeconds + 120;
+      final longWalk = route.walkingDistanceMeters > TricycleConnector.feederMinWalkMeters;
+
+      return worseFare && (worseTime || longWalk);
+    });
+  }
+
+  bool _hasOriginFeeder(PlannedRoute route) {
+    final triIdx = route.steps.indexWhere((s) => s.type == RouteStepType.tricycle);
+    final jeepIdx = route.steps.indexWhere((s) => s.type == RouteStepType.jeepney);
+    return triIdx >= 0 && jeepIdx > triIdx;
   }
 }

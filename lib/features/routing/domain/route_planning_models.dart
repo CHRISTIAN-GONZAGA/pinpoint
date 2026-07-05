@@ -79,13 +79,13 @@ class ScoringWeights {
               jeepneyBonus: 30,
             ),
         RoutePreference.balanced => const ScoringWeights(
-              walkingDistance: 0.25,
-              travelTime: 0.25,
-              fare: 0.15,
-              transfers: 0.05,
+              walkingDistance: 0.20,
+              travelTime: 0.30,
+              fare: 0.35,
+              transfers: 0.15,
               taxiPenalty: 100,
-              tricyclePenalty: 55,
-              jeepneyBonus: 35,
+              tricyclePenalty: 30,
+              jeepneyBonus: 15,
             ),
       };
 
@@ -109,7 +109,7 @@ extension RouteLabelDisplay on RouteLabel {
 
   String get explanation => switch (this) {
         RouteLabel.recommended =>
-          'Best balance of travel time, fare, and walking for public transport.',
+          'Best value — balances fare, travel time, and walking for Butuan.',
         RouteLabel.cheapest => 'Lowest estimated fare.',
         RouteLabel.fastest => 'Fastest estimated arrival.',
         RouteLabel.leastWalking => 'Shortest total walking distance.',

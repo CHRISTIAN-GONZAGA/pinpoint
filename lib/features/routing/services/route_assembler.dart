@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:latlong2/latlong.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
+import 'package:pinpoint/features/routing/domain/transport_colors.dart';
 import 'package:pinpoint/features/routing/services/fare_calculator.dart';
 import 'package:pinpoint/features/routing/services/jeepney_plan.dart';
 import 'package:pinpoint/features/routing/services/routing_geometry.dart';
@@ -46,7 +47,7 @@ class RouteAssembler {
           distanceMeters: walk.distanceMeters,
           durationSeconds: walk.durationSeconds,
           polyline: walk.polyline,
-          segmentColorHex: '#64748B',
+          segmentColorHex: '#94A3B8',
         ),
         const RouteStep(
           type: RouteStepType.walk,
@@ -134,7 +135,7 @@ class RouteAssembler {
               ? drive.durationSeconds
               : (drive.distanceMeters / tricycleSpeedMps).round(),
           polyline: polyline,
-          segmentColorHex: '#F59E0B',
+          segmentColorHex: '#0EA5E9',
         ),
         const RouteStep(
           type: RouteStepType.walk,
@@ -283,7 +284,7 @@ class RouteAssembler {
       distanceMeters: route.distanceMeters,
       durationSeconds: route.durationSeconds,
       polyline: route.polyline,
-      segmentColorHex: '#64748B',
+      segmentColorHex: '#94A3B8',
     ));
   }
 
@@ -317,7 +318,7 @@ class RouteAssembler {
       polyline: feeder.route.polyline.isNotEmpty
           ? feeder.route.polyline
           : [feeder.from, feeder.to],
-      segmentColorHex: '#F59E0B',
+      segmentColorHex: '#0EA5E9',
     ));
   }
 

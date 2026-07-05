@@ -272,7 +272,7 @@ class _PreferenceSelector extends StatelessWidget {
   final ValueChanged<RoutePreference> onChanged;
 
   static const _prefs = [
-    (RoutePreference.balanced, 'Balanced'),
+    (RoutePreference.balanced, 'Best value'),
     (RoutePreference.cheapest, 'Cheapest'),
     (RoutePreference.fastest, 'Fastest'),
     (RoutePreference.leastWalking, 'Less walk'),
@@ -363,7 +363,7 @@ class _RouteOptionPicker extends StatelessWidget {
         itemBuilder: (context, index) {
           final option = options[index];
           final isSelected = option.optionId == selected.optionId;
-          final color = _modeColor(option.primaryMode);
+          final color = _modeColor(option.primaryMode, option);
           return InkWell(
             onTap: () => onSelect(option),
             onHighlightChanged: (highlighted) {
@@ -392,7 +392,7 @@ class _RouteOptionPicker extends StatelessWidget {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          option.isRecommended ? '⭐ Recommended' : _cardLabel(option),
+                          _cardTitle(option, options),
                           style: Theme.of(context).textTheme.labelMedium,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -431,6 +431,15 @@ class _RouteOptionPicker extends StatelessWidget {
     );
   }
 
+  String _cardTitle(PlannedRoute option, List<PlannedRoute> options) {
+    if (option.isRecommended) return '⭐ Best value';
+    final minFare = options.map((o) => o.estimatedFare).reduce((a, b) => a < b ? a : b);
+    final minTime = options.map((o) => o.totalDurationSeconds).reduce((a, b) => a < b ? a : b);
+    if (option.estimatedFare <= minFare + 0.01) return '💰 Cheapest';
+    if (option.totalDurationSeconds <= minTime) return '⚡ Fastest';
+    return _modeLabel(option.primaryMode);
+  }
+
   String _cardLabel(PlannedRoute option) {
     if (option.estimatedFare == options.map((o) => o.estimatedFare).reduce((a, b) => a < b ? a : b)) {
       return '💰 Cheapest';
@@ -438,13 +447,22 @@ class _RouteOptionPicker extends StatelessWidget {
     return _modeLabel(option.primaryMode);
   }
 
-  Color _modeColor(VehicleMode mode) => switch (mode) {
-        VehicleMode.jeepney => TransportColors.jeepney('R1'),
-        VehicleMode.tricycle => TransportColors.tricycle,
-        VehicleMode.taxi => TransportColors.taxi,
-        VehicleMode.walk => TransportColors.walk,
-        VehicleMode.auto => AppColors.primary,
-      };
+  Color _modeColor(VehicleMode mode, PlannedRoute option) {
+    if (mode == VehicleMode.jeepney) {
+      final code = option.steps
+          .where((s) => s.type == RouteStepType.jeepney)
+          .map((s) => s.routeCode)
+          .firstOrNull;
+      return TransportColors.jeepney(code);
+    }
+    return switch (mode) {
+      VehicleMode.tricycle => TransportColors.tricycle,
+      VehicleMode.taxi => TransportColors.taxi,
+      VehicleMode.walk => TransportColors.walk,
+      VehicleMode.auto => AppColors.primary,
+      VehicleMode.jeepney => TransportColors.jeepney('R1'),
+    };
+  }
 
   IconData _modeIcon(VehicleMode mode) => switch (mode) {
         VehicleMode.jeepney => Icons.directions_bus_rounded,

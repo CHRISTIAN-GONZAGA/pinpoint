@@ -61,19 +61,32 @@ class _LegendRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isWalk = item.label == 'Walk';
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 14,
-          height: 4,
+          width: isWalk ? 14 : 16,
+          height: isWalk ? 3 : 5,
           decoration: BoxDecoration(
-            color: item.color,
+            color: isWalk ? item.color.withValues(alpha: 0.5) : item.color,
             borderRadius: BorderRadius.circular(2),
           ),
+          foregroundDecoration: isWalk
+              ? BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: item.color, width: 2),
+                  ),
+                )
+              : null,
         ),
-        const SizedBox(width: 4),
-        Text(item.label, style: Theme.of(context).textTheme.labelSmall),
+        const SizedBox(width: 6),
+        Text(
+          item.label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+        ),
       ],
     );
   }
