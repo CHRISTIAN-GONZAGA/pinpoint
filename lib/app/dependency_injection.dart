@@ -95,8 +95,10 @@ final placeSearchServiceProvider = Provider<PlaceSearchService>((ref) {
   );
 });
 
+/// Local road geometry for trip planning (always offline — uses bundled LPTRP corridors).
+/// Cloud [AppConstants.offlineFirstMode] only controls auth/sync/API, not map routing math.
 final routingServiceProvider =
-    Provider<RoutingService>((ref) => RoutingService(offlineMode: AppConstants.offlineFirstMode));
+    Provider<RoutingService>((ref) => RoutingService(offlineMode: true));
 
 final jeepneyPathServiceProvider =
     Provider<JeepneyPathService>((ref) => JeepneyPathService(

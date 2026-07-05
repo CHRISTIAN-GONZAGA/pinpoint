@@ -76,6 +76,12 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
     final layers = mapState.layers;
     final mapRotation = MapCameraHelper.rotation(_mapController);
 
+    ref.listen(mapNotifierProvider.select((s) => s.isGeneratingRoute), (previous, next) {
+      if (next && mounted) {
+        setState(() => _showRoutePanel = true);
+      }
+    });
+
     ref.listen(mapNotifierProvider.select((s) => s.plannedRoute), (previous, next) {
       if (next != null && previous == null && mounted) {
         setState(() => _showRoutePanel = true);
@@ -381,9 +387,22 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
               child: FloatingActionButton.extended(
                 heroTag: 'map-route-fab',
                 elevation: 4,
-                onPressed: () => setState(() => _showRoutePanel = true),
-                icon: const Icon(Icons.route_rounded, size: 20),
-                label: const Text('Plan route'),
+                onPressed: mapState.isGeneratingRoute
+                    ? null
+                    : () async {
+                        setState(() => _showRoutePanel = true);
+                        if (mapState.canGenerateRoute) {
+                          await notifier.generateRoute();
+                        }
+                      },
+                icon: mapState.isGeneratingRoute
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(Icons.route_rounded, size: 20),
+                label: Text(mapState.isGeneratingRoute ? 'Planning…' : 'Plan route'),
               ),
             ),
           if (mapState.plannedRoute != null)

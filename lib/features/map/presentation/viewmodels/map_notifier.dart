@@ -98,7 +98,7 @@ class MapNotifier extends Notifier<MapState> {
   }
 
   Future<void> selectFeaturedAsOrigin(FeaturedDestination featured) async {
-    final snapped = await _routing.snapToNearestRoad(featured.place.latLng);
+    final snapped = await _snapFast(featured.place.latLng);
     state = state.copyWith(
       currentLocation: MapLocation.fromLatLng(snapped, label: featured.place.name),
       currentAddress: featured.place.name,
@@ -299,8 +299,8 @@ class MapNotifier extends Notifier<MapState> {
   /// Returns context data for the tap menu. Caller shows [MapContextSheet].
   Future<({LatLng snapped, String address, String? nearestStop, double? nearestM})>
       prepareMapContext(LatLng point) async {
-    final snapped = await _routing.snapToNearestRoad(point);
-    final address = await _geocoding.reverseGeocode(snapped);
+    final snapped = await _snapFast(point);
+    final address = await _addressFast(snapped);
     final nearest = _nearestStop(snapped);
     return (
       snapped: snapped,
@@ -453,9 +453,29 @@ class MapNotifier extends Notifier<MapState> {
     return inside;
   }
 
+  Future<LatLng> _snapFast(LatLng point) async {
+    try {
+      return await _routing
+          .snapToNearestRoad(point)
+          .timeout(const Duration(seconds: 2), onTimeout: () => point);
+    } catch (_) {
+      return point;
+    }
+  }
+
+  Future<String> _addressFast(LatLng point, {String? fallback}) async {
+    try {
+      return await _geocoding
+          .reverseGeocode(point)
+          .timeout(const Duration(seconds: 3), onTimeout: () => fallback ?? 'Selected point');
+    } catch (_) {
+      return fallback ?? 'Selected point';
+    }
+  }
+
   Future<void> setOriginFromTap(LatLng point) async {
-    final snapped = await _routing.snapToNearestRoad(point);
-    final address = await _geocoding.reverseGeocode(snapped);
+    final snapped = await _snapFast(point);
+    final address = await _addressFast(snapped);
     state = state.copyWith(
       currentLocation: MapLocation.fromLatLng(snapped, label: address),
       currentAddress: address,
@@ -467,6 +487,17 @@ class MapNotifier extends Notifier<MapState> {
     _fitEndpoints();
     await _loadPoiData();
     await _maybeAutoGenerateRoute();
+  }
+
+  Future<void> _ensureTransportLoaded() async {
+    if (state.jeepneyRoutes.isNotEmpty && state.fares.isNotEmpty) return;
+    final transport = await ref.read(transportRepositoryProvider).loadAllTransportData();
+    state = state.copyWith(
+      jeepneyRoutes: transport.routes,
+      tricycleZones: transport.zones,
+      fares: transport.fares,
+      clearTransportWarning: transport.routes.isNotEmpty,
+    );
   }
 
   Future<void> searchPlaces(String query) async {
@@ -488,9 +519,8 @@ class MapNotifier extends Notifier<MapState> {
   }
 
   Future<void> selectDestination(MapLocation location) async {
-    final snapped = await _routing.snapToNearestRoad(location.latLng);
-    final address =
-        location.label ?? await _geocoding.reverseGeocode(snapped);
+    final snapped = await _snapFast(location.latLng);
+    final address = location.label ?? await _addressFast(snapped, fallback: location.label);
     state = state.copyWith(
       destination: MapLocation.fromLatLng(snapped, label: address),
       destinationAddress: address,
@@ -580,15 +610,18 @@ class MapNotifier extends Notifier<MapState> {
       clearRouteOptions: true,
     );
     try {
-      final options = await _planner.planRouteOptions(
-        origin: origin,
-        destination: destination,
-        jeepneyRoutes: state.jeepneyRoutes,
-        tricycleZones: state.tricycleZones,
-        fares: state.fares,
-        preferredMode: state.selectedVehicleMode,
-        preference: state.routePreference,
-      );
+      await _ensureTransportLoaded();
+      final options = await _planner
+          .planRouteOptions(
+            origin: origin,
+            destination: destination,
+            jeepneyRoutes: state.jeepneyRoutes,
+            tricycleZones: state.tricycleZones,
+            fares: state.fares,
+            preferredMode: state.selectedVehicleMode,
+            preference: state.routePreference,
+          )
+          .timeout(const Duration(seconds: 25));
       if (options.isEmpty) {
         state = state.copyWith(
           isGeneratingRoute: false,

@@ -59,17 +59,20 @@ class JeepneyPlanBuilder {
       ));
     }
 
-    for (var i = 0; i < activeRoutes.length; i++) {
-      for (var j = 0; j < activeRoutes.length; j++) {
-        if (i == j) continue;
-        final transferPlan = await _transferPlan(
-          originRoute: activeRoutes[i],
-          destRoute: activeRoutes[j],
-          origin: origin,
-          destination: destination,
-          directMeters: directMeters,
-        );
-        if (transferPlan != null) scored.add(transferPlan);
+    final sameRouteCount = scored.length;
+    if (sameRouteCount < 4) {
+      for (var i = 0; i < activeRoutes.length; i++) {
+        for (var j = 0; j < activeRoutes.length; j++) {
+          if (i == j) continue;
+          final transferPlan = await _transferPlan(
+            originRoute: activeRoutes[i],
+            destRoute: activeRoutes[j],
+            origin: origin,
+            destination: destination,
+            directMeters: directMeters,
+          );
+          if (transferPlan != null) scored.add(transferPlan);
+        }
       }
     }
 
