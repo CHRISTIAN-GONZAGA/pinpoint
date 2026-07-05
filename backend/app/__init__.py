@@ -107,4 +107,17 @@ def create_app(config_class: type[Config] = Config) -> Flask:
             }
         ), code
 
+    @app.get("/")
+    def root():
+        return jsonify(
+            {
+                "service": "pinpoint-api",
+                "status": "running",
+                "version": app.config.get("APP_VERSION", "1.0.0"),
+                "health": "/health",
+                "api": api_prefix,
+                "docs": "Mobile app uses /api/* endpoints",
+            }
+        )
+
     return app

@@ -8,7 +8,7 @@ abstract final class AppConfig {
   /// PINPOINT REST API base URL (must include `/api` suffix).
   static const String apiUrl = String.fromEnvironment(
     'API_URL',
-    defaultValue: 'https://pinpoint-api.onrender.com/api',
+    defaultValue: 'https://pinpoint-ocfc.onrender.com/api',
   );
 
   /// When true, the app skips the cloud API and uses bundled local data only.

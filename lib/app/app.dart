@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:pinpoint/app/dependency_injection.dart';
 import 'package:pinpoint/app/router.dart';
 import 'package:pinpoint/app/constants.dart';
@@ -55,7 +54,7 @@ class _PinpointAppState extends ConsumerState<PinpointApp> {
           child: child ?? const SizedBox.shrink(),
         );
 
-        final routePath = GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
+        final routePath = router.routerDelegate.currentConfiguration.uri.path;
         final hideStatusBanner = routePath == AppRoutes.splash;
 
         return Column(
