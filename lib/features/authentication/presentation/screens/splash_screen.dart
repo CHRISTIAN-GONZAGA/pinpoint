@@ -118,10 +118,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                PinpointLogo(size: 110, pulsing: true)
+                PinpointLogo(size: 120, pulsing: true, showTitle: true)
                     .animate()
-                    .fadeIn(duration: 500.ms)
-                    .scale(begin: const Offset(0.5, 0.5), curve: Curves.easeOutBack),
+                    .fadeIn(duration: 600.ms)
+                    .scale(begin: const Offset(0.6, 0.6), curve: Curves.easeOutBack),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
                   AppConstants.appTagline,

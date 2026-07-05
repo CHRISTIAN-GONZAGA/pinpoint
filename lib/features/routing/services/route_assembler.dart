@@ -181,6 +181,14 @@ class RouteAssembler {
       walkingDistance += plan.walkToBoard.distanceMeters;
     }
 
+    var jeepPolyline = plan.jeepneyPolyline;
+    if (originFeeder != null && jeepPolyline.isNotEmpty) {
+      final attach = originFeeder.to;
+      if (_geometry.distanceMeters(attach, jeepPolyline.first) > 15) {
+        jeepPolyline = [attach, ...jeepPolyline];
+      }
+    }
+
     if (!plan.hasTransfer) {
       _addJeepney(
         steps,
@@ -189,7 +197,7 @@ class RouteAssembler {
             'Ride ${plan.boardRoute.routeCode} to nearest point for ${plan.alightStop.name}',
         distanceMeters: plan.jeepneyDistanceMeters,
         durationSeconds: plan.jeepneyDurationSeconds,
-        polyline: plan.jeepneyPolyline,
+        polyline: jeepPolyline,
       );
       fare += _fares.jeepneyFare(plan.jeepneyDistanceMeters);
     } else {

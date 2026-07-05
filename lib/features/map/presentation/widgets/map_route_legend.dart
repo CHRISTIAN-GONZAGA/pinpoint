@@ -15,35 +15,57 @@ class MapRouteLegend extends StatelessWidget {
     if (items.isEmpty) return const SizedBox.shrink();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
 
     return Material(
-      elevation: 4,
-      shadowColor: Colors.black26,
-      borderRadius: BorderRadius.circular(12),
+      elevation: 6,
+      shadowColor: Colors.black38,
+      borderRadius: BorderRadius.circular(14),
       color: isDark
-          ? const Color(0xFF1A2744).withValues(alpha: 0.94)
-          : Colors.white.withValues(alpha: 0.96),
+          ? const Color(0xFF152238).withValues(alpha: 0.96)
+          : Colors.white.withValues(alpha: 0.97),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Route guide',
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.2,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            ...items.asMap().entries.map((entry) {
-              return Padding(
-                padding: EdgeInsets.only(top: entry.key == 0 ? 0 : 6),
-                child: _LegendRow(
-                  index: entry.key + 1,
-                  item: entry.value,
+            Row(
+              children: [
+                Icon(Icons.route_rounded, size: 16, color: theme.colorScheme.primary),
+                const SizedBox(width: 6),
+                Text(
+                  'Your route',
+                  style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
+                const Spacer(),
+                Text(
+                  '${route.estimatedFare.toStringAsFixed(0)} PHP',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            ...items.asMap().entries.map((entry) {
+              final isLast = entry.key == items.length - 1;
+              return Column(
+                children: [
+                  _LegendRow(index: entry.key + 1, item: entry.value),
+                  if (!isLast)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 9, top: 2, bottom: 2),
+                      child: Row(
+                        children: [
+                          Container(width: 2, height: 10, color: Colors.grey.withValues(alpha: 0.35)),
+                          const SizedBox(width: 8),
+                          Text('then', style: theme.textTheme.labelSmall?.copyWith(color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                ],
               );
             }),
           ],
@@ -71,7 +93,8 @@ class MapRouteLegend extends StatelessWidget {
         type: step.type,
         label: _labelFor(step),
         color: _colorFor(step),
-        routeCode: step.routeCode,
+        distanceMeters: step.distanceMeters,
+        durationLabel: step.durationLabel,
       ));
     }
     return items;
@@ -104,13 +127,15 @@ class _LegendItem {
     required this.type,
     required this.label,
     required this.color,
-    this.routeCode,
+    required this.distanceMeters,
+    required this.durationLabel,
   });
 
   final RouteStepType type;
   final String label;
   final Color color;
-  final String? routeCode;
+  final double distanceMeters;
+  final String durationLabel;
 }
 
 class _LegendRow extends StatelessWidget {
@@ -122,38 +147,49 @@ class _LegendRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isWalk = item.type == RouteStepType.walk;
+    final dist = item.distanceMeters >= 1000
+        ? '${(item.distanceMeters / 1000).toStringAsFixed(1)} km'
+        : '${item.distanceMeters.round()} m';
 
     return Row(
-      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 20,
-          height: 20,
+          width: 22,
+          height: 22,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: item.color.withValues(alpha: 0.18),
+            color: item.color.withValues(alpha: 0.2),
             shape: BoxShape.circle,
+            border: Border.all(color: item.color, width: 1.5),
           ),
           child: Text(
             '$index',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: item.color,
-            ),
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: item.color),
           ),
         ),
         const SizedBox(width: 8),
-        Icon(_iconFor(item.type), size: 16, color: item.color),
-        const SizedBox(width: 6),
-        _LineSwatch(color: item.color, dashed: isWalk),
+        Icon(_iconFor(item.type), size: 17, color: item.color),
         const SizedBox(width: 8),
-        Text(
-          item.label,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                fontWeight: FontWeight.w600,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                item.label,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
               ),
+              Text(
+                '$dist · ${item.durationLabel}',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+              ),
+            ],
+          ),
         ),
+        _LineSwatch(color: item.color, dashed: isWalk),
       ],
     );
   }
@@ -176,13 +212,12 @@ class _LineSwatch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (dashed) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
+      return Column(
         children: List.generate(3, (i) {
           return Container(
-            width: 5,
+            width: 4,
             height: 3,
-            margin: EdgeInsets.only(right: i < 2 ? 2 : 0),
+            margin: EdgeInsets.only(bottom: i < 2 ? 2 : 0),
             decoration: BoxDecoration(
               color: color,
               borderRadius: BorderRadius.circular(1),
@@ -192,17 +227,13 @@ class _LineSwatch extends StatelessWidget {
       );
     }
     return Container(
-      width: 22,
-      height: 4,
+      width: 28,
+      height: 5,
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(3),
         boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.35),
-            blurRadius: 3,
-            offset: const Offset(0, 1),
-          ),
+          BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 4, offset: const Offset(0, 1)),
         ],
       ),
     );

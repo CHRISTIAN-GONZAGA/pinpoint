@@ -22,6 +22,5 @@ abstract final class CommonDestinations {
     (type: 'establishment', id: 8, shortLabel: 'Almont Hotel'),
     (type: 'attraction', id: 3, shortLabel: 'Guingona Park'),
     (type: 'establishment', id: 9, shortLabel: 'Fopings'),
-    (type: 'establishment', id: 13, shortLabel: '7-Eleven'),
   ];
 }

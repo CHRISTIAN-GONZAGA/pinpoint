@@ -3,6 +3,7 @@ import 'package:pinpoint/app/constants.dart';
 import 'package:pinpoint/core/local/asset_loader.dart';
 import 'package:pinpoint/features/ai_chat/domain/chat_models.dart';
 
+import 'package:pinpoint/features/ai_chat/data/ai_intent_resolver.dart';
 import 'package:pinpoint/features/ai_chat/domain/ai_response_language.dart';
 
 /// Offline knowledge retrieval and template-based responses.
@@ -30,6 +31,22 @@ class AiLocalDataSource {
       preference: responseLanguage,
       message: message,
     );
+
+    final intentReply = await AiIntentResolver.tryResolve(
+      message: message,
+      language: language,
+    );
+    if (intentReply != null) {
+      return AiChatResponse(
+        response: intentReply,
+        language: language,
+        sessionId: sessionId ?? 'local-${DateTime.now().millisecondsSinceEpoch}',
+        sources: const [],
+        actions: const [],
+        retrievalConfidence: 0.95,
+      );
+    }
+
     final normalized = message.toLowerCase();
     final matches = docs.where((doc) {
       final keywords = (doc['keywords'] as List<dynamic>? ?? []).cast<String>();

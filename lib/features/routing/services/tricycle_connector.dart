@@ -74,18 +74,44 @@ class TricycleConnector {
       speedMps: tricycleSpeedMps,
     );
 
+    final polyline = _polylineToTarget(tri.polyline, origin, target);
+    final distance = polyline.length >= 2
+        ? _geometry.polylineLengthMeters(polyline)
+        : tri.distanceMeters;
+    final duration = tri.durationSeconds > 0
+        ? tri.durationSeconds
+        : (distance / tricycleSpeedMps).round();
+
     // Prefer road-following geometry; still offer feeder on long last-mile even if OSRM fails.
-    final followsRoad = tri.polyline.length > 2;
+    final followsRoad = polyline.length > 2;
     if (!followsRoad && walkDist < 450) return null;
 
     return FeederLeg(
       from: origin,
       to: target,
       toLabel: boardStop.name,
-      route: tri,
+      route: (
+        polyline: polyline,
+        distanceMeters: distance,
+        durationSeconds: duration,
+      ),
       zone: zone,
       purpose: FeederPurpose.toJeepneyStop,
     );
+  }
+
+  /// Ensures the feeder polyline reaches the PUJ board/crossing point.
+  List<LatLng> _polylineToTarget(List<LatLng> route, LatLng origin, LatLng target) {
+    final polyline = route.isNotEmpty ? List<LatLng>.from(route) : <LatLng>[origin];
+    if (polyline.isEmpty) polyline.add(origin);
+
+    final gap = _geometry.distanceMeters(polyline.last, target);
+    if (gap <= 20) {
+      if (gap > 1) polyline[polyline.length - 1] = target;
+      return polyline;
+    }
+
+    return [...polyline, target];
   }
 
   /// Last-mile tricycle from jeepney alight point to destination.

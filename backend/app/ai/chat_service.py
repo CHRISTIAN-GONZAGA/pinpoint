@@ -7,6 +7,8 @@ from typing import Any
 
 from flask import current_app
 
+import re
+
 from app.ai.conversation_memory import ConversationMemoryManager
 from app.ai.knowledge_sync import build_documents_from_database
 from app.ai.language_detector import detect_language
@@ -62,6 +64,14 @@ class ChatService:
 
     session_id = session_id or str(uuid.uuid4())
     language = self._resolve_language(message, response_language)
+
+    if self._is_greeting(message):
+      return self._build_payload(
+        response=self._greeting_message(language),
+        language=language,
+        session_id=session_id,
+        chunks=[],
+      )
 
     if self._is_off_topic(message):
       response = self._off_topic_message(language)
@@ -167,6 +177,37 @@ class ChatService:
   def _is_off_topic(self, message: str) -> bool:
     lowered = message.lower()
     return any(marker in lowered for marker in _OFF_TOPIC_MARKERS)
+
+  @staticmethod
+  def _is_greeting(message: str) -> bool:
+    lowered = message.strip().lower()
+    return bool(
+      re.match(
+        r"^(hi|hello|hey|kumusta|musta|maayong|good\s+(morning|afternoon|evening))",
+        lowered,
+      )
+    )
+
+  @staticmethod
+  def _greeting_message(language: str) -> str:
+    messages = {
+      "en": (
+        "Hello! I'm PINPOINT, your Butuan City transport assistant. "
+        "Ask me about jeepney routes (R1–R7), fares, Robinsons, SM, or tourist spots."
+      ),
+      "tl": (
+        "Kumusta! Ako ang PINPOINT assistant mo para sa Butuan. "
+        "Magtanong tungkol sa jeepney routes (R1–R7), pamasahe, Robinsons, SM, o tourist spots."
+      ),
+      "ceb": (
+        "Maayong adlaw! Ako ang imong PINPOINT assistant sa Butuan. "
+        "Pangutana bahin sa jeepney routes (R1–R7), pletehan, Robinsons, SM, o tourist spots."
+      ),
+      "mixed": (
+        "Hello / Kumusta! Ask me about jeepney routes, fares, malls, and places in Butuan City."
+      ),
+    }
+    return messages.get(language, messages["en"])
 
   def _off_topic_message(self, language: str) -> str:
     messages = {

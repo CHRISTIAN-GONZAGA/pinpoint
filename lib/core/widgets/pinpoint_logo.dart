@@ -11,11 +11,13 @@ class PinpointLogo extends StatelessWidget {
     this.size = 96,
     this.showTagline = false,
     this.pulsing = false,
+    this.showTitle = true,
   });
 
   final double size;
   final bool showTagline;
   final bool pulsing;
+  final bool showTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -27,48 +29,43 @@ class PinpointLogo extends StatelessWidget {
         gradient: AppColors.primaryGradient,
         boxShadow: [
           BoxShadow(
-            color: AppColors.secondary.withValues(alpha: 0.35),
-            blurRadius: 24,
-            spreadRadius: 2,
+            color: AppColors.secondary.withValues(alpha: 0.4),
+            blurRadius: 28,
+            spreadRadius: 1,
+            offset: const Offset(0, 6),
           ),
         ],
+        border: Border.all(color: Colors.white.withValues(alpha: 0.18), width: 2),
       ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Icon(Icons.explore_rounded, color: Colors.white, size: size * 0.45),
-          Positioned(
-            bottom: size * 0.22,
-            child: Icon(Icons.place_rounded, color: Colors.white, size: size * 0.28),
-          ),
-        ],
-      ),
+      child: Icon(Icons.explore_rounded, color: Colors.white, size: size * 0.44),
     );
 
     if (pulsing) {
       logo = logo
           .animate(onPlay: (c) => c.repeat(reverse: true))
           .scale(
-            begin: const Offset(0.95, 0.95),
-            end: const Offset(1.05, 1.05),
-            duration: 1200.ms,
+            begin: const Offset(0.97, 0.97),
+            end: const Offset(1.03, 1.03),
+            duration: 1400.ms,
             curve: Curves.easeInOut,
-          )
-          .shimmer(duration: 1800.ms, color: Colors.white.withValues(alpha: 0.3));
+          );
     }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         logo,
-        const SizedBox(height: AppSpacing.md),
-        Text(
-          AppConstants.appName,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                letterSpacing: 2,
-              ),
-        ),
+        if (showTitle) ...[
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            AppConstants.appName,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
+                  color: Colors.white,
+                ),
+          ),
+        ],
         if (showTagline) ...[
           const SizedBox(height: AppSpacing.sm),
           Text(

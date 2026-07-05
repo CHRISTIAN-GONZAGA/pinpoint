@@ -33,7 +33,7 @@ void main() {
 
     final plans = await builder.findAllPlans(
       origin: const LatLng(8.949, 125.536),
-      destination: const LatLng(8.94, 125.55),
+      destination: const LatLng(8.9422, 125.52),
       jeepneyRoutes: routes,
     );
 

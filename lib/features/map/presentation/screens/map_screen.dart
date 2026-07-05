@@ -14,7 +14,6 @@ import 'package:pinpoint/core/theme/app_spacing.dart';
 import 'package:pinpoint/core/utilities/color_utils.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
 import 'package:pinpoint/features/map/presentation/utils/map_camera_helper.dart';
-import 'package:pinpoint/features/map/presentation/utils/map_polyline_utils.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_state.dart';
 import 'package:pinpoint/features/map/presentation/widgets/featured_destination_sheet.dart';
@@ -213,10 +212,6 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
                     dimmed: mapState.previewOptionId != null &&
                         mapState.previewOptionId != mapState.plannedRoute!.optionId,
                   ),
-                ),
-              if (mapState.plannedRoute != null)
-                MarkerLayer(
-                  markers: _buildDirectionMarkers(mapState.plannedRoute!),
                 ),
               MarkerLayer(
                 markers: [
@@ -593,18 +588,6 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
     }).toList();
   }
 
-  List<Marker> _buildDirectionMarkers(PlannedRoute route) {
-    return route.coloredSegments.expand((segment) {
-      final isWalk = segment.type == RouteStepType.walk;
-      return MapPolylineUtils.directionMarkers(
-        segment.polyline,
-        color: colorFromHex(segment.colorHex),
-        spacingMeters: isWalk ? 110 : 85,
-        size: isWalk ? 11 : 15,
-      );
-    }).toList();
-  }
-
   List<Marker> _buildFeaturedDestinationMarkers(
     MapState mapState,
     MapNotifier notifier,
@@ -702,9 +685,10 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
         return Polyline(
           points: segment.polyline,
           color: colorFromHex(segment.colorHex).withValues(alpha: alpha),
-          strokeWidth: isWalk ? 4 : 7,
-          borderColor: Colors.white.withValues(alpha: alpha),
-          borderStrokeWidth: isWalk ? 1 : 2,
+          strokeWidth: isWalk ? 5 : 8,
+          borderColor: Colors.white.withValues(alpha: isWalk ? 0 : alpha * 0.9),
+          borderStrokeWidth: isWalk ? 0 : 2.5,
+          pattern: isWalk ? StrokePattern.dashed(segments: [10, 8]) : null,
         );
       }).toList();
     }

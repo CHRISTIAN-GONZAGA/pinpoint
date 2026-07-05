@@ -130,16 +130,24 @@ class JeepneyPlanBuilder {
       return null;
     }
 
-    final boardPoint = boardProj.point;
+    var boardPoint = boardProj.point;
+    var boardStop = _labelStop(route, boardPoint);
+    if (boardStop == null) return null;
+
+    // Snap board to a named PUJ stop when near the corridor attach point (crossing/terminal).
+    final stopGap = _geometry.distanceMeters(boardStop.latLng, boardPoint);
+    if (stopGap < 450) {
+      boardPoint = boardStop.latLng;
+    }
+
     final alightPoint = alightProj.point;
     final alightToDest = _geometry.distanceMeters(alightPoint, destination);
 
     // Reject plans where the corridor alight is unreasonably far from destination.
     if (alightToDest > maxAlightToDestMeters) return null;
 
-    final boardStop = _labelStop(route, boardPoint);
     final alightStop = _labelStop(route, alightPoint);
-    if (boardStop == null || alightStop == null) return null;
+    if (alightStop == null) return null;
 
     final walkToBoardDist = _geometry.distanceMeters(origin, boardPoint);
     final walkFromAlightDist = alightToDest;
