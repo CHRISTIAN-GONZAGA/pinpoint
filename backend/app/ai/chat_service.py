@@ -54,13 +54,14 @@ class ChatService:
     session_id: str | None = None,
     latitude: float | None = None,
     longitude: float | None = None,
+    response_language: str | None = None,
   ) -> dict[str, Any]:
     self._ensure_services()
     if not self._indexed:
       self.ensure_index()
 
     session_id = session_id or str(uuid.uuid4())
-    language = detect_language(message)
+    language = self._resolve_language(message, response_language)
 
     if self._is_off_topic(message):
       response = self._off_topic_message(language)
@@ -95,6 +96,13 @@ class ChatService:
 
   def clear_session(self, session_id: str) -> None:
     self._memory.clear(session_id)
+
+  @staticmethod
+  def _resolve_language(message: str, response_language: str | None) -> str:
+    preferred = (response_language or "").strip().lower()
+    if preferred and preferred not in {"auto", "mixed"}:
+      return preferred
+    return detect_language(message)
 
   def status(self) -> dict[str, Any]:
     self._ensure_services()

@@ -28,6 +28,7 @@ def chat():
     session_id=payload.get("session_id"),
     latitude=payload.get("latitude"),
     longitude=payload.get("longitude"),
+    response_language=payload.get("response_language"),
   )
   return jsonify(result), 200
 

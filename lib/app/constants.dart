@@ -18,6 +18,7 @@ abstract final class AppConstants {
   static const String onboardingCompleteKey = 'onboarding_complete';
   static const String themeModeKey = 'theme_mode';
   static const String languageKey = 'language_preference';
+  static const String aiResponseLanguageKey = 'ai_response_language';
 
   static const String favoritesBoxName = 'favorites_box';
   static const String historyBoxName = 'history_box';

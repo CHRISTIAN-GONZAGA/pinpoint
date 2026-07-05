@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pinpoint/app/router.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
+import 'package:pinpoint/features/ai_chat/domain/ai_response_language.dart';
 import 'package:pinpoint/features/ai_chat/domain/chat_models.dart';
 import 'package:pinpoint/features/ai_chat/presentation/viewmodels/ai_chat_notifier.dart';
 import 'package:pinpoint/features/ai_chat/presentation/viewmodels/ai_chat_state.dart';
+import 'package:pinpoint/features/ai_chat/presentation/viewmodels/ai_language_notifier.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart';
 import 'package:share_plus/share_plus.dart';
@@ -65,6 +67,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(aiChatNotifierProvider);
+    final responseLanguage = ref.watch(aiLanguageNotifierProvider);
     ref.listen<AiChatState>(aiChatNotifierProvider, (_, next) {
       if (next.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -77,6 +80,54 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       appBar: AppBar(
         title: const Text('AI Assistant'),
         actions: [
+          PopupMenuButton<String>(
+            tooltip: 'Response language',
+            initialValue: responseLanguage,
+            onSelected: (code) async {
+              await ref.read(aiLanguageNotifierProvider.notifier).setLanguage(code);
+              ref.read(aiChatNotifierProvider.notifier).refreshWelcomeMessage();
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'AI will reply in ${AiResponseLanguage.label(code).toLowerCase()}',
+                  ),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+            itemBuilder: (context) {
+              return AiResponseLanguage.options.map((code) {
+                return PopupMenuItem<String>(
+                  value: code,
+                  child: Row(
+                    children: [
+                      if (code == responseLanguage)
+                        Icon(Icons.check_rounded, size: 18, color: Theme.of(context).colorScheme.primary)
+                      else
+                        const SizedBox(width: 18),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(AiResponseLanguage.label(code))),
+                    ],
+                  ),
+                );
+              }).toList();
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.translate_rounded, size: 20),
+                  const SizedBox(width: 4),
+                  Text(
+                    AiResponseLanguage.shortLabel(responseLanguage),
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
+                ],
+              ),
+            ),
+          ),
           IconButton(
             tooltip: 'Clear chat',
             onPressed: state.isSending
@@ -88,6 +139,33 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       ),
       body: Column(
         children: [
+          Material(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenMargin,
+                vertical: AppSpacing.sm,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.record_voice_over_outlined,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      responseLanguage == AiResponseLanguage.auto
+                          ? 'Replies match your question language'
+                          : 'Replies in ${AiResponseLanguage.label(responseLanguage)}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           Expanded(
             child: ListView.builder(
               controller: _scrollController,

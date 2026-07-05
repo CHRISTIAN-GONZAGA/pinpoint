@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:pinpoint/features/ai_chat/data/ai_local_datasource.dart';
+import 'package:pinpoint/features/ai_chat/domain/ai_response_language.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +23,16 @@ void main() {
       final source = AiLocalDataSource();
       final response = await source.chat(message: 'Magkano ang pamasahe sa jeep?');
       expect(response.language, 'tl');
+      expect(response.response, isNotEmpty);
+    });
+
+    test('chat honors forced response language', () async {
+      final source = AiLocalDataSource();
+      final response = await source.chat(
+        message: 'Which jeep goes to Robinsons?',
+        responseLanguage: AiResponseLanguage.cebuano,
+      );
+      expect(response.language, 'ceb');
       expect(response.response, isNotEmpty);
     });
   });

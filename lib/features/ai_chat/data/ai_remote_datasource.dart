@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:pinpoint/core/exceptions/app_exception.dart';
 import 'package:pinpoint/core/networking/api_client.dart';
+import 'package:pinpoint/features/ai_chat/domain/ai_response_language.dart';
 import 'package:pinpoint/features/ai_chat/domain/chat_models.dart';
 
 /// Remote API for the PINPOINT RAG assistant.
@@ -14,6 +15,7 @@ class AiRemoteDataSource {
     String? sessionId,
     double? latitude,
     double? longitude,
+    String responseLanguage = AiResponseLanguage.auto,
   }) async {
     final response = await _api.post<Map<String, dynamic>>(
       '/ai/chat',
@@ -22,6 +24,8 @@ class AiRemoteDataSource {
         'session_id': ?sessionId,
         'latitude': ?latitude,
         'longitude': ?longitude,
+        if (responseLanguage != AiResponseLanguage.auto)
+          'response_language': responseLanguage,
       },
     );
     final data = response.data;

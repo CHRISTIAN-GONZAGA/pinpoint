@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pinpoint/app/dependency_injection.dart';
 import 'package:pinpoint/features/authentication/presentation/viewmodels/auth_notifier.dart';
+import 'package:pinpoint/features/ai_chat/domain/ai_response_language.dart';
 import 'package:pinpoint/features/ai_chat/domain/chat_models.dart';
 import 'package:pinpoint/features/ai_chat/presentation/viewmodels/ai_chat_state.dart';
+import 'package:pinpoint/features/ai_chat/presentation/viewmodels/ai_language_notifier.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart';
 
 /// Suggested prompts shown on the AI chat screen.
@@ -26,14 +28,28 @@ class AiChatNotifier extends Notifier<AiChatState> {
       messages: [
         ChatMessage(
           id: _welcomeId,
-          content:
-              'Kumusta! I\'m your PINPOINT transport assistant for Butuan City. '
-              'Ask me about jeepney routes, fares, tourist spots, or emergency contacts.',
+          content: AiResponseLanguage.welcomeMessage(
+            ref.read(aiLanguageNotifierProvider),
+          ),
           isUser: false,
           timestamp: DateTime.now(),
         ),
       ],
     );
+  }
+
+  void refreshWelcomeMessage() {
+    final language = ref.read(aiLanguageNotifierProvider);
+    final messages = [...state.messages];
+    final welcomeIndex = messages.indexWhere((m) => m.id == _welcomeId);
+    if (welcomeIndex == -1) return;
+    messages[welcomeIndex] = ChatMessage(
+      id: _welcomeId,
+      content: AiResponseLanguage.welcomeMessage(language),
+      isUser: false,
+      timestamp: messages[welcomeIndex].timestamp,
+    );
+    state = state.copyWith(messages: messages);
   }
 
   Future<void> sendMessage(String text) async {
@@ -55,11 +71,13 @@ class AiChatNotifier extends Notifier<AiChatState> {
 
     try {
       final location = ref.read(mapNotifierProvider).currentLocation;
+      final responseLanguage = ref.read(aiLanguageNotifierProvider);
       final result = await ref.read(aiRepositoryProvider).chat(
             message: message,
             sessionId: state.sessionId,
             latitude: location?.latitude,
             longitude: location?.longitude,
+            responseLanguage: responseLanguage,
           );
 
       final assistantMessage = ChatMessage(

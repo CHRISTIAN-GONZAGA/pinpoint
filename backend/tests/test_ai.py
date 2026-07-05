@@ -44,6 +44,19 @@ def test_chat_endpoint(client):
   assert "session_id" in data
 
 
+def test_chat_endpoint_honors_response_language(client):
+  response = client.post(
+    "/api/ai/chat",
+    json={
+      "message": "Which jeep goes to Robinsons Place Butuan?",
+      "response_language": "tl",
+    },
+  )
+  assert response.status_code == 200
+  data = response.get_json()
+  assert data["language"] == "tl"
+
+
 def test_off_topic_question_is_declined(client):
   response = client.post(
     "/api/ai/chat",

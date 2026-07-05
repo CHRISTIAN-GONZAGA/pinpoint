@@ -595,10 +595,12 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
 
   List<Marker> _buildDirectionMarkers(PlannedRoute route) {
     return route.coloredSegments.expand((segment) {
-      if (segment.type == RouteStepType.walk) return const <Marker>[];
+      final isWalk = segment.type == RouteStepType.walk;
       return MapPolylineUtils.directionMarkers(
         segment.polyline,
         color: colorFromHex(segment.colorHex),
+        spacingMeters: isWalk ? 110 : 85,
+        size: isWalk ? 11 : 15,
       );
     }).toList();
   }

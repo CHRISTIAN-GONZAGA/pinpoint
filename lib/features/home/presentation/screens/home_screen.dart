@@ -14,6 +14,7 @@ import 'package:pinpoint/features/map/domain/map_models.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart';
 import 'package:pinpoint/features/notifications/domain/notification_models.dart';
 import 'package:pinpoint/features/notifications/presentation/viewmodels/notifications_notifier.dart';
+import 'package:pinpoint/core/widgets/home_greeting_header.dart';
 import 'package:pinpoint/core/widgets/place_card.dart';
 import 'package:pinpoint/shared/widgets/destination_search_field.dart';
 
@@ -26,10 +27,33 @@ class MainShellScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: navigationShell,
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 280),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (child, animation) {
+          final slide = Tween<Offset>(
+            begin: const Offset(0, 0.015),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(position: slide, child: child),
+          );
+        },
+        child: KeyedSubtree(
+          key: ValueKey<int>(navigationShell.currentIndex),
+          child: navigationShell,
+        ),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: navigationShell.goBranch,
+        onDestinationSelected: (index) {
+          if (index != navigationShell.currentIndex) {
+            navigationShell.goBranch(index);
+          }
+        },
+        animationDuration: const Duration(milliseconds: 350),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
@@ -94,17 +118,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
   }
 
-  String _greeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
-  }
-
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
-    final name = user != null && !user.isGuest ? ', ${user.firstName}' : '';
     final announcements = ref.watch(notificationsNotifierProvider).announcements;
 
     return Scaffold(
@@ -117,20 +133,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('$_greeting$name')
-                        .animate()
-                        .fadeIn(duration: 400.ms)
-                        .slideX(begin: -0.05, end: 0),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      'Welcome to ${AppConstants.cityName}',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.7),
-                          ),
-                    ),
+                    HomeGreetingHeader(user: user),
                     const SizedBox(height: AppSpacing.lg),
                     if (announcements.isNotEmpty) ...[
                       _AnnouncementsBanner(announcements: announcements.take(3).toList()),

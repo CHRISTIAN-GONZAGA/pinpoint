@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pinpoint/app/dependency_injection.dart';
 import 'package:pinpoint/app/router.dart';
 import 'package:pinpoint/app/constants.dart';
@@ -53,31 +54,18 @@ class _PinpointAppState extends ConsumerState<PinpointApp> {
           ),
           child: child ?? const SizedBox.shrink(),
         );
-        return Stack(
+
+        final routePath = GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
+        final hideStatusBanner = routePath == AppRoutes.splash;
+
+        return Column(
           children: [
-            scaledChild,
-            Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              child: SafeArea(
-                bottom: false,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (AppConstants.offlineFirstMode)
-                      _OfflineFirstNotice(languageCode: accessibility.languageCode),
-                    online.when(
-                      data: (connected) => connected
-                          ? const SizedBox.shrink()
-                          : _OfflineNotice(languageCode: accessibility.languageCode),
-                      loading: () => const SizedBox.shrink(),
-                      error: (error, stackTrace) => const SizedBox.shrink(),
-                    ),
-                  ],
-                ),
+            if (!hideStatusBanner)
+              _AppStatusBar(
+                languageCode: accessibility.languageCode,
+                online: online,
               ),
-            ),
+            Expanded(child: scaledChild),
           ],
         );
       },
@@ -85,64 +73,61 @@ class _PinpointAppState extends ConsumerState<PinpointApp> {
   }
 }
 
-class _OfflineNotice extends StatelessWidget {
-  const _OfflineNotice({required this.languageCode});
+class _AppStatusBar extends StatelessWidget {
+  const _AppStatusBar({required this.languageCode, required this.online});
 
   final String languageCode;
+  final AsyncValue<bool> online;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      elevation: 2,
-      color: Theme.of(context).colorScheme.errorContainer,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Row(
-          children: [
-            Icon(Icons.wifi_off_rounded, color: Theme.of(context).colorScheme.onErrorContainer),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                PinpointLocalizations.t('offline_notice', languageCode),
-                style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
-              ),
-            ),
-          ],
-        ),
-      ),
+    final showOfflineFirst = AppConstants.offlineFirstMode;
+    final showOffline = online.when(
+      data: (connected) => !connected,
+      loading: () => false,
+      error: (error, stackTrace) => false,
     );
-  }
-}
 
-class _OfflineFirstNotice extends StatelessWidget {
-  const _OfflineFirstNotice({required this.languageCode});
+    if (!showOfflineFirst && !showOffline) {
+      return const SizedBox.shrink();
+    }
 
-  final String languageCode;
-
-  @override
-  Widget build(BuildContext context) {
     return Material(
-      elevation: 2,
-      color: Theme.of(context).colorScheme.tertiaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(
-          children: [
-            Icon(
-              Icons.cloud_off_rounded,
-              color: Theme.of(context).colorScheme.onTertiaryContainer,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                PinpointLocalizations.t('offline_first_notice', languageCode),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onTertiaryContainer,
-                    ),
+      elevation: 1,
+      color: showOffline
+          ? Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.95)
+          : Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          child: Row(
+            children: [
+              Icon(
+                showOffline ? Icons.wifi_off_rounded : Icons.offline_bolt_rounded,
+                size: 18,
+                color: showOffline
+                    ? Theme.of(context).colorScheme.onErrorContainer
+                    : Theme.of(context).colorScheme.primary,
               ),
-            ),
-          ],
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  showOffline
+                      ? PinpointLocalizations.t('offline_notice', languageCode)
+                      : PinpointLocalizations.t('offline_first_notice', languageCode),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: showOffline
+                            ? Theme.of(context).colorScheme.onErrorContainer
+                            : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75),
+                      ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

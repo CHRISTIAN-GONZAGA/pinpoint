@@ -3,6 +3,7 @@ import 'package:pinpoint/app/constants.dart';
 import 'package:pinpoint/core/networking/api_client.dart';
 import 'package:pinpoint/features/ai_chat/data/ai_local_datasource.dart';
 import 'package:pinpoint/features/ai_chat/data/ai_remote_datasource.dart';
+import 'package:pinpoint/features/ai_chat/domain/ai_response_language.dart';
 import 'package:pinpoint/features/ai_chat/domain/chat_models.dart';
 
 /// Repository for AI chat interactions with offline-first local retrieval.
@@ -24,6 +25,7 @@ class AiRepository {
     String? sessionId,
     double? latitude,
     double? longitude,
+    String responseLanguage = AiResponseLanguage.auto,
   }) async {
     if (AppConstants.offlineFirstMode) {
       return _local.chat(
@@ -31,6 +33,7 @@ class AiRepository {
         sessionId: sessionId,
         latitude: latitude,
         longitude: longitude,
+        responseLanguage: responseLanguage,
       );
     }
     try {
@@ -39,6 +42,7 @@ class AiRepository {
         sessionId: sessionId,
         latitude: latitude,
         longitude: longitude,
+        responseLanguage: responseLanguage,
       );
     } on DioException catch (error) {
       try {
@@ -47,6 +51,7 @@ class AiRepository {
           sessionId: sessionId,
           latitude: latitude,
           longitude: longitude,
+          responseLanguage: responseLanguage,
         );
       } catch (_) {
         throw _apiClient.mapError(error);

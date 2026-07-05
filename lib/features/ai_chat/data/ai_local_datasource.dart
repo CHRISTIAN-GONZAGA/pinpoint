@@ -3,6 +3,8 @@ import 'package:pinpoint/app/constants.dart';
 import 'package:pinpoint/core/local/asset_loader.dart';
 import 'package:pinpoint/features/ai_chat/domain/chat_models.dart';
 
+import 'package:pinpoint/features/ai_chat/domain/ai_response_language.dart';
+
 /// Offline knowledge retrieval and template-based responses.
 class AiLocalDataSource {
   Future<List<Map<String, dynamic>>> _documents() async {
@@ -21,9 +23,13 @@ class AiLocalDataSource {
     String? sessionId,
     double? latitude,
     double? longitude,
+    String responseLanguage = AiResponseLanguage.auto,
   }) async {
     final docs = await _documents();
-    final language = _detectLanguage(message);
+    final language = AiResponseLanguage.resolve(
+      preference: responseLanguage,
+      message: message,
+    );
     final normalized = message.toLowerCase();
     final matches = docs.where((doc) {
       final keywords = (doc['keywords'] as List<dynamic>? ?? []).cast<String>();
@@ -63,13 +69,6 @@ class AiLocalDataSource {
 
   Future<void> clearSession(String sessionId) async {
     // Local sessions are ephemeral; nothing to clear server-side.
-  }
-
-  String _detectLanguage(String message) {
-    final lower = message.toLowerCase();
-    if (RegExp(r'\b(asa|unsa|pila|kaayo|lami)\b').hasMatch(lower)) return 'ceb';
-    if (RegExp(r'\b(saan|magkano|jeep|ako|mga|po)\b').hasMatch(lower)) return 'tl';
-    return 'en';
   }
 
   String _fallbackResponse(String language) => switch (language) {

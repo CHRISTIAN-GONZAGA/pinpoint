@@ -248,9 +248,16 @@ CustomTransitionPage<void> _fadePage(GoRouterState state, Widget child) {
     key: state.pageKey,
     child: child,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return FadeTransition(opacity: animation, child: child);
+      final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+      return FadeTransition(
+        opacity: curved,
+        child: ScaleTransition(
+          scale: Tween<double>(begin: 0.97, end: 1).animate(curved),
+          child: child,
+        ),
+      );
     },
-    transitionDuration: const Duration(milliseconds: 350),
+    transitionDuration: const Duration(milliseconds: 380),
   );
 }
 
@@ -259,15 +266,22 @@ CustomTransitionPage<void> _slidePage(GoRouterState state, Widget child) {
     key: state.pageKey,
     child: child,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
       final offset = Tween<Offset>(
-        begin: const Offset(0, 0.08),
+        begin: const Offset(0, 0.06),
         end: Offset.zero,
-      ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+      ).animate(curved);
       return SlideTransition(
         position: offset,
-        child: FadeTransition(opacity: animation, child: child),
+        child: FadeTransition(
+          opacity: curved,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.98, end: 1).animate(curved),
+            child: child,
+          ),
+        ),
       );
     },
-    transitionDuration: const Duration(milliseconds: 400),
+    transitionDuration: const Duration(milliseconds: 420),
   );
 }
