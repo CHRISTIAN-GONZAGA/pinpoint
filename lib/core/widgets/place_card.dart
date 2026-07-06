@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
+import 'package:pinpoint/core/theme/premium_tokens.dart';
 import 'package:pinpoint/core/utilities/place_utils.dart';
 import 'package:pinpoint/features/explore/domain/place_models.dart';
 
-/// Reusable card for displaying a place in lists.
+/// Minimal place row for lists — restrained, readable.
 class PlaceCard extends StatelessWidget {
   const PlaceCard({
     super.key,
@@ -22,56 +23,84 @@ class PlaceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = PlaceUtils.colorForCategory(place.category);
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.primary;
     final icon = PlaceUtils.iconForCategory(place.category);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+    return Material(
+      color: PremiumTokens.elevatedSurface(context),
+      borderRadius: BorderRadius.circular(PremiumTokens.surfaceRadius),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+        borderRadius: BorderRadius.circular(PremiumTokens.surfaceRadius),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(PremiumTokens.surfaceRadius),
+            border: Border.all(color: PremiumTokens.separator(context), width: 0.5),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
-              CircleAvatar(
-                backgroundColor: color.withValues(alpha: 0.15),
-                child: Icon(icon, color: color),
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: PremiumTokens.subtleFill(context),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 22),
               ),
-              const SizedBox(width: AppSpacing.md),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(place.name, style: Theme.of(context).textTheme.titleSmall),
-                    if (place.address != null)
+                    Text(
+                      place.name,
+                      style: theme.textTheme.titleSmall?.copyWith(letterSpacing: -0.2),
+                    ),
+                    if (place.address != null) ...[
+                      const SizedBox(height: 2),
                       Text(
                         place.address!,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
+                        ),
                       ),
-                    if (place.distanceLabel.isNotEmpty)
+                    ],
+                    if (place.distanceLabel.isNotEmpty) ...[
+                      const SizedBox(height: 4),
                       Text(
                         place.distanceLabel,
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                              color: color,
-                            ),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.secondary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
+                    ],
                   ],
                 ),
               ),
               if (onFavorite != null)
                 IconButton(
+                  visualDensity: VisualDensity.compact,
                   onPressed: onFavorite,
                   icon: Icon(
                     isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                    color: isFavorite ? Colors.red : null,
+                    color: isFavorite ? const Color(0xFFFF3B30) : null,
+                    size: 22,
                   ),
                 ),
-              ?trailing,
-              if (trailing == null && onFavorite == null)
-                const Icon(Icons.chevron_right_rounded),
+              if (trailing != null)
+                trailing!
+              else if (onFavorite == null)
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 20,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
+                ),
             ],
           ),
         ),

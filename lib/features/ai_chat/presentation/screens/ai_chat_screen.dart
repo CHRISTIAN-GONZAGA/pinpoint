@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pinpoint/app/router.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
+import 'package:pinpoint/core/theme/premium_tokens.dart';
 import 'package:pinpoint/features/ai_chat/domain/ai_response_language.dart';
 import 'package:pinpoint/features/ai_chat/domain/chat_models.dart';
 import 'package:pinpoint/features/ai_chat/presentation/viewmodels/ai_chat_notifier.dart';
@@ -77,8 +78,9 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     });
 
     return Scaffold(
+      backgroundColor: PremiumTokens.groupedBackground(context),
       appBar: AppBar(
-        title: const Text('AI Assistant'),
+        title: const Text('Assistant'),
         actions: [
           PopupMenuButton<String>(
             tooltip: 'Response language',
@@ -139,37 +141,10 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       ),
       body: Column(
         children: [
-          Material(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.screenMargin,
-                vertical: AppSpacing.sm,
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.record_voice_over_outlined,
-                    size: 18,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      responseLanguage == AiResponseLanguage.auto
-                          ? 'Replies match your question language'
-                          : 'Replies in ${AiResponseLanguage.label(responseLanguage)}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.all(AppSpacing.screenMargin),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
               itemCount: state.messages.length + (state.isSending ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index >= state.messages.length) {
@@ -195,53 +170,65 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
           ),
           if (!state.hasMessages || state.messages.length <= 1)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenMargin),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
               child: Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.sm,
-                children: aiChatSuggestions.map((suggestion) {
+                spacing: 8,
+                runSpacing: 8,
+                children: aiChatSuggestions.take(4).map((suggestion) {
                   return ActionChip(
                     label: Text(suggestion),
+                    labelStyle: Theme.of(context).textTheme.labelMedium,
                     onPressed: state.isSending ? null : () => _send(suggestion),
                   );
                 }).toList(),
               ),
             ),
-          if (!state.hasMessages || state.messages.length <= 1)
-            const SizedBox(height: AppSpacing.sm),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
+          Container(
+            padding: EdgeInsets.fromLTRB(16, 8, 16, 12 + MediaQuery.paddingOf(context).bottom),
+            decoration: BoxDecoration(
+              color: PremiumTokens.elevatedSurface(context),
+              border: Border(
+                top: BorderSide(color: PremiumTokens.separator(context), width: 0.5),
+              ),
+            ),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
                   child: TextField(
                     controller: _controller,
                     enabled: !state.isSending,
+                    maxLines: 4,
+                    minLines: 1,
                     textInputAction: TextInputAction.send,
                     onSubmitted: state.isSending ? null : _send,
                     decoration: InputDecoration(
-                      hintText: 'Ask about routes, fares, or places...',
+                      hintText: 'Message',
+                      filled: true,
+                      fillColor: PremiumTokens.subtleFill(context),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(22),
+                        borderSide: BorderSide.none,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.lg,
-                        vertical: AppSpacing.sm,
-                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     ),
                   ),
                 ),
-                const SizedBox(width: AppSpacing.sm),
+                const SizedBox(width: 8),
                 FilledButton(
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(44, 44),
+                    padding: EdgeInsets.zero,
+                    shape: const CircleBorder(),
+                  ),
                   onPressed: state.isSending ? null : () => _send(),
                   child: state.isSending
                       ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : const Icon(Icons.send_rounded, size: 20),
+                      : const Icon(Icons.arrow_upward_rounded, size: 20),
                 ),
               ],
             ),
@@ -268,6 +255,9 @@ class _ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = message.isUser;
+    final theme = Theme.of(context);
+    const userBlue = Color(0xFF007AFF);
+
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Column(
@@ -276,23 +266,27 @@ class _ChatBubble extends StatelessWidget {
         children: [
           Container(
             constraints: BoxConstraints(
-              maxWidth: MediaQuery.sizeOf(context).width * 0.82,
+              maxWidth: MediaQuery.sizeOf(context).width * 0.78,
             ),
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: isUser
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(AppSpacing.lg).copyWith(
+                  ? userBlue
+                  : PremiumTokens.elevatedSurface(context),
+              borderRadius: BorderRadius.circular(18).copyWith(
                 bottomRight: isUser ? const Radius.circular(4) : null,
                 bottomLeft: !isUser ? const Radius.circular(4) : null,
               ),
+              border: isUser
+                  ? null
+                  : Border.all(color: PremiumTokens.separator(context), width: 0.5),
             ),
             child: Text(
               message.content,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: isUser ? Colors.white : null,
-                  ),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: isUser ? Colors.white : null,
+                height: 1.4,
+              ),
             ),
           ),
           if (!isUser && (message.actions.isNotEmpty || message.sources.isNotEmpty))

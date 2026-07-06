@@ -6,7 +6,8 @@ import 'package:pinpoint/app/dependency_injection.dart';
 import 'package:pinpoint/app/router.dart';
 import 'package:pinpoint/core/accessibility/accessibility_notifier.dart';
 import 'package:pinpoint/core/localization/pinpoint_localizations.dart';
-import 'package:pinpoint/core/theme/app_spacing.dart';
+import 'package:pinpoint/core/theme/premium_tokens.dart';
+import 'package:pinpoint/core/widgets/premium_surface.dart';
 import 'package:pinpoint/features/authentication/presentation/viewmodels/auth_notifier.dart';
 import 'package:pinpoint/features/notifications/presentation/viewmodels/notifications_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -71,195 +72,240 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     String t(String key) => PinpointLocalizations.t(key, language);
 
     return Scaffold(
-      appBar: AppBar(title: Text(t('profile'))),
+      backgroundColor: PremiumTokens.groupedBackground(context),
       body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.screenMargin),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
         children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.cardPadding),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 36,
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                    child: Icon(
-                      isGuest ? Icons.person_outline : Icons.person,
-                      size: 36,
-                      color: Theme.of(context).colorScheme.primary,
+          PremiumSectionHeader(title: t('profile')),
+          PremiumSurface(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 32,
+                      backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      child: Icon(
+                        isGuest ? Icons.person_outline_rounded : Icons.person_rounded,
+                        size: 32,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user?.fullName ?? 'Guest',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            isGuest && !offline
+                                ? 'Sign in to sync across devices'
+                                : isLocal
+                                    ? 'Local profile on this device'
+                                    : user?.email ?? 'Butuan City traveler',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.45),
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          const PremiumSectionLabel('Appearance'),
+          PremiumSurface(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: SegmentedButton<ThemeMode>(
+                  segments: const [
+                    ButtonSegment(value: ThemeMode.light, label: Text('Light'), icon: Icon(Icons.light_mode, size: 18)),
+                    ButtonSegment(value: ThemeMode.dark, label: Text('Dark'), icon: Icon(Icons.dark_mode, size: 18)),
+                    ButtonSegment(value: ThemeMode.system, label: Text('Auto'), icon: Icon(Icons.brightness_auto, size: 18)),
+                  ],
+                  selected: {themeMode},
+                  onSelectionChanged: (modes) {
+                    ref.read(themeModeProvider.notifier).setThemeMode(modes.first);
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          const PremiumSectionLabel('Your data'),
+          PremiumSurface(
+            children: [
+              PremiumListRow(
+                title: 'Favorites',
+                subtitle: isGuest && !offline ? 'Sign in to sync' : 'Saved places',
+                leading: const Icon(Icons.favorite_border_rounded, size: 22),
+                onTap: () => context.push(AppRoutes.favorites),
+              ),
+              PremiumListRow(
+                title: 'History',
+                subtitle: 'Recent routes and searches',
+                leading: const Icon(Icons.history_rounded, size: 22),
+                onTap: () => context.push(AppRoutes.history),
+              ),
+              PremiumListRow(
+                title: t('cached_routes'),
+                subtitle: t('cached_routes_subtitle'),
+                leading: const Icon(Icons.route_rounded, size: 22),
+                onTap: () => context.push(AppRoutes.cachedRoutes),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          const PremiumSectionLabel('Safety & support'),
+          PremiumSurface(
+            children: [
+              PremiumListRow(
+                title: 'Emergency',
+                subtitle: 'Hotlines and nearby facilities',
+                leading: const Icon(Icons.emergency_outlined, size: 22),
+                onTap: () => context.push(AppRoutes.emergency),
+              ),
+              PremiumListRow(
+                title: 'Notifications',
+                subtitle: unread > 0
+                    ? '$unread unread announcement${unread == 1 ? '' : 's'}'
+                    : 'Route updates and news',
+                leading: const Icon(Icons.notifications_outlined, size: 22),
+                onTap: (isGuest && !offline) ? null : () => context.push(AppRoutes.notifications),
+              ),
+              if (user != null && !isGuest && !offline && !isLocal)
+                PremiumListRow(
+                  title: 'Report an issue',
+                  subtitle: 'Incorrect fare, route, or place',
+                  leading: const Icon(Icons.flag_outlined, size: 22),
+                  onTap: () => context.push(AppRoutes.reportIssue),
+                ),
+              if (isAdmin)
+                PremiumListRow(
+                  title: 'Admin dashboard',
+                  subtitle: 'Announcements and analytics',
+                  leading: const Icon(Icons.admin_panel_settings_outlined, size: 22),
+                  onTap: () => context.push(AppRoutes.admin),
+                ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          const PremiumSectionLabel('Preferences'),
+          PremiumSurface(
+            children: [
+              PremiumListRow(
+                title: t('accessibility'),
+                subtitle: 'Text size and motion',
+                leading: const Icon(Icons.accessibility_new_rounded, size: 22),
+                onTap: () => context.push(AppRoutes.accessibility),
+              ),
+              if (_developerModeEnabled)
+                PremiumListRow(
+                  title: 'Developer mode',
+                  subtitle: 'Reset data and debug tools',
+                  leading: const Icon(Icons.developer_mode_outlined, size: 22),
+                  onTap: () => context.push(AppRoutes.developerMode),
+                ),
+            ],
+          ),
+          if (user != null && !isGuest && !offline && !isLocal) ...[
+            const SizedBox(height: 24),
+            PremiumSurface(
+              children: [
+                PremiumListRow(
+                  title: t('delete_account'),
+                  subtitle: t('delete_account_subtitle'),
+                  leading: Icon(
+                    Icons.delete_outline_rounded,
+                    size: 22,
+                    color: Theme.of(context).colorScheme.error,
                   ),
-                  const SizedBox(width: AppSpacing.lg),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user?.fullName ?? 'Guest',
-                          style: Theme.of(context).textTheme.titleLarge,
+                  onTap: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(t('delete_account')),
+                        content: const Text(
+                          'This permanently deletes your account, favorites, history, and AI chat history.',
                         ),
-                        if (user != null && !isGuest && !isLocal)
-                          Text(user.email, style: Theme.of(context).textTheme.bodySmall),
-                        if (isLocal)
-                          Text(
-                            'Local profile · stored on this device',
-                            style: Theme.of(context).textTheme.bodySmall,
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Cancel'),
                           ),
-                        if (isGuest && !offline)
-                          Text(
-                            'Sign in to sync favorites and history',
-                            style: Theme.of(context).textTheme.bodySmall,
+                          FilledButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text('Delete'),
                           ),
-                      ],
-                    ),
-                  ),
-                ],
+                        ],
+                      ),
+                    );
+                    if (confirmed != true || !context.mounted) return;
+                    final success =
+                        await ref.read(authNotifierProvider.notifier).deleteAccount();
+                    if (!context.mounted) return;
+                    if (success) {
+                      context.go(AppRoutes.login);
+                    } else {
+                      final error = ref.read(authNotifierProvider).errorMessage;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(error ?? 'Unable to delete account')),
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 28),
+          if (!offline || isLocal)
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () async {
+                  if (offline && isLocal) {
+                    await ref.read(authNotifierProvider.notifier).resetLocalSession();
+                    if (context.mounted) context.go(AppRoutes.onboarding);
+                    return;
+                  }
+                  await ref.read(authNotifierProvider.notifier).signOut();
+                  if (context.mounted) context.go(AppRoutes.login);
+                },
+                child: Text(offline ? 'Reset local profile' : t('sign_out')),
+              ),
+            )
+          else if (isGuest)
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => context.go(AppRoutes.login),
+                child: Text(t('sign_in')),
+              ),
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () async {
+                  await ref.read(authNotifierProvider.notifier).signOut();
+                  if (context.mounted) context.go(AppRoutes.login);
+                },
+                child: Text(t('sign_out')),
               ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Text('Appearance', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          SegmentedButton<ThemeMode>(
-            segments: const [
-              ButtonSegment(value: ThemeMode.light, label: Text('Light'), icon: Icon(Icons.light_mode)),
-              ButtonSegment(value: ThemeMode.dark, label: Text('Dark'), icon: Icon(Icons.dark_mode)),
-              ButtonSegment(value: ThemeMode.system, label: Text('System'), icon: Icon(Icons.settings_brightness)),
-            ],
-            selected: {themeMode},
-            onSelectionChanged: (modes) {
-              ref.read(themeModeProvider.notifier).setThemeMode(modes.first);
-            },
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          _SettingsTile(
-            icon: Icons.favorite_outline,
-            title: 'Favorites',
-            subtitle: isGuest && !offline ? 'Sign in to save favorites' : 'Manage saved places',
-            onTap: () => context.push(AppRoutes.favorites),
-          ),
-          _SettingsTile(
-            icon: Icons.history,
-            title: 'History',
-            subtitle: 'Recent searches and routes',
-            onTap: () => context.push(AppRoutes.history),
-          ),
-          _SettingsTile(
-            icon: Icons.emergency_rounded,
-            title: 'Emergency',
-            subtitle: 'Hotlines and nearby facilities',
-            onTap: () => context.push(AppRoutes.emergency),
-          ),
-          _SettingsTile(
-            icon: Icons.notifications_outlined,
-            title: 'Notifications',
-            subtitle: unread > 0 ? '$unread unread announcement${unread == 1 ? '' : 's'}' : 'Route updates and announcements',
-            onTap: (isGuest && !offline) ? () {} : () => context.push(AppRoutes.notifications),
-          ),
-          if (user != null && !isGuest && !offline && !isLocal)
-            _SettingsTile(
-              icon: Icons.flag_outlined,
-              title: 'Report an Issue',
-              subtitle: 'Incorrect fare, route, or place information',
-              onTap: () => context.push(AppRoutes.reportIssue),
-            ),
-          if (isAdmin)
-            _SettingsTile(
-              icon: Icons.admin_panel_settings_outlined,
-              title: 'Admin Dashboard',
-              subtitle: 'Manage announcements, reports, and analytics',
-              onTap: () => context.push(AppRoutes.admin),
-            ),
-          _SettingsTile(
-            icon: Icons.route_rounded,
-            title: t('cached_routes'),
-            subtitle: t('cached_routes_subtitle'),
-            onTap: () => context.push(AppRoutes.cachedRoutes),
-          ),
-          _SettingsTile(
-            icon: Icons.accessibility_new_rounded,
-            title: t('accessibility'),
-            subtitle: 'Large text, contrast, reduced motion',
-            onTap: () => context.push(AppRoutes.accessibility),
-          ),
-          if (_developerModeEnabled)
-            _SettingsTile(
-              icon: Icons.developer_mode_outlined,
-              title: 'Developer Mode',
-              subtitle: 'Reset data, reseed assets, simulate first launch',
-              onTap: () => context.push(AppRoutes.developerMode),
-            ),
-          if (user != null && !isGuest && !offline && !isLocal) ...[
-            const SizedBox(height: AppSpacing.lg),
-            _SettingsTile(
-              icon: Icons.delete_forever_outlined,
-              title: t('delete_account'),
-              subtitle: t('delete_account_subtitle'),
-              onTap: () async {
-                final confirmed = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text(t('delete_account')),
-                    content: const Text(
-                      'This permanently deletes your account, favorites, history, and AI chat history.',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancel'),
-                      ),
-                      FilledButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Delete'),
-                      ),
-                    ],
-                  ),
-                );
-                if (confirmed != true || !context.mounted) return;
-                final success = await ref.read(authNotifierProvider.notifier).deleteAccount();
-                if (!context.mounted) return;
-                if (success) {
-                  context.go(AppRoutes.login);
-                } else {
-                  final error = ref.read(authNotifierProvider).errorMessage;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(error ?? 'Unable to delete account')),
-                  );
-                }
-              },
-            ),
-          ],
-          if (!offline || isLocal) ...[
-            const SizedBox(height: AppSpacing.lg),
-            OutlinedButton(
-              onPressed: () async {
-                if (offline && isLocal) {
-                  await ref.read(authNotifierProvider.notifier).resetLocalSession();
-                  if (context.mounted) context.go(AppRoutes.onboarding);
-                  return;
-                }
-                await ref.read(authNotifierProvider.notifier).signOut();
-                if (context.mounted) context.go(AppRoutes.login);
-              },
-              child: Text(offline ? 'Reset local profile' : t('sign_out')),
-            ),
-          ] else if (isGuest) ...[
-            const SizedBox(height: AppSpacing.lg),
-            FilledButton(
-              onPressed: () => context.go(AppRoutes.login),
-              child: Text(t('sign_in')),
-            ),
-          ] else ...[
-            const SizedBox(height: AppSpacing.lg),
-            OutlinedButton(
-              onPressed: () async {
-                await ref.read(authNotifierProvider.notifier).signOut();
-                if (context.mounted) context.go(AppRoutes.login);
-              },
-              child: Text(t('sign_out')),
-            ),
-          ],
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: 20),
           Center(
             child: GestureDetector(
               onTap: _onVersionTap,
@@ -274,34 +320,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _SettingsTile extends StatelessWidget {
-  const _SettingsTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(title),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: onTap,
       ),
     );
   }

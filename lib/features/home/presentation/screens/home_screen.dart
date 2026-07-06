@@ -6,16 +6,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pinpoint/app/constants.dart';
 import 'package:pinpoint/app/router.dart';
-import 'package:pinpoint/core/theme/app_colors.dart';
-import 'package:pinpoint/core/theme/app_spacing.dart';
 import 'package:pinpoint/features/authentication/presentation/viewmodels/auth_notifier.dart';
 import 'package:pinpoint/features/explore/presentation/viewmodels/explore_notifier.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart';
 import 'package:pinpoint/features/notifications/domain/notification_models.dart';
 import 'package:pinpoint/features/notifications/presentation/viewmodels/notifications_notifier.dart';
+import 'package:pinpoint/core/theme/premium_tokens.dart';
 import 'package:pinpoint/core/widgets/home_greeting_header.dart';
 import 'package:pinpoint/core/widgets/place_card.dart';
+import 'package:pinpoint/core/widgets/premium_surface.dart';
 import 'package:pinpoint/shared/widgets/destination_search_field.dart';
 
 /// Main bottom navigation shell with five primary tabs.
@@ -27,6 +27,7 @@ class MainShellScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 280),
         switchInCurve: Curves.easeOutCubic,
@@ -46,50 +47,60 @@ class MainShellScreen extends StatelessWidget {
           child: navigationShell,
         ),
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: (index) {
-          if (index != navigationShell.currentIndex) {
-            navigationShell.goBranch(index);
-          }
-        },
-        animationDuration: const Duration(milliseconds: 350),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_rounded),
-            label: 'Home',
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(PremiumTokens.navBarRadius),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map_rounded),
-            label: 'Map',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.explore_outlined),
-            selectedIcon: Icon(Icons.explore_rounded),
-            label: 'Explore',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.smart_toy_outlined),
-            selectedIcon: Icon(Icons.smart_toy_rounded),
-            label: 'AI',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person_rounded),
-            label: 'Profile',
-          ),
-        ],
-      ),
-      floatingActionButton: navigationShell.currentIndex == 3 ||
-              navigationShell.currentIndex == 1
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () => navigationShell.goBranch(3),
-              icon: const Icon(Icons.smart_toy_rounded),
-              label: const Text('AI'),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(PremiumTokens.navBarRadius),
+            child: NavigationBar(
+              selectedIndex: navigationShell.currentIndex,
+              onDestinationSelected: (index) {
+                if (index != navigationShell.currentIndex) {
+                  navigationShell.goBranch(index);
+                }
+              },
+              animationDuration: const Duration(milliseconds: 320),
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home_rounded),
+                  label: 'Home',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.map_outlined),
+                  selectedIcon: Icon(Icons.map_rounded),
+                  label: 'Map',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.explore_outlined),
+                  selectedIcon: Icon(Icons.explore_rounded),
+                  label: 'Explore',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.bubble_chart_outlined),
+                  selectedIcon: Icon(Icons.bubble_chart_rounded),
+                  label: 'Assistant',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.person_outline),
+                  selectedIcon: Icon(Icons.person_rounded),
+                  label: 'Profile',
+                ),
+              ],
             ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -124,37 +135,40 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final announcements = ref.watch(notificationsNotifierProvider).announcements;
 
     return Scaffold(
+      backgroundColor: PremiumTokens.groupedBackground(context),
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.screenMargin),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     HomeGreetingHeader(user: user),
-                    const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: 24),
+                    const _HomeSearchBar(),
+                    const SizedBox(height: 20),
                     if (announcements.isNotEmpty) ...[
                       _AnnouncementsBanner(announcements: announcements.take(3).toList()),
-                      const SizedBox(height: AppSpacing.lg),
+                      const SizedBox(height: 20),
                     ],
                     const _LocationCard(),
-                    const SizedBox(height: AppSpacing.lg),
-                    const _HomeSearchBar().animate(delay: 150.ms).fadeIn(),
-                    const SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: 28),
+                    const PremiumSectionLabel('Go somewhere'),
+                    const SizedBox(height: 10),
+                    const _QuickActionsRow(),
+                    const SizedBox(height: 28),
+                    const PremiumSectionLabel('Popular places'),
+                    const SizedBox(height: 10),
                     const _FeaturedDestinationChips(),
-                    const SizedBox(height: AppSpacing.xl),
-                    Text('Quick Actions', style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(height: AppSpacing.md),
-                    const _QuickActionsGrid(),
-                    const SizedBox(height: AppSpacing.xl),
-                    Text('Nearby Highlights', style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: 28),
+                    const PremiumSectionLabel('Nearby'),
+                    const SizedBox(height: 10),
                     const _NearbyList(),
-                    const SizedBox(height: AppSpacing.xl),
-                    _EmergencyBanner().animate(delay: 300.ms).fadeIn(),
-                    const SizedBox(height: 80),
+                    const SizedBox(height: 20),
+                    _EmergencyBanner(),
+                    const SizedBox(height: 100),
                   ],
                 ),
               ),
@@ -174,18 +188,20 @@ class _AnnouncementsBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final item = announcements.first;
-    return Card(
-      color: item.isHighPriority
-          ? Theme.of(context).colorScheme.errorContainer
-          : Theme.of(context).colorScheme.primaryContainer,
-      child: ListTile(
-        leading: Icon(
-          Icons.campaign_outlined,
-          color: Theme.of(context).colorScheme.onPrimaryContainer,
+    final theme = Theme.of(context);
+    return PremiumSurface(
+      children: [
+        PremiumListRow(
+          dense: true,
+          leading: Icon(
+            Icons.info_outline_rounded,
+            color: item.isHighPriority ? theme.colorScheme.error : theme.colorScheme.primary,
+            size: 22,
+          ),
+          title: item.title,
+          subtitle: item.content,
         ),
-        title: Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-        subtitle: Text(item.content, maxLines: 2, overflow: TextOverflow.ellipsis),
-      ),
+      ],
     );
   }
 }
@@ -197,66 +213,64 @@ class _LocationCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final mapState = ref.watch(mapNotifierProvider);
     final address = mapState.currentAddress ?? AppConstants.cityName;
-    final accuracy = mapState.currentLocation?.accuracyMeters;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.cardPadding),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.secondary.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(16),
+    return PremiumSurface(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: PremiumTokens.subtleFill(context),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: mapState.isLocating
+                    ? const Padding(
+                        padding: EdgeInsets.all(10),
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(
+                        Icons.near_me_rounded,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
               ),
-              child: mapState.isLocating
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.my_location_rounded, color: AppColors.secondary),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Current Location', style: Theme.of(context).textTheme.labelMedium),
-                  Text(
-                    address,
-                    style: Theme.of(context).textTheme.titleMedium,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    mapState.locationWarning ??
-                        (accuracy != null
-                            ? 'GPS accuracy: ${accuracy.round()} m'
-                            : 'Tap refresh to detect your location'),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: mapState.locationWarning != null
-                              ? Theme.of(context).colorScheme.error
-                              : Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.6),
-                        ),
-                  ),
-                ],
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'You are here',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.45),
+                          ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      address,
+                      style: Theme.of(context).textTheme.titleSmall,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            IconButton(
-              onPressed: mapState.isLocating
-                  ? null
-                  : () => ref.read(mapNotifierProvider.notifier).refreshLocation(),
-              icon: const Icon(Icons.refresh_rounded),
-            ),
-          ],
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                onPressed: mapState.isLocating
+                    ? null
+                    : () => ref.read(mapNotifierProvider.notifier).refreshLocation(),
+                icon: const Icon(Icons.refresh_rounded, size: 20),
+              ),
+            ],
+          ),
         ),
-      ),
-    ).animate(delay: 100.ms).fadeIn().slideY(begin: 0.1, end: 0);
+      ],
+    ).animate(delay: 80.ms).fadeIn();
   }
 }
 
@@ -287,84 +301,62 @@ class _FeaturedDestinationChips extends ConsumerWidget {
     final featured = ref.watch(mapNotifierProvider).featuredDestinations;
     if (featured.isEmpty) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Featured destinations', style: Theme.of(context).textTheme.labelLarge),
-        const SizedBox(height: AppSpacing.sm),
-        Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
-          children: featured.map((item) {
-            return ActionChip(
-              avatar: const Icon(Icons.place_outlined, size: 18),
-              label: Text(item.shortLabel),
-              onPressed: () async {
-                await ref.read(mapNotifierProvider.notifier).planTripTo(
-                      MapLocation(
-                        latitude: item.place.latitude,
-                        longitude: item.place.longitude,
-                        label: item.place.name,
-                      ),
-                    );
-                if (context.mounted) context.go(AppRoutes.map);
-              },
-            );
-          }).toList(),
-        ),
-      ],
+    return SizedBox(
+      height: 108,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: featured.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (context, index) {
+          final item = featured[index];
+          return PremiumActionTile(
+            icon: Icons.place_outlined,
+            label: item.shortLabel,
+            accent: Theme.of(context).colorScheme.secondary,
+            onTap: () async {
+              await ref.read(mapNotifierProvider.notifier).planTripTo(
+                    MapLocation(
+                      latitude: item.place.latitude,
+                      longitude: item.place.longitude,
+                      label: item.place.name,
+                    ),
+                  );
+              if (context.mounted) context.go(AppRoutes.map);
+            },
+          );
+        },
+      ),
     );
   }
 }
 
-class _QuickActionsGrid extends StatelessWidget {
-  const _QuickActionsGrid();
+class _QuickActionsRow extends StatelessWidget {
+  const _QuickActionsRow();
 
   static const _actions = [
-    (Icons.route_rounded, 'Plan Route', AppRoutes.map, AppColors.primary),
-    (Icons.near_me_rounded, 'Explore Nearby', AppRoutes.explore, AppColors.accent),
-    (Icons.smart_toy_rounded, 'AI Assistant', AppRoutes.ai, AppColors.secondary),
-    (Icons.emergency_rounded, 'Emergency', AppRoutes.emergency, AppColors.danger),
-    (Icons.favorite_rounded, 'Favorites', AppRoutes.favorites, AppColors.warning),
-    (Icons.history_rounded, 'History', AppRoutes.history, Color(0xFF6366F1)),
+    (Icons.route_rounded, 'Plan route', AppRoutes.map),
+    (Icons.explore_outlined, 'Explore', AppRoutes.explore),
+    (Icons.bubble_chart_outlined, 'Assistant', AppRoutes.ai),
+    (Icons.emergency_outlined, 'Emergency', AppRoutes.emergency),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: AppSpacing.md,
-        crossAxisSpacing: AppSpacing.md,
-        childAspectRatio: 1.6,
-      ),
-      itemCount: _actions.length,
-      itemBuilder: (context, index) {
-        final (icon, label, route, color) = _actions[index];
-        return Card(
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
+    return SizedBox(
+      height: 108,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: _actions.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (context, index) {
+          final (icon, label, route) = _actions[index];
+          return PremiumActionTile(
+            icon: icon,
+            label: label,
             onTap: () => context.push(route),
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, color: color, size: 28),
-                  const Spacer(),
-                  Text(label, style: Theme.of(context).textTheme.titleSmall),
-                ],
-              ),
-            ),
-          ),
-        )
-            .animate(delay: (index * 50).ms)
-            .fadeIn()
-            .scale(begin: const Offset(0.95, 0.95), curve: Curves.easeOut);
-      },
+          );
+        },
+      ),
     );
   }
 }
@@ -380,9 +372,12 @@ class _NearbyList extends ConsumerWidget {
     }
     return Column(
       children: nearby.take(5).map((place) {
-        return PlaceCard(
-          place: place,
-          onTap: () => context.push(AppRoutes.placeDetail(place.placeType, place.id)),
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: PlaceCard(
+            place: place,
+            onTap: () => context.push(AppRoutes.placeDetail(place.placeType, place.id)),
+          ),
         );
       }).toList(),
     );
@@ -392,40 +387,29 @@ class _NearbyList extends ConsumerWidget {
 class _EmergencyBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        gradient: AppColors.emergencyGradient,
-        borderRadius: BorderRadius.circular(AppSpacing.lg),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.emergency_rounded, color: Colors.white, size: 32),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Emergency',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white),
-                ),
-                Text(
-                  'Quick access to hospitals, police & hotlines',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.9),
-                      ),
-                ),
-              ],
+    final theme = Theme.of(context);
+    return PremiumSurface(
+      children: [
+        PremiumListRow(
+          leading: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFF3B30).withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
             ),
+            child: const Icon(Icons.emergency_outlined, color: Color(0xFFFF3B30), size: 20),
           ),
-          IconButton(
-            onPressed: () => context.push(AppRoutes.emergency),
-            icon: const Icon(Icons.arrow_forward_rounded, color: Colors.white),
+          title: 'Emergency',
+          subtitle: 'Hospitals, police, and hotlines',
+          onTap: () => context.push(AppRoutes.emergency),
+          trailing: Icon(
+            Icons.arrow_forward_ios_rounded,
+            size: 14,
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.25),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

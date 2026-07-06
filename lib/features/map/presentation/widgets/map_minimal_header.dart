@@ -33,8 +33,8 @@ class MapMinimalHeader extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Material(
-              elevation: 3,
-              shadowColor: Colors.black26,
+              elevation: 1,
+              shadowColor: Colors.black12,
               borderRadius: BorderRadius.circular(28),
               color: surface,
               child: TextField(
