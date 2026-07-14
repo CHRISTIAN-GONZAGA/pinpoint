@@ -18,9 +18,23 @@ _auth_service = AuthService()
 
 def _token_response(user: dict) -> tuple[dict, int]:
   identity = str(user["user_id"])
+  try:
+    access = create_access_token(identity=identity)
+    refresh = create_refresh_token(identity=identity)
+  except Exception:
+    # Recover from short/empty JWT secrets on older PyJWT builds.
+    import hashlib
+
+    from flask import current_app
+
+    raw = str(current_app.config.get("JWT_SECRET_KEY") or "pinpoint")
+    if len(raw.encode("utf-8")) < 32:
+      current_app.config["JWT_SECRET_KEY"] = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+    access = create_access_token(identity=identity)
+    refresh = create_refresh_token(identity=identity)
   return {
-    "access_token": create_access_token(identity=identity),
-    "refresh_token": create_refresh_token(identity=identity),
+    "access_token": access,
+    "refresh_token": refresh,
     "user": user,
     "message": "Authentication successful",
   }, 200
