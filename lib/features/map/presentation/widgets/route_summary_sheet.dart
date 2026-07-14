@@ -58,45 +58,72 @@ class RouteSummarySheet extends StatelessWidget {
     final hasRoute = route != null;
 
     return DraggableScrollableSheet(
-      initialChildSize: hasRoute ? 0.38 : 0.12,
-      minChildSize: 0.10,
-      maxChildSize: 0.58,
+      initialChildSize: hasRoute ? 0.42 : 0.18,
+      minChildSize: 0.14,
+      maxChildSize: 0.92,
       snap: true,
-      snapSizes: hasRoute ? const [0.18, 0.38, 0.58] : const [0.10, 0.12, 0.32],
+      snapSizes: hasRoute
+          ? const [0.18, 0.42, 0.72, 0.92]
+          : const [0.14, 0.18, 0.42],
+      shouldCloseOnMinExtent: false,
       builder: (context, scrollController) {
         return Material(
           elevation: 12,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           clipBehavior: Clip.antiAlias,
           color: Theme.of(context).colorScheme.surface,
-          child: ListView(
-            controller: scrollController,
-            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 6, AppSpacing.lg, AppSpacing.lg),
+          child: Column(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Center(
-                      child: Container(
-                        width: 36,
-                        height: 4,
-                        margin: const EdgeInsets.only(top: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade400,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
+              // Large grab area so the sheet is easy to drag above the nav.
+              Padding(
+                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 8, AppSpacing.lg, 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade400,
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            hasRoute ? 'Swipe up for full route details' : 'Route planner',
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.55),
+                                ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  IconButton(
-                    tooltip: 'Hide',
-                    visualDensity: VisualDensity.compact,
-                    onPressed: onDismiss,
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                  ),
-                ],
+                    IconButton(
+                      tooltip: 'Hide',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: onDismiss,
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                    ),
+                  ],
+                ),
               ),
-              ..._sheetContent(context),
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    0,
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                  ),
+                  children: _sheetContent(context),
+                ),
+              ),
             ],
           ),
         );

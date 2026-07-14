@@ -384,7 +384,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
             Positioned(
               left: 0,
               right: 0,
-              bottom: 0,
+              bottom: _shellBottomClearance(context),
               child: JeepneyRouteSheet(
                 route: mapState.selectedRoute!,
                 onClose: () =>
@@ -392,7 +392,12 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
               ),
             )
           else if (_showRoutePanel || mapState.plannedRoute != null)
-            Positioned.fill(
+            Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              // Keep sheet above the floating bottom nav so the handle stays tappable.
+              bottom: _shellBottomClearance(context),
               child: RouteSummarySheet(
                 route: mapState.plannedRoute,
                 routeOptions: mapState.routeOptions,
@@ -419,7 +424,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
               mapState.selectedRoute == null)
             Positioned(
               left: AppSpacing.lg,
-              bottom: 88,
+              bottom: _shellBottomClearance(context) + 12,
               child: FloatingActionButton.extended(
                 heroTag: 'map-route-fab',
                 elevation: 4,
@@ -444,7 +449,8 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
           if (mapState.plannedRoute != null)
             Positioned(
               left: AppSpacing.md,
-              bottom: MediaQuery.sizeOf(context).height * 0.40,
+              bottom: _shellBottomClearance(context) +
+                  MediaQuery.sizeOf(context).height * 0.22,
               child: MapRouteLegend(route: mapState.plannedRoute!),
             ),
           if (mapState.isLocating)
@@ -475,6 +481,12 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
         ],
       ),
     );
+  }
+
+  /// Space reserved for the floating shell NavigationBar (`extendBody: true`).
+  double _shellBottomClearance(BuildContext context) {
+    final safe = MediaQuery.paddingOf(context).bottom;
+    return 72 + safe; // nav bar ~60 + outer padding 12
   }
 
   List<Marker> _buildStopMarkers(MapState mapState, MapNotifier notifier, double zoom) {
