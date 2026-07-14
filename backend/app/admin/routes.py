@@ -9,11 +9,13 @@ from app.models.transport import JeepneyRoute
 from app.models.user import User
 from app.services.analytics_service import AnalyticsService
 from app.services.notification_service import NotificationService
+from app.services.transport_service import TransportService
 from app.utils.decorators import admin_required
 
 admin_bp = Blueprint("admin", __name__)
 _analytics = AnalyticsService()
 _notifications = NotificationService()
+_transport = TransportService()
 
 
 @admin_bp.get("/dashboard")
@@ -98,3 +100,67 @@ def update_report(report_id: int):
     report.admin_notes = payload["admin_notes"]
   db.session.commit()
   return jsonify(report.to_dict()), 200
+
+
+@admin_bp.get("/routes")
+@admin_required()
+def admin_list_routes():
+  return jsonify({"routes": _transport.list_all_routes()}), 200
+
+
+@admin_bp.post("/routes")
+@admin_required()
+def admin_create_route():
+  payload = request.get_json() or {}
+  try:
+    route = _transport.create_route(payload)
+  except ValueError as error:
+    return jsonify({"message": str(error)}), 400
+  return jsonify(route), 201
+
+
+@admin_bp.get("/routes/<int:route_id>")
+@admin_required()
+def admin_get_route(route_id: int):
+  route = _transport.get_route(route_id, active_only=False)
+  if not route:
+    return jsonify({"message": "Route not found"}), 404
+  return jsonify(route), 200
+
+
+@admin_bp.patch("/routes/<int:route_id>")
+@admin_required()
+def admin_update_route(route_id: int):
+  payload = request.get_json() or {}
+  try:
+    route = _transport.update_route(route_id, payload)
+  except ValueError as error:
+    return jsonify({"message": str(error)}), 400
+  if not route:
+    return jsonify({"message": "Route not found"}), 404
+  return jsonify(route), 200
+
+
+@admin_bp.delete("/routes/<int:route_id>")
+@admin_required()
+def admin_delete_route(route_id: int):
+  deleted = _transport.delete_route(route_id)
+  if not deleted:
+    return jsonify({"message": "Route not found"}), 404
+  return jsonify({"message": "Route deleted"}), 200
+
+
+@admin_bp.put("/routes/<int:route_id>/stops")
+@admin_required()
+def admin_replace_stops(route_id: int):
+  payload = request.get_json() or {}
+  stops = payload.get("stops") if isinstance(payload, dict) else payload
+  if not isinstance(stops, list):
+    return jsonify({"message": "stops must be a list"}), 400
+  try:
+    route = _transport.replace_stops(route_id, stops)
+  except ValueError as error:
+    return jsonify({"message": str(error)}), 400
+  if not route:
+    return jsonify({"message": "Route not found"}), 404
+  return jsonify(route), 200

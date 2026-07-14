@@ -103,6 +103,9 @@ class MapRouteLegend extends StatelessWidget {
   String _labelFor(RouteStep step) => switch (step.type) {
         RouteStepType.walk => 'Walk',
         RouteStepType.jeepney => step.routeCode ?? 'Jeepney',
+        RouteStepType.modernJeepney => step.routeCode ?? 'Modern Jeepney',
+        RouteStepType.bus => step.routeCode ?? 'Bus',
+        RouteStepType.van => step.routeCode ?? 'Van',
         RouteStepType.tricycle => 'Tricycle',
         RouteStepType.taxi => 'Taxi',
         RouteStepType.transfer => 'Transfer',
@@ -117,7 +120,11 @@ class MapRouteLegend extends StatelessWidget {
       RouteStepType.tricycle => TransportColors.tricycle,
       RouteStepType.taxi => TransportColors.taxi,
       RouteStepType.transfer => TransportColors.transfer,
-      RouteStepType.jeepney => TransportColors.jeepney(step.routeCode),
+      RouteStepType.jeepney ||
+      RouteStepType.modernJeepney ||
+      RouteStepType.bus ||
+      RouteStepType.van =>
+        TransportColors.jeepney(step.routeCode),
     };
   }
 }
@@ -196,7 +203,11 @@ class _LegendRow extends StatelessWidget {
 
   IconData _iconFor(RouteStepType type) => switch (type) {
         RouteStepType.walk => Icons.directions_walk_rounded,
-        RouteStepType.jeepney => Icons.directions_bus_filled_rounded,
+        RouteStepType.jeepney ||
+        RouteStepType.modernJeepney ||
+        RouteStepType.bus ||
+        RouteStepType.van =>
+          Icons.directions_bus_filled_rounded,
         RouteStepType.tricycle => Icons.moped_rounded,
         RouteStepType.taxi => Icons.local_taxi_rounded,
         RouteStepType.transfer => Icons.swap_horiz_rounded,

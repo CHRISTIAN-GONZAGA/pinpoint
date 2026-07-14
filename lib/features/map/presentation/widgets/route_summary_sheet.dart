@@ -448,9 +448,12 @@ class _RouteOptionPicker extends StatelessWidget {
   }
 
   Color _modeColor(VehicleMode mode, PlannedRoute option) {
-    if (mode == VehicleMode.jeepney) {
+    if (mode == VehicleMode.jeepney ||
+        mode == VehicleMode.modernJeepney ||
+        mode == VehicleMode.bus ||
+        mode == VehicleMode.van) {
       final code = option.steps
-          .where((s) => s.type == RouteStepType.jeepney)
+          .where((s) => VehicleTypeMapping.isCorridorStep(s.type))
           .map((s) => s.routeCode)
           .firstOrNull;
       return TransportColors.jeepney(code);
@@ -460,12 +463,20 @@ class _RouteOptionPicker extends StatelessWidget {
       VehicleMode.taxi => TransportColors.taxi,
       VehicleMode.walk => TransportColors.walk,
       VehicleMode.auto => AppColors.primary,
-      VehicleMode.jeepney => TransportColors.jeepney('R1'),
+      VehicleMode.jeepney ||
+      VehicleMode.modernJeepney ||
+      VehicleMode.bus ||
+      VehicleMode.van =>
+        TransportColors.jeepney('R1'),
     };
   }
 
   IconData _modeIcon(VehicleMode mode) => switch (mode) {
-        VehicleMode.jeepney => Icons.directions_bus_rounded,
+        VehicleMode.jeepney ||
+        VehicleMode.modernJeepney ||
+        VehicleMode.bus ||
+        VehicleMode.van =>
+          Icons.directions_bus_rounded,
         VehicleMode.tricycle => Icons.moped_rounded,
         VehicleMode.taxi => Icons.local_taxi_rounded,
         VehicleMode.walk => Icons.directions_walk_rounded,
@@ -474,6 +485,9 @@ class _RouteOptionPicker extends StatelessWidget {
 
   String _modeLabel(VehicleMode mode) => switch (mode) {
         VehicleMode.jeepney => 'Jeepney',
+        VehicleMode.modernJeepney => 'Modern Jeepney',
+        VehicleMode.bus => 'Bus',
+        VehicleMode.van => 'Van',
         VehicleMode.tricycle => 'Tricycle',
         VehicleMode.taxi => 'Taxi',
         VehicleMode.walk => 'Walk',
@@ -573,7 +587,11 @@ class _StepTile extends StatelessWidget {
 
   IconData get _icon => switch (step.type) {
         RouteStepType.walk => Icons.directions_walk_rounded,
-        RouteStepType.jeepney => Icons.directions_bus_rounded,
+        RouteStepType.jeepney ||
+        RouteStepType.modernJeepney ||
+        RouteStepType.bus ||
+        RouteStepType.van =>
+          Icons.directions_bus_rounded,
         RouteStepType.tricycle => Icons.moped_rounded,
         RouteStepType.taxi => Icons.local_taxi_rounded,
         RouteStepType.transfer => Icons.swap_horiz_rounded,
@@ -581,9 +599,13 @@ class _StepTile extends StatelessWidget {
 
   Color get _color => switch (step.type) {
         RouteStepType.walk => TransportColors.walk,
-        RouteStepType.jeepney => step.segmentColorHex != null
-            ? colorFromHex(step.segmentColorHex!)
-            : TransportColors.jeepney(step.routeCode),
+        RouteStepType.jeepney ||
+        RouteStepType.modernJeepney ||
+        RouteStepType.bus ||
+        RouteStepType.van =>
+          step.segmentColorHex != null
+              ? colorFromHex(step.segmentColorHex!)
+              : TransportColors.jeepney(step.routeCode),
         RouteStepType.tricycle => TransportColors.tricycle,
         RouteStepType.taxi => TransportColors.taxi,
         RouteStepType.transfer => TransportColors.transfer,

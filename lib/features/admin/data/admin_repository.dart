@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:pinpoint/core/networking/api_client.dart';
 import 'package:pinpoint/features/admin/data/admin_remote_datasource.dart';
+import 'package:pinpoint/features/map/domain/map_models.dart';
 
 class AdminRepository {
   AdminRepository({required AdminRemoteDataSource remote, required ApiClient apiClient})
@@ -51,6 +52,46 @@ class AdminRepository {
         status: 'resolved',
         adminNotes: notes,
       );
+    } on DioException catch (error) {
+      throw _apiClient.mapError(error);
+    }
+  }
+
+  Future<List<JeepneyRoute>> getAdminRoutes() async {
+    try {
+      return await _remote.fetchAdminRoutes();
+    } on DioException catch (error) {
+      throw _apiClient.mapError(error);
+    }
+  }
+
+  Future<JeepneyRoute> createRoute(Map<String, dynamic> payload) async {
+    try {
+      return await _remote.createRoute(payload);
+    } on DioException catch (error) {
+      throw _apiClient.mapError(error);
+    }
+  }
+
+  Future<JeepneyRoute> updateRoute(int routeId, Map<String, dynamic> payload) async {
+    try {
+      return await _remote.updateRoute(routeId, payload);
+    } on DioException catch (error) {
+      throw _apiClient.mapError(error);
+    }
+  }
+
+  Future<void> deleteRoute(int routeId) async {
+    try {
+      await _remote.deleteRoute(routeId);
+    } on DioException catch (error) {
+      throw _apiClient.mapError(error);
+    }
+  }
+
+  Future<JeepneyRoute> replaceStops(int routeId, List<Map<String, dynamic>> stops) async {
+    try {
+      return await _remote.replaceStops(routeId, stops);
     } on DioException catch (error) {
       throw _apiClient.mapError(error);
     }

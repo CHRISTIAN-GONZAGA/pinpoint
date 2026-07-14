@@ -44,6 +44,7 @@ class RouteStop extends Equatable {
     this.verified = true,
     this.stopKey,
     this.source,
+    this.description,
   });
 
   factory RouteStop.fromJson(Map<String, dynamic> json, {int? routeId, int? order}) {
@@ -59,6 +60,7 @@ class RouteStop extends Equatable {
       verified: json['verified'] as bool? ?? true,
       stopKey: json['id'] as String?,
       source: json['source'] as String?,
+      description: json['description'] as String?,
     );
   }
 
@@ -71,16 +73,32 @@ class RouteStop extends Equatable {
   final bool verified;
   final String? stopKey;
   final String? source;
+  final String? description;
 
   LatLng get latLng => LatLng(latitude, longitude);
 
   bool get hasCoordinates => latitude != 0 || longitude != 0;
 
+  Map<String, dynamic> toJson() => {
+        'stop_id': stopId,
+        'route_id': routeId,
+        'name': name,
+        'stop_name': name,
+        'lat': latitude,
+        'lng': longitude,
+        'latitude': latitude,
+        'longitude': longitude,
+        'stop_order': order,
+        'verified': verified,
+        if (stopKey != null) 'id': stopKey,
+        if (description != null) 'description': description,
+      };
+
   @override
   List<Object?> get props => [stopId, routeId, name, stopKey];
 }
 
-/// Official jeepney route (R1–R7).
+/// Official transit corridor route (jeepney and other vehicle types).
 class JeepneyRoute extends Equatable {
   const JeepneyRoute({
     required this.routeId,
@@ -93,6 +111,10 @@ class JeepneyRoute extends Equatable {
     this.stops = const [],
     this.bidirectional = true,
     this.streetSegments = const [],
+    this.vehicleType = 'jeepney',
+    this.baseFare,
+    this.additionalFare,
+    this.activeStatus = true,
   });
 
   factory JeepneyRoute.fromJson(Map<String, dynamic> json) {
@@ -141,6 +163,10 @@ class JeepneyRoute extends Equatable {
       streetSegments: (json['street_segments'] as List<dynamic>? ?? [])
           .map((s) => s as String)
           .toList(),
+      vehicleType: (json['vehicle_type'] as String?)?.toLowerCase() ?? 'jeepney',
+      baseFare: (json['base_fare'] as num?)?.toDouble(),
+      additionalFare: (json['additional_fare'] as num?)?.toDouble(),
+      activeStatus: json['active_status'] as bool? ?? true,
     );
   }
 
@@ -154,15 +180,64 @@ class JeepneyRoute extends Equatable {
   final List<RouteStop> stops;
   final bool bidirectional;
   final List<String> streetSegments;
+  final String vehicleType;
+  final double? baseFare;
+  final double? additionalFare;
+  final bool activeStatus;
 
   /// Stops with verified coordinates — only these may be used for routing pins.
   List<RouteStop> get verifiedStops =>
       stops.where((s) => s.verified && s.hasCoordinates).toList();
 
-  bool get isRoutable => verifiedStops.length >= 2;
+  bool get isRoutable => activeStatus && verifiedStops.length >= 2 && polyline.length >= 2;
+
+  bool get isCorridorVehicle => const {
+        'jeepney',
+        'modern_jeepney',
+        'bus',
+        'van',
+        'tricycle',
+        'taxi',
+      }.contains(vehicleType);
+
+  bool get isOnDemandTaxi => vehicleType == 'taxi';
+
+  JeepneyRoute copyWith({
+    int? routeId,
+    String? routeCode,
+    String? routeName,
+    String? colorHex,
+    String? description,
+    String? operatingHours,
+    List<LatLng>? polyline,
+    List<RouteStop>? stops,
+    bool? bidirectional,
+    List<String>? streetSegments,
+    String? vehicleType,
+    double? baseFare,
+    double? additionalFare,
+    bool? activeStatus,
+  }) {
+    return JeepneyRoute(
+      routeId: routeId ?? this.routeId,
+      routeCode: routeCode ?? this.routeCode,
+      routeName: routeName ?? this.routeName,
+      colorHex: colorHex ?? this.colorHex,
+      description: description ?? this.description,
+      operatingHours: operatingHours ?? this.operatingHours,
+      polyline: polyline ?? this.polyline,
+      stops: stops ?? this.stops,
+      bidirectional: bidirectional ?? this.bidirectional,
+      streetSegments: streetSegments ?? this.streetSegments,
+      vehicleType: vehicleType ?? this.vehicleType,
+      baseFare: baseFare ?? this.baseFare,
+      additionalFare: additionalFare ?? this.additionalFare,
+      activeStatus: activeStatus ?? this.activeStatus,
+    );
+  }
 
   @override
-  List<Object?> get props => [routeId, routeCode];
+  List<Object?> get props => [routeId, routeCode, vehicleType, activeStatus];
 }
 
 /// Tricycle service zone polygon.
@@ -233,10 +308,66 @@ class FareConfig extends Equatable {
 }
 
 /// Type of segment in a multi-modal journey.
-enum RouteStepType { walk, jeepney, tricycle, taxi, transfer }
+enum RouteStepType {
+  walk,
+  jeepney,
+  modernJeepney,
+  bus,
+  van,
+  tricycle,
+  taxi,
+  transfer,
+}
 
 /// Preferred vehicle mode for route planning.
-enum VehicleMode { auto, walk, jeepney, tricycle, taxi }
+enum VehicleMode {
+  auto,
+  walk,
+  jeepney,
+  modernJeepney,
+  bus,
+  van,
+  tricycle,
+  taxi,
+}
+
+/// Maps persisted vehicle_type strings to step / mode enums.
+abstract final class VehicleTypeMapping {
+  static RouteStepType stepType(String vehicleType) => switch (vehicleType) {
+        'modern_jeepney' => RouteStepType.modernJeepney,
+        'bus' => RouteStepType.bus,
+        'van' => RouteStepType.van,
+        'tricycle' => RouteStepType.tricycle,
+        'taxi' => RouteStepType.taxi,
+        _ => RouteStepType.jeepney,
+      };
+
+  static VehicleMode vehicleMode(String vehicleType) => switch (vehicleType) {
+        'modern_jeepney' => VehicleMode.modernJeepney,
+        'bus' => VehicleMode.bus,
+        'van' => VehicleMode.van,
+        'tricycle' => VehicleMode.tricycle,
+        'taxi' => VehicleMode.taxi,
+        _ => VehicleMode.jeepney,
+      };
+
+  static String displayName(String vehicleType) => switch (vehicleType) {
+        'modern_jeepney' => 'Modern Jeepney',
+        'bus' => 'Bus',
+        'van' => 'Van',
+        'tricycle' => 'Tricycle',
+        'taxi' => 'Taxi',
+        _ => 'Jeepney',
+      };
+
+  static bool isCorridorStep(RouteStepType type) =>
+      type == RouteStepType.jeepney ||
+      type == RouteStepType.modernJeepney ||
+      type == RouteStepType.bus ||
+      type == RouteStepType.van ||
+      type == RouteStepType.tricycle ||
+      type == RouteStepType.taxi;
+}
 
 /// Map pin placement mode for tagging start / destination.
 enum MapPinMode { none, origin, destination }

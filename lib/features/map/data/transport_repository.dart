@@ -80,7 +80,7 @@ class TransportRepository {
       final remoteZones = _parseZones(results[1]);
       final remoteFares = _parseFares(results[2]);
 
-      // Keep bundled LPTRP data if Render API still serves stale/legacy routes.
+      // Prefer non-empty remote network so admin-managed routes reach passengers.
       if (_shouldUseRemoteRoutes(bundledBefore, remoteRoutes)) {
         _cachedRoutes = remoteRoutes;
       }
@@ -104,25 +104,17 @@ class TransportRepository {
     return _snapshot();
   }
 
-  /// Prefer remote routes only when they look like LPTRP 2024 data.
+  /// Prefer remote routes whenever the API returns a usable active network.
   bool _shouldUseRemoteRoutes(
     List<JeepneyRoute> bundled,
     List<JeepneyRoute> remote,
   ) {
     if (remote.isEmpty) return false;
-    if (remote.length < 7) return false;
-
-    final remoteR1 = remote.where((r) => r.routeCode == 'R1').firstOrNull;
-    if (remoteR1 == null) return false;
-    if (!remoteR1.routeName.contains('West and East Loop')) return false;
-
-    final bundledVerified = bundled
-        .map((r) => r.verifiedStops.length)
-        .fold(0, (a, b) => a + b);
-    final remoteVerified =
-        remote.map((r) => r.verifiedStops.length).fold(0, (a, b) => a + b);
-
-    return remoteVerified >= bundledVerified;
+    final activeRemote = remote.where((r) => r.activeStatus).toList();
+    if (activeRemote.isEmpty) return false;
+    // Always trust remote admin truth when present; keep bundle if remote parse failed partially.
+    if (bundled.isEmpty) return true;
+    return activeRemote.isNotEmpty;
   }
 
   Map<String, dynamic> _routeToJson(JeepneyRoute route) {
@@ -135,6 +127,10 @@ class TransportRepository {
       'operating_hours': route.operatingHours,
       'bidirectional': route.bidirectional,
       'street_segments': route.streetSegments,
+      'vehicle_type': route.vehicleType,
+      'base_fare': route.baseFare,
+      'additional_fare': route.additionalFare,
+      'active_status': route.activeStatus,
       'ordered_stops': route.stops
           .map(
             (s) => {
@@ -143,6 +139,7 @@ class TransportRepository {
               'lat': s.latitude,
               'lng': s.longitude,
               'verified': s.verified,
+              if (s.description != null) 'description': s.description,
             },
           )
           .toList(),

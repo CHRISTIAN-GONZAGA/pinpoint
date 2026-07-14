@@ -73,9 +73,25 @@ def create_app(config_class: type[Config] = Config) -> Flask:
 
     from app.models.password_reset import PasswordResetToken  # noqa: F401
 
+    def _ensure_route_management_columns() -> None:
+      """SQLite create_all does not add columns; apply lightweight ALTERs."""
+      statements = [
+        "ALTER TABLE jeepney_routes ADD COLUMN vehicle_type VARCHAR(30) DEFAULT 'jeepney'",
+        "ALTER TABLE jeepney_routes ADD COLUMN base_fare FLOAT",
+        "ALTER TABLE jeepney_routes ADD COLUMN additional_fare FLOAT",
+        "ALTER TABLE route_stops ADD COLUMN description TEXT",
+      ]
+      for statement in statements:
+        try:
+          db.session.execute(text(statement))
+          db.session.commit()
+        except Exception:
+          db.session.rollback()
+
     if app.config.get("AUTO_SEED", True):
         with app.app_context():
             db.create_all()
+            _ensure_route_management_columns()
             seed_transport_data()
             seed_places_data()
             seed_knowledge_documents()
@@ -88,6 +104,7 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     else:
         with app.app_context():
             db.create_all()
+            _ensure_route_management_columns()
 
     @app.get("/health")
     def health_check():

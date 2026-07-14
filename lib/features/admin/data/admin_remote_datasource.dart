@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:pinpoint/core/networking/api_client.dart';
+import 'package:pinpoint/features/map/domain/map_models.dart';
 
 /// Administrator API for dashboard and content management.
 class AdminRemoteDataSource {
@@ -50,5 +51,41 @@ class AdminRemoteDataSource {
         'admin_notes': ?adminNotes,
       },
     );
+  }
+
+  Future<List<JeepneyRoute>> fetchAdminRoutes() async {
+    final response = await _api.get<Map<String, dynamic>>('/admin/routes');
+    final list = response.data?['routes'] as List<dynamic>? ?? [];
+    return list
+        .map((item) => JeepneyRoute.fromJson(Map<String, dynamic>.from(item as Map)))
+        .toList();
+  }
+
+  Future<JeepneyRoute> createRoute(Map<String, dynamic> payload) async {
+    final response = await _api.post<Map<String, dynamic>>(
+      '/admin/routes',
+      data: payload,
+    );
+    return JeepneyRoute.fromJson(response.data ?? {});
+  }
+
+  Future<JeepneyRoute> updateRoute(int routeId, Map<String, dynamic> payload) async {
+    final response = await _api.patch<Map<String, dynamic>>(
+      '/admin/routes/$routeId',
+      data: payload,
+    );
+    return JeepneyRoute.fromJson(response.data ?? {});
+  }
+
+  Future<void> deleteRoute(int routeId) async {
+    await _api.delete<Map<String, dynamic>>('/admin/routes/$routeId');
+  }
+
+  Future<JeepneyRoute> replaceStops(int routeId, List<Map<String, dynamic>> stops) async {
+    final response = await _api.put<Map<String, dynamic>>(
+      '/admin/routes/$routeId/stops',
+      data: {'stops': stops},
+    );
+    return JeepneyRoute.fromJson(response.data ?? {});
   }
 }

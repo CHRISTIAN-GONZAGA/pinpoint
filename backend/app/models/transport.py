@@ -10,8 +10,20 @@ def utcnow() -> datetime:
   return datetime.now(timezone.utc)
 
 
+ALLOWED_VEHICLE_TYPES = frozenset(
+  {
+    "jeepney",
+    "modern_jeepney",
+    "bus",
+    "van",
+    "taxi",
+    "tricycle",
+  }
+)
+
+
 class JeepneyRoute(db.Model):
-  """Official jeepney route (R1–R7)."""
+  """Official transit corridor route (jeepney and other vehicle types)."""
 
   __tablename__ = "jeepney_routes"
 
@@ -23,6 +35,9 @@ class JeepneyRoute(db.Model):
   operating_hours = db.Column(db.String(80), nullable=True)
   geojson = db.Column(db.Text, nullable=False)
   active_status = db.Column(db.Boolean, nullable=False, default=True)
+  vehicle_type = db.Column(db.String(30), nullable=False, default="jeepney")
+  base_fare = db.Column(db.Float, nullable=True)
+  additional_fare = db.Column(db.Float, nullable=True)
   created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
   updated_at = db.Column(
     db.DateTime, nullable=False, default=utcnow, onupdate=utcnow
@@ -52,6 +67,10 @@ class JeepneyRoute(db.Model):
       "corridor_geojson": corridor,
       "bidirectional": True,
       "active_status": self.active_status,
+      "vehicle_type": self.vehicle_type or "jeepney",
+      "base_fare": self.base_fare,
+      "additional_fare": self.additional_fare,
+      "updated_at": self.updated_at.isoformat() if self.updated_at else None,
     }
     if include_stops:
       ordered = []
@@ -68,6 +87,7 @@ class JeepneyRoute(db.Model):
             "latitude": stop.latitude,
             "longitude": stop.longitude,
             "stop_order": stop.stop_order,
+            "description": stop.description,
             "verified": True,
           }
         )
@@ -77,7 +97,7 @@ class JeepneyRoute(db.Model):
 
 
 class RouteStop(db.Model):
-  """Jeepney route stop."""
+  """Transit route stop."""
 
   __tablename__ = "route_stops"
 
@@ -89,6 +109,7 @@ class RouteStop(db.Model):
   latitude = db.Column(db.Float, nullable=False)
   longitude = db.Column(db.Float, nullable=False)
   stop_order = db.Column(db.Integer, nullable=False)
+  description = db.Column(db.Text, nullable=True)
 
   route = db.relationship("JeepneyRoute", back_populates="stops")
 
@@ -100,6 +121,7 @@ class RouteStop(db.Model):
       "latitude": self.latitude,
       "longitude": self.longitude,
       "stop_order": self.stop_order,
+      "description": self.description,
     }
 
 

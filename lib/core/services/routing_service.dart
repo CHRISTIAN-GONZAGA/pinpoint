@@ -129,4 +129,123 @@ class RoutingService {
       return point;
     }
   }
+
+  /// Snaps a freehand finger trace onto the road network (OSRM Match).
+  /// Falls back to chaining driving routes between sparse waypoints.
+  Future<List<LatLng>> matchTraceToRoads(List<LatLng> rawTrace) async {
+    if (rawTrace.length < 2) return rawTrace;
+    if (offlineMode) return List.of(rawTrace);
+
+    final sampled = _sampleTrace(rawTrace, minSpacingMeters: 35);
+    if (sampled.length < 2) return sampled;
+
+    try {
+      final coords = sampled
+          .map((p) => '${p.longitude},${p.latitude}')
+          .join(';');
+      final response = await _dio.get<Map<String, dynamic>>(
+        '${AppConstants.osrmBaseUrl}/match/v1/driving/$coords',
+        queryParameters: {
+          'overview': 'full',
+          'geometries': 'geojson',
+          'tidy': 'true',
+        },
+      );
+      final matchings = response.data?['matchings'] as List<dynamic>? ?? [];
+      if (matchings.isNotEmpty) {
+        final geometry =
+            (matchings.first as Map<String, dynamic>)['geometry'] as Map<String, dynamic>?;
+        final coordinates = geometry?['coordinates'] as List<dynamic>? ?? [];
+        if (coordinates.length >= 2) {
+          return coordinates
+              .map(
+                (c) => LatLng(
+                  (c[1] as num).toDouble(),
+                  (c[0] as num).toDouble(),
+                ),
+              )
+              .toList();
+        }
+      }
+    } on DioException {
+      // Fall through to waypoint routing.
+    }
+
+    return routeThroughWaypoints(sampled);
+  }
+
+  /// Chains driving routes through an ordered list of waypoints.
+  Future<List<LatLng>> routeThroughWaypoints(List<LatLng> waypoints) async {
+    if (waypoints.isEmpty) return const [];
+    if (waypoints.length == 1) return [waypoints.first];
+
+    final corridor = <LatLng>[];
+    for (var i = 0; i < waypoints.length - 1; i++) {
+      final from = waypoints[i];
+      final to = waypoints[i + 1];
+      final segment = await getDrivingRoute(from, to);
+      final points = segment.polyline.isNotEmpty ? segment.polyline : [from, to];
+      if (corridor.isEmpty) {
+        corridor.addAll(points);
+      } else {
+        corridor.addAll(points.skip(1));
+      }
+    }
+    return corridor;
+  }
+
+  /// Projects [point] onto the nearest location along [corridor].
+  LatLng projectOntoPolyline(LatLng point, List<LatLng> corridor) {
+    if (corridor.isEmpty) return point;
+    if (corridor.length == 1) return corridor.first;
+
+    var bestPoint = corridor.first;
+    var bestDist = double.infinity;
+    for (var i = 0; i < corridor.length - 1; i++) {
+      final a = corridor[i];
+      final b = corridor[i + 1];
+      final projected = _closestPointOnSegment(point, a, b);
+      final d = distanceMeters(point, projected);
+      if (d < bestDist) {
+        bestDist = d;
+        bestPoint = projected;
+      }
+    }
+    return bestPoint;
+  }
+
+  List<LatLng> _sampleTrace(List<LatLng> raw, {required double minSpacingMeters}) {
+    if (raw.isEmpty) return const [];
+    final out = <LatLng>[raw.first];
+    for (var i = 1; i < raw.length; i++) {
+      if (distanceMeters(out.last, raw[i]) >= minSpacingMeters) {
+        out.add(raw[i]);
+      }
+    }
+    if (out.last != raw.last) out.add(raw.last);
+    // Cap match request size for public OSRM.
+    if (out.length <= 80) return out;
+    final step = (out.length / 70).ceil();
+    final sparse = <LatLng>[];
+    for (var i = 0; i < out.length; i += step) {
+      sparse.add(out[i]);
+    }
+    if (sparse.last != out.last) sparse.add(out.last);
+    return sparse;
+  }
+
+  LatLng _closestPointOnSegment(LatLng p, LatLng a, LatLng b) {
+    final ax = a.longitude;
+    final ay = a.latitude;
+    final bx = b.longitude;
+    final by = b.latitude;
+    final px = p.longitude;
+    final py = p.latitude;
+    final dx = bx - ax;
+    final dy = by - ay;
+    if (dx == 0 && dy == 0) return a;
+    final t = (((px - ax) * dx) + ((py - ay) * dy)) / ((dx * dx) + (dy * dy));
+    final clamped = t.clamp(0.0, 1.0);
+    return LatLng(ay + dy * clamped, ax + dx * clamped);
+  }
 }

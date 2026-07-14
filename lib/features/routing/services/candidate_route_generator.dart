@@ -35,17 +35,27 @@ class CandidateRouteGenerator {
   }) async {
     final candidates = <PlannedRoute>[];
 
+    // Only active corridor routes with stops participate in public-transit planning.
+    final corridorRoutes = jeepneyRoutes
+        .where((r) => r.activeStatus && r.isRoutable && r.isCorridorVehicle)
+        .toList();
+    final hasTaxiRoutes = jeepneyRoutes.any((r) => r.vehicleType == 'taxi');
+    final hasActiveTaxiService = !hasTaxiRoutes ||
+        jeepneyRoutes.any((r) => r.activeStatus && r.vehicleType == 'taxi');
+
     final walkFuture = _assembler.buildWalkRoute(origin: origin, destination: destination);
     final jeepneyPlansFuture = _jeepneyPlans.findAllPlans(
       origin: origin.latLng,
       destination: destination.latLng,
-      jeepneyRoutes: jeepneyRoutes,
+      jeepneyRoutes: corridorRoutes,
     );
     final tricycleFuture = _assembler.buildTricycleRoute(
       origin: origin,
       destination: destination,
     );
-    final taxiFuture = _assembler.buildTaxiRoute(origin: origin, destination: destination);
+    final taxiFuture = hasActiveTaxiService
+        ? _assembler.buildTaxiRoute(origin: origin, destination: destination)
+        : Future<PlannedRoute?>.value(null);
 
     final jeepneyPlanList = await jeepneyPlansFuture;
 
@@ -135,10 +145,22 @@ class CandidateRouteGenerator {
       return (a.rankScore ?? 0).compareTo(b.rankScore ?? 0);
     });
 
-    final hasJeepney = ranked.any(
-      (r) => r.steps.any((s) => s.type == RouteStepType.jeepney),
+    final hasCorridor = ranked.any(
+      (r) => r.steps.any((s) => VehicleTypeMapping.isCorridorStep(s.type) &&
+          s.type != RouteStepType.taxi &&
+          s.type != RouteStepType.tricycle),
     );
-    if (!hasJeepney) {
+    // Also count jeepney-like including bus/van/modern.
+    final hasPublicCorridor = ranked.any(
+      (r) => r.steps.any(
+        (s) =>
+            s.type == RouteStepType.jeepney ||
+            s.type == RouteStepType.modernJeepney ||
+            s.type == RouteStepType.bus ||
+            s.type == RouteStepType.van,
+      ),
+    );
+    if (!hasPublicCorridor && !hasCorridor) {
       return ranked
           .map(
             (r) => r.copyWith(
@@ -170,7 +192,7 @@ class CandidateRouteGenerator {
     if (tricycle.totalDistanceMeters > RouteScorer.shortTricycleBoostMeters) return;
 
     candidates.removeWhere((route) {
-      if (!route.steps.any((s) => s.type == RouteStepType.jeepney)) return false;
+      if (!_hasPublicCorridorStep(route)) return false;
 
       final hasOriginFeeder = _hasOriginFeeder(route);
       if (hasOriginFeeder) return false;
@@ -183,9 +205,23 @@ class CandidateRouteGenerator {
     });
   }
 
+  bool _hasPublicCorridorStep(PlannedRoute route) => route.steps.any(
+        (s) =>
+            s.type == RouteStepType.jeepney ||
+            s.type == RouteStepType.modernJeepney ||
+            s.type == RouteStepType.bus ||
+            s.type == RouteStepType.van,
+      );
+
   bool _hasOriginFeeder(PlannedRoute route) {
     final triIdx = route.steps.indexWhere((s) => s.type == RouteStepType.tricycle);
-    final jeepIdx = route.steps.indexWhere((s) => s.type == RouteStepType.jeepney);
+    final jeepIdx = route.steps.indexWhere(
+      (s) =>
+          s.type == RouteStepType.jeepney ||
+          s.type == RouteStepType.modernJeepney ||
+          s.type == RouteStepType.bus ||
+          s.type == RouteStepType.van,
+    );
     return triIdx >= 0 && jeepIdx > triIdx;
   }
 }

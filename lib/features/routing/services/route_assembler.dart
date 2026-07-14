@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:latlong2/latlong.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
-import 'package:pinpoint/features/routing/domain/transport_colors.dart';
 import 'package:pinpoint/features/routing/services/fare_calculator.dart';
 import 'package:pinpoint/features/routing/services/jeepney_plan.dart';
 import 'package:pinpoint/features/routing/services/routing_geometry.dart';
@@ -190,28 +189,30 @@ class RouteAssembler {
     }
 
     if (!plan.hasTransfer) {
-      _addJeepney(
+      _addCorridorRide(
         steps,
         route: plan.boardRoute,
         instruction:
-            'Ride ${plan.boardRoute.routeCode} to nearest point for ${plan.alightStop.name}',
+            'Ride ${plan.boardRoute.routeCode} (${VehicleTypeMapping.displayName(plan.boardRoute.vehicleType)}) '
+            'to nearest point for ${plan.alightStop.name}',
         distanceMeters: plan.jeepneyDistanceMeters,
         durationSeconds: plan.jeepneyDurationSeconds,
         polyline: jeepPolyline,
       );
-      fare += _fares.jeepneyFare(plan.jeepneyDistanceMeters);
+      fare += _fares.corridorFare(plan.boardRoute, plan.jeepneyDistanceMeters);
     } else {
       transferCount = 1;
       stopCount = 3;
-      _addJeepney(
+      _addCorridorRide(
         steps,
         route: plan.boardRoute,
-        instruction: 'Ride ${plan.boardRoute.routeCode} to ${plan.transferOriginStop!.name}',
+        instruction:
+            'Ride ${plan.boardRoute.routeCode} to ${plan.transferOriginStop!.name}',
         distanceMeters: plan.firstLegDistanceMeters,
         durationSeconds: plan.firstLegDurationSeconds,
         polyline: plan.firstLegPolyline,
       );
-      fare += _fares.jeepneyFare(plan.firstLegDistanceMeters);
+      fare += _fares.corridorFare(plan.boardRoute, plan.firstLegDistanceMeters);
 
       steps.add(RouteStep(
         type: RouteStepType.transfer,
@@ -223,11 +224,11 @@ class RouteAssembler {
       ));
 
       if (plan.transferWalk != null && plan.transferWalk!.distanceMeters > walkMinMeters) {
-        _addWalk(steps, plan.transferWalk!, 'Walk between jeepney stops');
+        _addWalk(steps, plan.transferWalk!, 'Walk between stops');
         walkingDistance += plan.transferWalk!.distanceMeters;
       }
 
-      _addJeepney(
+      _addCorridorRide(
         steps,
         route: plan.transferRoute!,
         instruction: 'Ride ${plan.transferRoute!.routeCode} to ${plan.alightStop.name}',
@@ -235,7 +236,7 @@ class RouteAssembler {
         durationSeconds: plan.secondLegDurationSeconds,
         polyline: plan.secondLegPolyline,
       );
-      fare += _fares.jeepneyFare(plan.secondLegDistanceMeters);
+      fare += _fares.corridorFare(plan.transferRoute!, plan.secondLegDistanceMeters);
     }
 
     FeederLeg? destFeeder;
@@ -271,7 +272,7 @@ class RouteAssembler {
 
     return _finalize(
       optionId: optionId,
-      primaryMode: VehicleMode.jeepney,
+      primaryMode: VehicleTypeMapping.vehicleMode(plan.boardRoute.vehicleType),
       summaryTitle: summary,
       steps: steps,
       walkingDistance: walkingDistance,
@@ -296,7 +297,7 @@ class RouteAssembler {
     ));
   }
 
-  void _addJeepney(
+  void _addCorridorRide(
     List<RouteStep> steps, {
     required JeepneyRoute route,
     required String instruction,
@@ -305,7 +306,7 @@ class RouteAssembler {
     required List<LatLng> polyline,
   }) {
     steps.add(RouteStep(
-      type: RouteStepType.jeepney,
+      type: VehicleTypeMapping.stepType(route.vehicleType),
       instruction: instruction,
       distanceMeters: distanceMeters,
       durationSeconds: durationSeconds,
@@ -337,6 +338,9 @@ class RouteAssembler {
       parts.add(switch (step.type) {
         RouteStepType.walk => 'Walk',
         RouteStepType.jeepney => step.routeCode ?? 'Jeepney',
+        RouteStepType.modernJeepney => step.routeCode ?? 'Modern Jeepney',
+        RouteStepType.bus => step.routeCode ?? 'Bus',
+        RouteStepType.van => step.routeCode ?? 'Van',
         RouteStepType.tricycle => 'Tricycle',
         RouteStepType.taxi => 'Taxi',
         RouteStepType.transfer => 'Transfer',

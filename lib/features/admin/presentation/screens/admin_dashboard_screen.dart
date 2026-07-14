@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:pinpoint/app/router.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
 import 'package:pinpoint/features/admin/presentation/viewmodels/admin_notifier.dart';
 
@@ -68,6 +70,20 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                     _StatCard(label: 'Attractions', value: '${stats['attractions'] ?? 0}'),
                     _StatCard(label: 'Open Reports', value: '${stats['open_reports'] ?? 0}'),
                   ],
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Text('Route Network', style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: AppSpacing.md),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.route_outlined),
+                    title: const Text('Manage Routes'),
+                    subtitle: const Text(
+                      'Draw road-snapped corridors, stops, fares, and vehicle types',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push(AppRoutes.manageRoutes),
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 Text('Publish Announcement', style: Theme.of(context).textTheme.titleLarge),
