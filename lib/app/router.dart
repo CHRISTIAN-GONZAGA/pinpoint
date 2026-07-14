@@ -58,12 +58,23 @@ abstract final class AppRoutes {
   static String category(String categoryId) => '/category/$categoryId';
 }
 
+/// Notifies [GoRouter] when auth changes without rebuilding the entire router
+/// (rebuilding would reset [initialLocation] and replay the splash animation).
+class _AuthRouterRefresh extends ChangeNotifier {
+  void ping() => notifyListeners();
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authNotifierProvider);
+  final refresh = _AuthRouterRefresh();
+  ref.onDispose(refresh.dispose);
+  ref.listen(authNotifierProvider, (previous, next) => refresh.ping());
+
   return GoRouter(
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: true,
+    refreshListenable: refresh,
     redirect: (context, state) {
+      final authState = ref.read(authNotifierProvider);
       final path = state.matchedLocation;
       final isInitialized = authState.isInitialized;
       final hasSession = authState.hasSession;

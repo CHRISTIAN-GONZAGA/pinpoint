@@ -11,7 +11,14 @@ class RegisterSchema(Schema):
 
 
 class LoginSchema(Schema):
-  email = fields.Email(required=True)
+  # Keep validation loose so local/dev admin addresses like admin@pinpoint.local work.
+  email = fields.Str(
+    required=True,
+    validate=validate.Regexp(
+      r"^[^@\s]+@[^@\s]+\.[^@\s]+$",
+      error="Not a valid email.",
+    ),
+  )
   password = fields.Str(required=True)
 
 

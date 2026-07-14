@@ -149,4 +149,12 @@ class AuthService:
 
   @staticmethod
   def _verify_password(password: str, password_hash: str) -> bool:
-    return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
+    if not password_hash:
+      return False
+    try:
+      return bcrypt.checkpw(
+        password.encode("utf-8"), password_hash.encode("utf-8")
+      )
+    except (ValueError, TypeError):
+      # Corrupt / truncated hashes must not crash login with HTTP 500.
+      return False

@@ -48,7 +48,11 @@ def login():
     return _token_response(user)
   except ValidationError as err:
     message = err.messages.get("message", ["Invalid email or password."])
+    if isinstance(err.messages, dict) and "email" in err.messages:
+      message = err.messages["email"]
     return jsonify({"message": message[0] if isinstance(message, list) else message}), 401
+  except Exception:
+    return jsonify({"message": "Login failed due to a server error. Please try again."}), 500
 
 
 @auth_bp.post("/refresh")
