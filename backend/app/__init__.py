@@ -105,6 +105,12 @@ def create_app(config_class: type[Config] = Config) -> Flask:
         with app.app_context():
             db.create_all()
             _ensure_route_management_columns()
+            # Always repair bootstrap admin — production sets AUTO_SEED=false after
+            # the first seed pass, which previously left broken admin hashes stuck.
+            try:
+                seed_admin_user()
+            except Exception:
+                pass
 
     @app.get("/health")
     def health_check():

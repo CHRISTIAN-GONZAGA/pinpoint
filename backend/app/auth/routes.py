@@ -51,8 +51,16 @@ def login():
     if isinstance(err.messages, dict) and "email" in err.messages:
       message = err.messages["email"]
     return jsonify({"message": message[0] if isinstance(message, list) else message}), 401
-  except Exception:
-    return jsonify({"message": "Login failed due to a server error. Please try again."}), 500
+  except Exception as exc:
+    from flask import current_app
+
+    current_app.logger.exception("Login failed")
+    return jsonify(
+      {
+        "message": "Login failed due to a server error. Please try again.",
+        "detail": str(exc.__class__.__name__),
+      }
+    ), 500
 
 
 @auth_bp.post("/refresh")

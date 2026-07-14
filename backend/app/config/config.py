@@ -56,12 +56,27 @@ def resolve_database_url(default: str = "sqlite:///pinpoint.db") -> str:
   return normalize_database_url(cleaned)
 
 
+def resolve_jwt_secret() -> str:
+  """Return a JWT signing key that always meets PyJWT HS256's 32-byte minimum.
+
+  Render (and local) often use short JWT_SECRET_KEY values. Recent PyJWT builds
+  reject those with InvalidKeyError, which surfaces as HTTP 500 on successful
+  password checks (e.g. admin login).
+  """
+  import hashlib
+
+  raw = _clean_env_value(os.getenv("JWT_SECRET_KEY")) or "dev-jwt-secret"
+  if len(raw.encode("utf-8")) >= 32:
+    return raw
+  return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
 class Config:
   """Base configuration for PINPOINT backend."""
 
   APP_VERSION = APP_VERSION
   SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
-  JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-jwt-secret")
+  JWT_SECRET_KEY = resolve_jwt_secret()
   SQLALCHEMY_DATABASE_URI = resolve_database_url()
   SQLALCHEMY_TRACK_MODIFICATIONS = False
   CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
