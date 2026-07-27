@@ -21,13 +21,13 @@ import 'package:pinpoint/core/widgets/premium_surface.dart';
 import 'package:pinpoint/shared/widgets/destination_search_field.dart';
 
 /// Main bottom navigation shell with five primary tabs.
-class MainShellScreen extends StatelessWidget {
+class MainShellScreen extends ConsumerWidget {
   const MainShellScreen({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       extendBody: true,
       body: AnimatedSwitcher(
@@ -67,6 +67,12 @@ class MainShellScreen extends StatelessWidget {
             child: NavigationBar(
               selectedIndex: navigationShell.currentIndex,
               onDestinationSelected: (index) {
+                // Home (0) and Map (1) should pick up admin destination edits.
+                if (index == 0 || index == 1) {
+                  unawaited(
+                    ref.read(mapNotifierProvider.notifier).refreshFeaturedDestinations(),
+                  );
+                }
                 if (index != navigationShell.currentIndex) {
                   navigationShell.goBranch(index);
                 }
@@ -146,6 +152,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             await Future.wait([
               ref.read(mapNotifierProvider.notifier).initialize(),
               ref.read(mapNotifierProvider.notifier).refreshLocation(),
+              ref.read(mapNotifierProvider.notifier).refreshFeaturedDestinations(force: true),
               ref.read(exploreNotifierProvider.notifier).initialize(),
               ref.read(notificationsNotifierProvider.notifier).loadAnnouncements(),
             ]);

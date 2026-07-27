@@ -151,31 +151,54 @@ class PlacesRepository {
     return _filterNearby(all, lat: lat, lng: lng, radiusKm: radiusKm);
   }
 
+  /// Loads curated destinations. Online: API is source of truth (including empty).
+  /// Offline / failure: Hive cache, then bundled CommonDestinations fallback.
   Future<List<FeaturedDestination>> getFeaturedDestinations({bool refresh = false}) async {
-    if (!refresh) {
-      try {
-        final cached = await _local.getFeaturedDestinations();
-        if (cached.isNotEmpty) return cached;
-      } catch (_) {}
-    }
-
     if (!AppConstants.offlineFirstMode) {
       try {
         final raw = await _remote.fetchFeaturedDestinations().timeout(_apiTimeout);
-        if (raw.isNotEmpty) {
-          final featured = raw.map(FeaturedDestination.fromApi).toList();
-          await _local.saveFeaturedDestinations(featured);
-          return featured;
-        }
+        // Empty list is a valid admin state (all destinations removed).
+        final featured = raw.map(FeaturedDestination.fromApi).toList();
+        await _local.saveFeaturedDestinations(featured);
+        return featured;
+      } catch (_) {
+        // Fall through to cache / offline fallback.
+      }
+    }
+
+    if (!refresh) {
+      try {
+        final cached = await _local.getFeaturedDestinations();
+        // Only trust non-empty cache offline; empty may mean never synced.
+        if (cached.isNotEmpty) return cached;
+      } catch (_) {}
+    } else {
+      try {
+        final cached = await _local.getFeaturedDestinations();
+        return cached;
       } catch (_) {}
     }
 
-    try {
-      final cached = await _local.getFeaturedDestinations();
-      if (cached.isNotEmpty) return cached;
-    } catch (_) {}
-
     return _loadFeaturedFallback();
+  }
+
+  /// Force-refresh from API and overwrite local cache (used after admin edits).
+  Future<List<FeaturedDestination>> syncFeaturedDestinations() async {
+    if (AppConstants.offlineFirstMode) {
+      return getFeaturedDestinations(refresh: true);
+    }
+    try {
+      final raw = await _remote.fetchFeaturedDestinations().timeout(_apiTimeout);
+      final featured = raw.map(FeaturedDestination.fromApi).toList();
+      await _local.saveFeaturedDestinations(featured);
+      return featured;
+    } catch (_) {
+      try {
+        return await _local.getFeaturedDestinations();
+      } catch (_) {
+        return _loadFeaturedFallback();
+      }
+    }
   }
 
   Future<List<FeaturedDestination>> _loadFeaturedFallback() async {

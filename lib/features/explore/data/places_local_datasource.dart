@@ -106,6 +106,11 @@ class PlacesLocalDataSource {
     );
   }
 
+  Future<void> clearFeaturedDestinations() async {
+    final box = await _box;
+    await box.put('featured_destinations', <Map<String, dynamic>>[]);
+  }
+
   double _distanceKm(double lat1, double lng1, double lat2, double lng2) {
     const earthRadiusKm = 6371.0;
     final dLat = _degToRad(lat2 - lat1);

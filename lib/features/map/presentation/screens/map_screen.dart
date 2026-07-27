@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -35,7 +36,8 @@ class MapScreen extends ConsumerStatefulWidget {
   ConsumerState<MapScreen> createState() => _MapScreenState();
 }
 
-class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveClientMixin {
+class _MapScreenState extends ConsumerState<MapScreen>
+    with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   final _searchController = TextEditingController();
   final _mapController = MapController();
   var _showLayerPanel = false;
@@ -49,6 +51,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     Future.microtask(() {
       final notifier = ref.read(mapNotifierProvider.notifier);
       notifier.attachMapController(_mapController);
@@ -58,10 +61,18 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _searchController.dispose();
     _mapController.dispose();
     _routeSheetController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(ref.read(mapNotifierProvider.notifier).refreshFeaturedDestinations());
+    }
   }
 
   void _onMapReady() {

@@ -3,6 +3,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:pinpoint/app/dependency_injection.dart';
 import 'package:pinpoint/core/services/routing_service.dart';
 import 'package:pinpoint/features/admin/presentation/viewmodels/manage_destinations_state.dart';
+import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart';
 
 class ManageDestinationsNotifier extends Notifier<ManageDestinationsState> {
   RoutingService get _routing => ref.read(routingServiceProvider);
@@ -153,6 +154,7 @@ class ManageDestinationsNotifier extends Notifier<ManageDestinationsState> {
         await repo.createDestination(payload);
       }
       await load();
+      await _syncPassengerFeatured();
       state = state.copyWith(
         mode: ManageDestinationsMode.browse,
         clearDraftPin: true,
@@ -174,6 +176,7 @@ class ManageDestinationsNotifier extends Notifier<ManageDestinationsState> {
     try {
       await ref.read(adminRepositoryProvider).deleteDestination(id);
       await load();
+      await _syncPassengerFeatured();
       state = state.copyWith(
         mode: ManageDestinationsMode.browse,
         clearSelection: true,
@@ -185,6 +188,18 @@ class ManageDestinationsNotifier extends Notifier<ManageDestinationsState> {
     } catch (error) {
       state = state.copyWith(isSaving: false, errorMessage: error.toString());
       return false;
+    }
+  }
+
+  /// Push latest featured list into Hive + passenger map state immediately.
+  Future<void> _syncPassengerFeatured() async {
+    try {
+      final destinations = await ref.read(placesRepositoryProvider).syncFeaturedDestinations();
+      ref.read(mapNotifierProvider.notifier).applyFeaturedDestinations(destinations);
+    } catch (_) {
+      try {
+        await ref.read(mapNotifierProvider.notifier).refreshFeaturedDestinations();
+      } catch (_) {}
     }
   }
 }

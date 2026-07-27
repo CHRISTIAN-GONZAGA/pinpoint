@@ -30,6 +30,7 @@ class MapNotifier extends Notifier<MapState> {
   late final RoutingService _routing;
   final _distance = const Distance();
   int _routeGeneration = 0;
+  DateTime? _lastFeaturedSync;
 
   @override
   MapState build() {
@@ -58,18 +59,35 @@ class MapNotifier extends Notifier<MapState> {
     );
 
     unawaited(_loadTransportOverlays());
-    unawaited(_loadFeaturedDestinations());
+    unawaited(_loadFeaturedDestinations(force: true));
     unawaited(_primeLocationAccess());
   }
 
-  Future<void> _loadFeaturedDestinations() async {
+  Future<void> _loadFeaturedDestinations({bool force = false}) async {
     try {
       final repo = ref.read(placesRepositoryProvider);
-      final featured = await repo.getFeaturedDestinations();
-      if (featured.isNotEmpty) {
-        state = state.copyWith(featuredDestinations: featured);
-      }
+      final featured = force
+          ? await repo.syncFeaturedDestinations()
+          : await repo.getFeaturedDestinations();
+      _lastFeaturedSync = DateTime.now();
+      // Always apply — empty means admin cleared the list.
+      state = state.copyWith(featuredDestinations: featured);
     } catch (_) {}
+  }
+
+  /// Re-fetch featured destinations from the API so guests see admin changes.
+  Future<void> refreshFeaturedDestinations({bool force = false}) async {
+    if (!force &&
+        _lastFeaturedSync != null &&
+        DateTime.now().difference(_lastFeaturedSync!) < const Duration(seconds: 15)) {
+      return;
+    }
+    await _loadFeaturedDestinations(force: true);
+  }
+
+  void applyFeaturedDestinations(List<FeaturedDestination> destinations) {
+    _lastFeaturedSync = DateTime.now();
+    state = state.copyWith(featuredDestinations: destinations);
   }
 
   Future<void> selectFeaturedDestination(FeaturedDestination featured) async {
