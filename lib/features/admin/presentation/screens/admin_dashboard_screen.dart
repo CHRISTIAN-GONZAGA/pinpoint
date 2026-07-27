@@ -59,7 +59,17 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
           : ListView(
               padding: const EdgeInsets.all(AppSpacing.screenMargin),
               children: [
-                Text('Overview', style: Theme.of(context).textTheme.titleLarge),
+                Text('Overview', style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3,
+                )),
+                const SizedBox(height: 4),
+                Text(
+                  'Keep routes, destinations, and fares accurate for passengers.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.md),
                 Wrap(
                   spacing: AppSpacing.sm,
@@ -72,7 +82,17 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                   ],
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                Text('Route Network', style: Theme.of(context).textTheme.titleLarge),
+                Text('Route & places', style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3,
+                )),
+                const SizedBox(height: 4),
+                Text(
+                  'What passengers see on Home, Map chips, and fare estimates.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.md),
                 Card(
                   child: ListTile(
@@ -95,6 +115,18 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                     ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => context.push(AppRoutes.manageDestinations),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.payments_outlined),
+                    title: const Text('Vehicle Fares'),
+                    subtitle: const Text(
+                      'Set PUJ, tricycle, and taxi minimum + per-km charges',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push(AppRoutes.manageFares),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),

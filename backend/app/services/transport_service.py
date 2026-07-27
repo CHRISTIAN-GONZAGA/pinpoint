@@ -66,3 +66,34 @@ class TransportService:
   @ttl_cache(seconds=300)
   def list_fares(self) -> list[dict]:
     return [fare.to_dict() for fare in self._repo.get_fare_matrix()]
+
+  def update_fare(self, fare_id: int, payload: dict) -> dict | None:
+    fare = self._repo.get_fare_by_id(fare_id)
+    if not fare:
+      return None
+    if "minimum_fare" in payload and float(payload["minimum_fare"]) < 0:
+      raise ValueError("minimum_fare must be >= 0")
+    if "succeeding_rate" in payload and float(payload["succeeding_rate"]) < 0:
+      raise ValueError("succeeding_rate must be >= 0")
+    updated = self._repo.update_fare(fare, payload)
+    self._bust_fare_cache()
+    return updated.to_dict()
+
+  def upsert_fare_by_type(self, transport_type: str, payload: dict) -> dict:
+    allowed = {"jeepney", "tricycle", "taxi", "bus", "van", "modern_jeepney"}
+    if transport_type not in allowed:
+      raise ValueError(f"transport_type must be one of: {', '.join(sorted(allowed))}")
+    if "minimum_fare" not in payload and "succeeding_rate" not in payload:
+      raise ValueError("minimum_fare or succeeding_rate is required")
+    if "minimum_fare" in payload and float(payload["minimum_fare"]) < 0:
+      raise ValueError("minimum_fare must be >= 0")
+    if "succeeding_rate" in payload and float(payload["succeeding_rate"]) < 0:
+      raise ValueError("succeeding_rate must be >= 0")
+    updated = self._repo.upsert_fare(transport_type, payload)
+    self._bust_fare_cache()
+    return updated.to_dict()
+
+  def _bust_fare_cache(self) -> None:
+    clear = getattr(self.list_fares, "cache_clear", None)
+    if callable(clear):
+      clear()

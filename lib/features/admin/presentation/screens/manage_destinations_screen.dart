@@ -85,8 +85,22 @@ class _ManageDestinationsScreenState extends ConsumerState<ManageDestinationsScr
     final success =
         await ref.read(manageDestinationsNotifierProvider.notifier).deleteSelected();
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(success ? 'Destination deleted' : 'Failed to delete')),
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(success ? 'Destination deleted' : 'Delete failed'),
+        content: Text(
+          success
+              ? 'This place was removed from passenger quick-picks.'
+              : 'Could not delete this destination. Try again.',
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -105,7 +119,9 @@ class _ManageDestinationsScreenState extends ConsumerState<ManageDestinationsScr
           SnackBar(content: Text(next.errorMessage!), backgroundColor: theme.colorScheme.error),
         );
       }
-      if (next.successMessage != null && next.successMessage != prev?.successMessage) {
+      if (next.successMessage != null &&
+          next.successMessage != prev?.successMessage &&
+          next.successMessage != 'Destination deleted') {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(next.successMessage!)),
         );
@@ -219,6 +235,7 @@ class _ManageDestinationsScreenState extends ConsumerState<ManageDestinationsScr
               onSearchChanged: notifier.setSearchQuery,
               onCategoryChanged: (v) => notifier.updateForm(category: v),
               onActiveChanged: (v) => notifier.updateForm(activeStatus: v),
+              onFieldsChanged: () => _pushForm(notifier),
               onEdit: notifier.startEditSelected,
               onSelect: notifier.selectDestination,
               onSave: () async {
@@ -247,6 +264,7 @@ class _BottomPanel extends StatelessWidget {
     required this.onSearchChanged,
     required this.onCategoryChanged,
     required this.onActiveChanged,
+    required this.onFieldsChanged,
     required this.onEdit,
     required this.onSelect,
     required this.onSave,
@@ -264,6 +282,7 @@ class _BottomPanel extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final ValueChanged<String> onCategoryChanged;
   final ValueChanged<bool> onActiveChanged;
+  final VoidCallback onFieldsChanged;
   final VoidCallback onEdit;
   final ValueChanged<AdminFeaturedDestination> onSelect;
   final Future<void> Function() onSave;
@@ -325,6 +344,7 @@ class _BottomPanel extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
               TextField(
                 controller: nameController,
+                onChanged: (_) => onFieldsChanged(),
                 decoration: const InputDecoration(
                   labelText: 'Name',
                   border: OutlineInputBorder(),
@@ -333,9 +353,10 @@ class _BottomPanel extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
               TextField(
                 controller: shortLabelController,
+                onChanged: (_) => onFieldsChanged(),
                 decoration: const InputDecoration(
                   labelText: 'Chip label',
-                  hintText: 'Short label on map chips',
+                  hintText: 'Optional — defaults to the name',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -361,6 +382,7 @@ class _BottomPanel extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
               TextField(
                 controller: addressController,
+                onChanged: (_) => onFieldsChanged(),
                 decoration: const InputDecoration(
                   labelText: 'Address (optional)',
                   border: OutlineInputBorder(),
@@ -369,6 +391,7 @@ class _BottomPanel extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
               TextField(
                 controller: descriptionController,
+                onChanged: (_) => onFieldsChanged(),
                 minLines: 2,
                 maxLines: 3,
                 decoration: const InputDecoration(
@@ -379,9 +402,11 @@ class _BottomPanel extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
               TextField(
                 controller: sortOrderController,
+                onChanged: (_) => onFieldsChanged(),
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
                   labelText: 'Sort order',
+                  helperText: 'Lower numbers show first on Home & Map chips',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -391,6 +416,14 @@ class _BottomPanel extends StatelessWidget {
                 value: state.activeStatus,
                 onChanged: onActiveChanged,
               ),
+              if (state.draftPin == null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: Text(
+                    'Save unlocks after you tap the map to place a pin.',
+                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error),
+                  ),
+                ),
               Row(
                 children: [
                   Expanded(

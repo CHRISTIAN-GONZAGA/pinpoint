@@ -75,7 +75,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                     children: [
                       PremiumSectionHeader(
                         title: 'Explore',
-                        subtitle: 'Discover places across Butuan City.',
+                        subtitle: 'Malls, parks, food, and landmarks around Butuan.',
                         trailing: IconButton(
                           visualDensity: VisualDensity.compact,
                           onPressed: () => context.push(AppRoutes.emergency),
@@ -109,7 +109,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                       ),
                       if (state.searchResults.isNotEmpty) ...[
                         const SizedBox(height: 24),
-                        const PremiumSectionLabel('Results'),
+                        const PremiumSectionLabel('Results', subtitle: 'Matches for your search'),
                         const SizedBox(height: 8),
                         ...state.searchResults.map(
                           (place) => Padding(
@@ -125,7 +125,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                         ),
                       ],
                       const SizedBox(height: 28),
-                      const PremiumSectionLabel('Categories'),
+                      const PremiumSectionLabel('Categories', subtitle: 'Browse by what you need'),
                       const SizedBox(height: 10),
                       SizedBox(
                         height: 100,
@@ -145,7 +145,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                         ),
                       ),
                       const SizedBox(height: 28),
-                      const PremiumSectionLabel('Nearby'),
+                      const PremiumSectionLabel('Nearby', subtitle: 'Close to where you are now'),
                       const SizedBox(height: 10),
                       if (state.nearbyPlaces.isEmpty && state.attractions.isEmpty)
                         const EmptyStateWidget(

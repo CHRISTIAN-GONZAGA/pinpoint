@@ -46,6 +46,7 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     from app.sync.routes import sync_bp
     from app.pdf.routes import pdf_bp
     from app.utilities.seed_data import (
+      ensure_default_fares,
       seed_admin_user,
       seed_featured_destinations,
       seed_places_data,
@@ -114,6 +115,7 @@ def create_app(config_class: type[Config] = Config) -> Flask:
             try:
                 seed_admin_user()
                 seed_featured_destinations()
+                ensure_default_fares()
             except Exception:
                 pass
 

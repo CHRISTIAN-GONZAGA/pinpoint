@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import date
 
 from app.extensions import db
 from app.models.transport import (
@@ -66,6 +67,48 @@ class TransportRepository:
 
   def get_fare_matrix(self) -> list[FareMatrix]:
     return FareMatrix.query.order_by(FareMatrix.transport_type).all()
+
+  def get_fare_by_type(self, transport_type: str) -> FareMatrix | None:
+    return FareMatrix.query.filter_by(transport_type=transport_type).first()
+
+  def get_fare_by_id(self, fare_id: int) -> FareMatrix | None:
+    return db.session.get(FareMatrix, fare_id)
+
+  def update_fare(self, fare: FareMatrix, payload: dict) -> FareMatrix:
+    if "minimum_fare" in payload:
+      fare.minimum_fare = float(payload["minimum_fare"])
+    if "succeeding_rate" in payload:
+      fare.succeeding_rate = float(payload["succeeding_rate"])
+    if "student_discount" in payload:
+      fare.student_discount = float(payload["student_discount"])
+    if "senior_discount" in payload:
+      fare.senior_discount = float(payload["senior_discount"])
+    if "pwd_discount" in payload:
+      fare.pwd_discount = float(payload["pwd_discount"])
+    if "effective_date" in payload and payload["effective_date"]:
+      raw = payload["effective_date"]
+      if isinstance(raw, str):
+        fare.effective_date = date.fromisoformat(raw[:10])
+      else:
+        fare.effective_date = raw
+    else:
+      fare.effective_date = date.today()
+    db.session.commit()
+    return fare
+
+  def upsert_fare(self, transport_type: str, payload: dict) -> FareMatrix:
+    fare = self.get_fare_by_type(transport_type)
+    if fare is None:
+      fare = FareMatrix(
+        transport_type=transport_type,
+        minimum_fare=float(payload.get("minimum_fare", 0)),
+        succeeding_rate=float(payload.get("succeeding_rate", 0)),
+        effective_date=date.today(),
+      )
+      db.session.add(fare)
+      db.session.commit()
+      return fare
+    return self.update_fare(fare, payload)
 
   @staticmethod
   def _normalize_geojson(payload: dict | list | str) -> str:

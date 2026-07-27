@@ -126,11 +126,7 @@ class ManageDestinationsState {
         .toList();
   }
 
-  bool get canSave =>
-      name.trim().isNotEmpty &&
-      shortLabel.trim().isNotEmpty &&
-      draftPin != null &&
-      !isSaving;
+  bool get canSave => draftPin != null && !isSaving;
 
   ManageDestinationsState copyWith({
     ManageDestinationsMode? mode,

@@ -131,4 +131,31 @@ class AdminRepository {
       throw _apiClient.mapError(error);
     }
   }
+
+  Future<List<Map<String, dynamic>>> getAdminFares() async {
+    try {
+      return await _remote.fetchAdminFares();
+    } on DioException catch (error) {
+      throw _apiClient.mapError(error);
+    }
+  }
+
+  Future<Map<String, dynamic>> updateFare(int fareId, Map<String, dynamic> payload) async {
+    try {
+      return await _remote.updateFare(fareId, payload);
+    } on DioException catch (error) {
+      throw _apiClient.mapError(error);
+    }
+  }
+
+  Future<Map<String, dynamic>> upsertFareByType(
+    String transportType,
+    Map<String, dynamic> payload,
+  ) async {
+    try {
+      return await _remote.upsertFareByType(transportType, payload);
+    } on DioException catch (error) {
+      throw _apiClient.mapError(error);
+    }
+  }
 }

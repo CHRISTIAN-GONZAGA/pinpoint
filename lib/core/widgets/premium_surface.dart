@@ -92,21 +92,36 @@ class PremiumSectionHeader extends StatelessWidget {
 
 /// Compact overline for grouped sections.
 class PremiumSectionLabel extends StatelessWidget {
-  const PremiumSectionLabel(this.text, {super.key});
+  const PremiumSectionLabel(this.text, {super.key, this.subtitle});
 
   final String text;
+  final String? subtitle;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
-      child: Text(
-        text.toUpperCase(),
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              letterSpacing: 0.6,
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.45),
+      padding: const EdgeInsets.only(left: 2, bottom: 8, top: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            text,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.3,
             ),
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              subtitle!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

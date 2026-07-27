@@ -262,6 +262,36 @@ def admin_delete_destination(destination_id: int):
   return jsonify({"message": "Destination deleted"}), 200
 
 
+@admin_bp.get("/fares")
+@admin_required()
+def admin_list_fares():
+  return jsonify({"fares": _transport.list_fares()}), 200
+
+
+@admin_bp.patch("/fares/<int:fare_id>")
+@admin_required()
+def admin_update_fare(fare_id: int):
+  payload = request.get_json() or {}
+  try:
+    fare = _transport.update_fare(fare_id, payload)
+  except ValueError as error:
+    return jsonify({"message": str(error)}), 400
+  if not fare:
+    return jsonify({"message": "Fare not found"}), 404
+  return jsonify(fare), 200
+
+
+@admin_bp.put("/fares/<string:transport_type>")
+@admin_required()
+def admin_upsert_fare(transport_type: str):
+  payload = request.get_json() or {}
+  try:
+    fare = _transport.upsert_fare_by_type(transport_type.strip().lower(), payload)
+  except ValueError as error:
+    return jsonify({"message": str(error)}), 400
+  return jsonify(fare), 200
+
+
 @admin_bp.put("/routes/<int:route_id>/stops")
 @admin_required()
 def admin_replace_stops(route_id: int):

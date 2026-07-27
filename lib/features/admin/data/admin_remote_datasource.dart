@@ -117,4 +117,29 @@ class AdminRemoteDataSource {
   Future<void> deleteDestination(int destinationId) async {
     await _api.delete<Map<String, dynamic>>('/admin/destinations/$destinationId');
   }
+
+  Future<List<Map<String, dynamic>>> fetchAdminFares() async {
+    final response = await _api.get<Map<String, dynamic>>('/admin/fares');
+    final list = response.data?['fares'] as List<dynamic>? ?? [];
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  Future<Map<String, dynamic>> updateFare(int fareId, Map<String, dynamic> payload) async {
+    final response = await _api.patch<Map<String, dynamic>>(
+      '/admin/fares/$fareId',
+      data: payload,
+    );
+    return Map<String, dynamic>.from(response.data ?? {});
+  }
+
+  Future<Map<String, dynamic>> upsertFareByType(
+    String transportType,
+    Map<String, dynamic> payload,
+  ) async {
+    final response = await _api.put<Map<String, dynamic>>(
+      '/admin/fares/$transportType',
+      data: payload,
+    );
+    return Map<String, dynamic>.from(response.data ?? {});
+  }
 }

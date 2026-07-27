@@ -135,47 +135,81 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
     final announcements = ref.watch(notificationsNotifierProvider).announcements;
+    final featured = ref.watch(mapNotifierProvider).featuredDestinations;
+    final nearby = ref.watch(exploreNotifierProvider).nearbyPlaces;
 
     return Scaffold(
       backgroundColor: PremiumTokens.groupedBackground(context),
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    HomeGreetingHeader(user: user),
-                    const SizedBox(height: 24),
-                    const _HomeSearchBar(),
-                    const SizedBox(height: 20),
-                    if (announcements.isNotEmpty) ...[
-                      _AnnouncementsBanner(announcements: announcements.take(3).toList()),
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await Future.wait([
+              ref.read(mapNotifierProvider.notifier).initialize(),
+              ref.read(mapNotifierProvider.notifier).refreshLocation(),
+              ref.read(exploreNotifierProvider.notifier).initialize(),
+              ref.read(notificationsNotifierProvider.notifier).loadAnnouncements(),
+            ]);
+          },
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      HomeGreetingHeader(user: user),
                       const SizedBox(height: 20),
+                      const _HomeSearchBar(),
+                      const SizedBox(height: 18),
+                      if (announcements.isNotEmpty) ...[
+                        _AnnouncementsBanner(announcements: announcements.take(3).toList()),
+                        const SizedBox(height: 18),
+                      ],
+                      const _LocationCard(),
+                      const SizedBox(height: 26),
+                      HomeSectionHeader(
+                        title: 'Get moving',
+                        subtitle: 'Jump into a route, browse places, or ask for help',
+                      ),
+                      const _QuickActionsRow(),
+                      const SizedBox(height: 26),
+                      HomeSectionHeader(
+                        title: 'Popular now',
+                        subtitle: 'One-tap destinations curated for Butuan',
+                        actionLabel: featured.isEmpty ? null : 'Browse',
+                        onAction: featured.isEmpty
+                            ? null
+                            : () => context.go(AppRoutes.map),
+                      ),
+                      if (featured.isEmpty)
+                        HomeEmptyHint(
+                          icon: Icons.place_outlined,
+                          title: 'Destinations loading',
+                          message: 'Pull to refresh, or open Map to browse places.',
+                          actionLabel: 'Open map',
+                          onAction: () => context.go(AppRoutes.map),
+                        )
+                      else
+                        const _PopularNowRail(),
+                      const SizedBox(height: 26),
+                      HomeSectionHeader(
+                        title: 'Around you',
+                        subtitle: 'Places near your current spot',
+                        actionLabel: nearby.isEmpty ? null : 'Explore',
+                        onAction: nearby.isEmpty ? null : () => context.go(AppRoutes.explore),
+                      ),
+                      const _NearbyList(),
+                      const SizedBox(height: 18),
+                      _EmergencyBanner(),
+                      const SizedBox(height: 100),
                     ],
-                    const _LocationCard(),
-                    const SizedBox(height: 28),
-                    const PremiumSectionLabel('Go somewhere'),
-                    const SizedBox(height: 10),
-                    const _QuickActionsRow(),
-                    const SizedBox(height: 28),
-                    const PremiumSectionLabel('Popular now'),
-                    const SizedBox(height: 10),
-                    const _PopularNowRail(),
-                    const SizedBox(height: 28),
-                    const PremiumSectionLabel('Nearby'),
-                    const SizedBox(height: 10),
-                    const _NearbyList(),
-                    const SizedBox(height: 20),
-                    _EmergencyBanner(),
-                    const SizedBox(height: 100),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -246,27 +280,40 @@ class _LocationCard extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'You are here',
+                      'Current location',
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                             color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.45),
+                            fontWeight: FontWeight.w600,
                           ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       address,
-                      style: Theme.of(context).textTheme.titleSmall,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.2,
+                          ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
+              TextButton(
+                onPressed: mapState.currentLocation == null
+                    ? null
+                    : () {
+                        context.go(AppRoutes.map);
+                      },
+                child: const Text('Plan'),
+              ),
               IconButton(
                 visualDensity: VisualDensity.compact,
+                tooltip: 'Refresh location',
                 onPressed: mapState.isLocating
                     ? null
                     : () => ref.read(mapNotifierProvider.notifier).refreshLocation(),
-                icon: const Icon(Icons.refresh_rounded, size: 20),
+                icon: const Icon(Icons.my_location_rounded, size: 20),
               ),
             ],
           ),
@@ -283,7 +330,7 @@ class _HomeSearchBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final mapState = ref.watch(mapNotifierProvider);
     return DestinationSearchField(
-      hintText: 'Where do you want to go?',
+      hintText: 'Search a place in Butuan…',
       isSearching: mapState.isSearching,
       results: mapState.searchResults,
       onQueryChanged: (q) => ref.read(mapNotifierProvider.notifier).searchPlaces(q),
@@ -407,10 +454,10 @@ class _QuickActionsRow extends StatelessWidget {
   const _QuickActionsRow();
 
   static const _actions = [
-    (Icons.route_rounded, 'Plan route', AppRoutes.map),
-    (Icons.explore_outlined, 'Explore', AppRoutes.explore),
-    (Icons.bubble_chart_outlined, 'Assistant', AppRoutes.ai),
-    (Icons.emergency_outlined, 'Emergency', AppRoutes.emergency),
+    (Icons.route_rounded, 'Plan a trip', AppRoutes.map),
+    (Icons.explore_outlined, 'Discover', AppRoutes.explore),
+    (Icons.bubble_chart_outlined, 'Ask AI', AppRoutes.ai),
+    (Icons.emergency_outlined, 'SOS', AppRoutes.emergency),
   ];
 
   @override
@@ -441,7 +488,13 @@ class _NearbyList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final nearby = ref.watch(exploreNotifierProvider).nearbyPlaces;
     if (nearby.isEmpty) {
-      return const Text('Enable location to see nearby highlights.');
+      return HomeEmptyHint(
+        icon: Icons.location_searching_rounded,
+        title: 'Looking for nearby places',
+        message: 'Turn on location to see hospitals, malls, and spots around you.',
+        actionLabel: 'Retry',
+        onAction: () => ref.read(exploreNotifierProvider.notifier).initialize(),
+      );
     }
     return Column(
       children: nearby.take(5).map((place) {
@@ -473,8 +526,8 @@ class _EmergencyBanner extends StatelessWidget {
             ),
             child: const Icon(Icons.emergency_outlined, color: Color(0xFFFF3B30), size: 20),
           ),
-          title: 'Emergency',
-          subtitle: 'Hospitals, police, and hotlines',
+          title: 'Need help fast?',
+          subtitle: 'Hospitals, police, fire, and hotlines in one tap',
           onTap: () => context.push(AppRoutes.emergency),
           trailing: Icon(
             Icons.arrow_forward_ios_rounded,

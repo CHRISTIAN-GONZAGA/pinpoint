@@ -116,15 +116,24 @@ class ManageDestinationsNotifier extends Notifier<ManageDestinationsState> {
 
   Future<bool> save() async {
     final pin = state.draftPin;
-    if (pin == null || state.name.trim().isEmpty || state.shortLabel.trim().isEmpty) {
-      state = state.copyWith(errorMessage: 'Set a pin, name, and chip label.');
+    final name = state.name.trim();
+    var shortLabel = state.shortLabel.trim();
+    if (shortLabel.isEmpty && name.isNotEmpty) {
+      shortLabel = name.length <= 18 ? name : name.substring(0, 18);
+    }
+    if (pin == null) {
+      state = state.copyWith(errorMessage: 'Tap the map to place a pin first.');
+      return false;
+    }
+    if (name.isEmpty) {
+      state = state.copyWith(errorMessage: 'Enter a destination name.');
       return false;
     }
 
     state = state.copyWith(isSaving: true, clearError: true, clearSuccess: true);
     final payload = {
-      'name': state.name.trim(),
-      'short_label': state.shortLabel.trim(),
+      'name': name,
+      'short_label': shortLabel,
       'category': state.category,
       'latitude': pin.latitude,
       'longitude': pin.longitude,
@@ -136,7 +145,9 @@ class ManageDestinationsNotifier extends Notifier<ManageDestinationsState> {
 
     try {
       final repo = ref.read(adminRepositoryProvider);
-      if (state.selectedDestinationId != null && state.mode == ManageDestinationsMode.editing) {
+      final editingExisting =
+          state.selectedDestinationId != null && state.mode == ManageDestinationsMode.editing;
+      if (editingExisting) {
         await repo.updateDestination(state.selectedDestinationId!, payload);
       } else {
         await repo.createDestination(payload);
@@ -145,6 +156,7 @@ class ManageDestinationsNotifier extends Notifier<ManageDestinationsState> {
       state = state.copyWith(
         mode: ManageDestinationsMode.browse,
         clearDraftPin: true,
+        clearSelection: true,
         isSaving: false,
         successMessage: 'Destination saved',
       );

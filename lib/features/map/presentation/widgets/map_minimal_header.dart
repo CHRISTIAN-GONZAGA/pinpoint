@@ -112,13 +112,37 @@ class MapMinimalHeader extends ConsumerWidget {
               Row(
                 children: [
                   if (onBrowseDestinations != null)
-                    TextButton.icon(
-                      onPressed: onBrowseDestinations,
-                      icon: const Icon(Icons.grid_view_rounded, size: 16),
-                      label: const Text('Browse places'),
-                      style: TextButton.styleFrom(
-                        visualDensity: VisualDensity.compact,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: Material(
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(18),
+                        child: InkWell(
+                          onTap: onBrowseDestinations,
+                          borderRadius: BorderRadius.circular(18),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.grid_view_rounded,
+                                  size: 15,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Browse',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   Expanded(

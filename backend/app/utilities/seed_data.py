@@ -189,6 +189,7 @@ _TRICYCLE_ZONES = [
 _FARES = [
   {"transport_type": "jeepney", "minimum_fare": 13.0, "succeeding_rate": 1.80},
   {"transport_type": "tricycle", "minimum_fare": 15.0, "succeeding_rate": 2.00},
+  {"transport_type": "taxi", "minimum_fare": 40.0, "succeeding_rate": 13.50},
 ]
 
 
@@ -267,8 +268,40 @@ def seed_transport_data() -> None:
           effective_date=today,
         )
       )
+  else:
+    for fare_def in _FARES:
+      existing = FareMatrix.query.filter_by(transport_type=fare_def["transport_type"]).first()
+      if existing is None:
+        db.session.add(
+          FareMatrix(
+            transport_type=fare_def["transport_type"],
+            minimum_fare=fare_def["minimum_fare"],
+            succeeding_rate=fare_def["succeeding_rate"],
+            effective_date=date.today(),
+          )
+        )
 
   db.session.commit()
+
+
+def ensure_default_fares() -> None:
+  """Insert missing vehicle fare rows without overwriting admin edits."""
+  today = date.today()
+  changed = False
+  for fare_def in _FARES:
+    existing = FareMatrix.query.filter_by(transport_type=fare_def["transport_type"]).first()
+    if existing is None:
+      db.session.add(
+        FareMatrix(
+          transport_type=fare_def["transport_type"],
+          minimum_fare=fare_def["minimum_fare"],
+          succeeding_rate=fare_def["succeeding_rate"],
+          effective_date=today,
+        )
+      )
+      changed = True
+  if changed:
+    db.session.commit()
 
 
 _ATTRACTIONS = [

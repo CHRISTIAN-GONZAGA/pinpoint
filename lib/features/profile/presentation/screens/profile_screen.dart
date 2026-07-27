@@ -98,21 +98,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            user?.fullName ?? 'Guest',
-                            style: Theme.of(context).textTheme.titleLarge,
+                            user?.fullName.trim().isNotEmpty == true
+                                ? user!.fullName
+                                : (isGuest ? 'Guest traveler' : 'PINPOINT user'),
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.4,
+                                ),
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 4),
                           Text(
                             isGuest && !offline
-                                ? 'Sign in to sync across devices'
+                                ? 'Sign in to sync favorites and history'
                                 : isLocal
-                                    ? 'Local profile on this device'
-                                    : user?.email ?? 'Butuan City traveler',
+                                    ? 'Saved on this device'
+                                    : (user!.email.isNotEmpty
+                                        ? user.email
+                                        : 'Butuan City traveler'),
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: Theme.of(context)
                                       .colorScheme
                                       .onSurface
-                                      .withValues(alpha: 0.45),
+                                      .withValues(alpha: 0.5),
                                 ),
                           ),
                         ],
@@ -124,7 +131,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          const PremiumSectionLabel('Appearance'),
+          const PremiumSectionLabel('Appearance', subtitle: 'Theme for day and night rides'),
           PremiumSurface(
             children: [
               Padding(
@@ -144,7 +151,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          const PremiumSectionLabel('Your data'),
+          const PremiumSectionLabel('Your data', subtitle: 'Favorites, history, and saved routes'),
           PremiumSurface(
             children: [
               PremiumListRow(
@@ -168,7 +175,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          const PremiumSectionLabel('Safety & support'),
+          const PremiumSectionLabel('Safety & support', subtitle: 'Alerts, reports, and admin tools'),
           PremiumSurface(
             children: [
               PremiumListRow(
@@ -202,7 +209,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          const PremiumSectionLabel('Preferences'),
+          const PremiumSectionLabel('Preferences', subtitle: 'Accessibility and developer options'),
           PremiumSurface(
             children: [
               PremiumListRow(
