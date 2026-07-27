@@ -39,6 +39,7 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     from app.ai.chat_service import ChatService
     from app.ai.knowledge_sync import seed_knowledge_documents
     from app.admin.routes import admin_bp
+    from app.destinations.routes import destinations_bp
     from app.notifications.routes import notifications_bp
     from app.analytics.routes import analytics_bp
     from app.reports.routes import reports_bp
@@ -46,6 +47,7 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     from app.pdf.routes import pdf_bp
     from app.utilities.seed_data import (
       seed_admin_user,
+      seed_featured_destinations,
       seed_places_data,
       seed_system_data,
       seed_transport_data,
@@ -65,6 +67,7 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     app.register_blueprint(ai_bp, url_prefix=f"{api_prefix}/ai")
     app.register_blueprint(ai_history_bp, url_prefix=f"{api_prefix}/ai/history")
     app.register_blueprint(admin_bp, url_prefix=f"{api_prefix}/admin")
+    app.register_blueprint(destinations_bp, url_prefix=f"{api_prefix}/destinations")
     app.register_blueprint(notifications_bp, url_prefix=f"{api_prefix}/notifications")
     app.register_blueprint(analytics_bp, url_prefix=f"{api_prefix}/analytics")
     app.register_blueprint(reports_bp, url_prefix=f"{api_prefix}/reports")
@@ -94,6 +97,7 @@ def create_app(config_class: type[Config] = Config) -> Flask:
             _ensure_route_management_columns()
             seed_transport_data()
             seed_places_data()
+            seed_featured_destinations()
             seed_knowledge_documents()
             seed_admin_user()
             seed_system_data()
@@ -109,6 +113,7 @@ def create_app(config_class: type[Config] = Config) -> Flask:
             # the first seed pass, which previously left broken admin hashes stuck.
             try:
                 seed_admin_user()
+                seed_featured_destinations()
             except Exception:
                 pass
 

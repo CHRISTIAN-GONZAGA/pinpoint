@@ -10,10 +10,12 @@ class MapMinimalHeader extends ConsumerWidget {
     super.key,
     required this.searchController,
     required this.onOpenTools,
+    this.onBrowseDestinations,
   });
 
   final TextEditingController searchController;
   final VoidCallback onOpenTools;
+  final VoidCallback? onBrowseDestinations;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -107,40 +109,56 @@ class MapMinimalHeader extends ConsumerWidget {
               ),
             if (mapState.featuredDestinations.isNotEmpty) ...[
               const SizedBox(height: 8),
-              SizedBox(
-                height: 34,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: mapState.featuredDestinations.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 6),
-                  itemBuilder: (context, index) {
-                    final dest = mapState.featuredDestinations[index];
-                    final color = PlaceUtils.colorForCategory(dest.place.category);
-                    final selected = mapState.destinationAddress != null &&
-                        (mapState.destinationAddress == dest.place.name ||
-                            mapState.destinationAddress!.contains(dest.shortLabel));
-                    return FilterChip(
-                      label: Text(dest.shortLabel),
-                      selected: selected,
-                      showCheckmark: false,
-                      avatar: Icon(
-                        PlaceUtils.iconForCategory(dest.place.category),
-                        size: 14,
-                        color: selected ? Colors.white : color,
+              Row(
+                children: [
+                  if (onBrowseDestinations != null)
+                    TextButton.icon(
+                      onPressed: onBrowseDestinations,
+                      icon: const Icon(Icons.grid_view_rounded, size: 16),
+                      label: const Text('Browse places'),
+                      style: TextButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                       ),
-                      labelStyle: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: selected ? Colors.white : null,
+                    ),
+                  Expanded(
+                    child: SizedBox(
+                      height: 34,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: mapState.featuredDestinations.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 6),
+                        itemBuilder: (context, index) {
+                          final dest = mapState.featuredDestinations[index];
+                          final color = PlaceUtils.colorForCategory(dest.place.category);
+                          final selected = mapState.destinationAddress != null &&
+                              (mapState.destinationAddress == dest.place.name ||
+                                  mapState.destinationAddress!.contains(dest.shortLabel));
+                          return FilterChip(
+                            label: Text(dest.shortLabel),
+                            selected: selected,
+                            showCheckmark: false,
+                            avatar: Icon(
+                              PlaceUtils.iconForCategory(dest.place.category),
+                              size: 14,
+                              color: selected ? Colors.white : color,
+                            ),
+                            labelStyle: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: selected ? Colors.white : null,
+                            ),
+                            backgroundColor: selected ? color : color.withValues(alpha: 0.12),
+                            side: BorderSide(color: color.withValues(alpha: 0.4)),
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            visualDensity: VisualDensity.compact,
+                            onSelected: (_) => notifier.selectFeaturedDestination(dest),
+                          );
+                        },
                       ),
-                      backgroundColor: selected ? color : color.withValues(alpha: 0.12),
-                      side: BorderSide(color: color.withValues(alpha: 0.4)),
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      visualDensity: VisualDensity.compact,
-                      onSelected: (_) => notifier.selectFeaturedDestination(dest),
-                    );
-                  },
-                ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ],

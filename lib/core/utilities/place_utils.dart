@@ -24,7 +24,8 @@ abstract final class PlaceUtils {
       'fire' => Icons.local_fire_department_rounded,
       'pharmacy' => Icons.local_pharmacy_rounded,
       'government' => Icons.account_balance_rounded,
-      'shopping_center' => Icons.shopping_bag_rounded,
+      'shopping_center' || 'mall' => Icons.shopping_bag_rounded,
+      'school' => Icons.school_rounded,
       'atm' => Icons.atm_rounded,
       'gas_station' => Icons.local_gas_station_rounded,
       'convenience_store' => Icons.store_rounded,
@@ -45,7 +46,8 @@ abstract final class PlaceUtils {
       'pharmacy' => AppColors.danger,
       'museum' || 'park' || 'attraction' => AppColors.accent,
       'government' => Colors.grey,
-      'shopping_center' => AppColors.secondary,
+      'shopping_center' || 'mall' => AppColors.secondary,
+      'school' => const Color(0xFF0EA5E9),
       _ => AppColors.primary,
     };
   }

@@ -9,7 +9,7 @@ from app.extensions import db
 from app.models.system import Announcement
 from app.models.user import User
 from app.models.transport import FareMatrix, JeepneyRoute, RouteStop, TricycleZone
-from app.models.places import EmergencyContact, Establishment, TouristAttraction
+from app.models.places import EmergencyContact, Establishment, FeaturedDestination, TouristAttraction
 
 # Representative coordinates around Butuan City (admin-verified data placeholder).
 _ROUTE_DEFINITIONS = [
@@ -374,6 +374,64 @@ def seed_places_data() -> None:
         longitude=float(lng) if lng else None,
         availability=availability,
         active_status=True,
+      )
+    )
+
+  db.session.commit()
+
+
+# Mirrors lib/features/map/data/common_destinations.dart — seeded once when table is empty.
+_FEATURED_SEED = [
+  ("Robinsons Place Butuan", "Robinsons", "mall", "establishment", 1, 0),
+  ("SM City Butuan", "SM", "mall", "establishment", 2, 1),
+  ("City Hall of Butuan", "City Hall", "government", "establishment", 10, 2),
+  ("Butuan Medical Center", "Hospital", "hospital", "establishment", 3, 3),
+  ("Hotel Almont", "Almont Hotel", "hotel", "establishment", 8, 4),
+  ("Guingona Park", "Guingona Park", "park", "attraction", 3, 5),
+  ("Aling Fopings Panciteria", "Fopings", "restaurant", "establishment", 9, 6),
+]
+
+
+def seed_featured_destinations() -> None:
+  """Populate featured quick-pick destinations from the curated offline set."""
+  if FeaturedDestination.query.count() > 0:
+    return
+
+  for name, short_label, category, place_type, place_id, sort_order in _FEATURED_SEED:
+    lat: float | None = None
+    lng: float | None = None
+    address: str | None = None
+    description: str | None = None
+
+    if place_type == "establishment":
+      row = Establishment.query.get(place_id)
+      if row is None:
+        row = Establishment.query.filter_by(name=name).first()
+      if row:
+        lat, lng, address = row.latitude, row.longitude, row.address
+        description = row.description
+    else:
+      row = TouristAttraction.query.get(place_id)
+      if row is None:
+        row = TouristAttraction.query.filter_by(name=name).first()
+      if row:
+        lat, lng, address = row.latitude, row.longitude, row.address
+        description = row.description
+
+    if lat is None or lng is None:
+      continue
+
+    db.session.add(
+      FeaturedDestination(
+        name=name,
+        short_label=short_label,
+        category=category,
+        latitude=lat,
+        longitude=lng,
+        description=description,
+        address=address,
+        active_status=True,
+        sort_order=sort_order,
       )
     )
 

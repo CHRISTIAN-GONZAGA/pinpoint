@@ -65,15 +65,7 @@ class MapNotifier extends Notifier<MapState> {
   Future<void> _loadFeaturedDestinations() async {
     try {
       final repo = ref.read(placesRepositoryProvider);
-      final featured = <FeaturedDestination>[];
-      for (final item in CommonDestinations.featured) {
-        try {
-          final place = item.type == 'establishment'
-              ? await repo.getEstablishment(item.id)
-              : await repo.getAttraction(item.id);
-          featured.add(FeaturedDestination(place: place, shortLabel: item.shortLabel));
-        } catch (_) {}
-      }
+      final featured = await repo.getFeaturedDestinations();
       if (featured.isNotEmpty) {
         state = state.copyWith(featuredDestinations: featured);
       }

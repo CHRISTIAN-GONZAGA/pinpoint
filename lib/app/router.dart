@@ -24,6 +24,7 @@ import 'package:pinpoint/features/profile/presentation/screens/profile_screen.da
 import 'package:pinpoint/features/profile/presentation/screens/accessibility_screen.dart';
 import 'package:pinpoint/features/profile/presentation/screens/developer_mode_screen.dart';
 import 'package:pinpoint/features/admin/presentation/screens/admin_dashboard_screen.dart';
+import 'package:pinpoint/features/admin/presentation/screens/manage_destinations_screen.dart';
 import 'package:pinpoint/features/admin/presentation/screens/manage_routes_screen.dart';
 import 'package:pinpoint/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:pinpoint/features/reports/presentation/screens/report_issue_screen.dart';
@@ -46,6 +47,7 @@ abstract final class AppRoutes {
   static const reportIssue = '/report';
   static const admin = '/admin';
   static const manageRoutes = '/admin/routes';
+  static const manageDestinations = '/admin/destinations';
   static const accessibility = '/accessibility';
   static const forgotPassword = '/forgot-password';
   static const resetPassword = '/reset-password';
@@ -184,6 +186,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.manageRoutes,
         name: 'manageRoutes',
         pageBuilder: (context, state) => _slidePage(state, const ManageRoutesScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.manageDestinations,
+        name: 'manageDestinations',
+        pageBuilder: (context, state) => _slidePage(state, const ManageDestinationsScreen()),
       ),
       GoRoute(
         path: '/place/:placeType/:placeId',

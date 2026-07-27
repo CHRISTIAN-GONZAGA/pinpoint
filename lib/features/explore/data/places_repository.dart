@@ -6,6 +6,7 @@ import 'package:pinpoint/features/explore/data/places_asset_datasource.dart';
 import 'package:pinpoint/features/explore/data/places_local_datasource.dart';
 import 'package:pinpoint/features/explore/data/places_remote_datasource.dart';
 import 'package:pinpoint/features/explore/domain/place_models.dart';
+import 'package:pinpoint/features/map/data/common_destinations.dart';
 
 /// Repository for tourism and establishment data with offline-first support.
 class PlacesRepository {
@@ -148,6 +149,46 @@ class PlacesRepository {
       ...await _assets.getEstablishments(),
     ];
     return _filterNearby(all, lat: lat, lng: lng, radiusKm: radiusKm);
+  }
+
+  Future<List<FeaturedDestination>> getFeaturedDestinations({bool refresh = false}) async {
+    if (!refresh) {
+      try {
+        final cached = await _local.getFeaturedDestinations();
+        if (cached.isNotEmpty) return cached;
+      } catch (_) {}
+    }
+
+    if (!AppConstants.offlineFirstMode) {
+      try {
+        final raw = await _remote.fetchFeaturedDestinations().timeout(_apiTimeout);
+        if (raw.isNotEmpty) {
+          final featured = raw.map(FeaturedDestination.fromApi).toList();
+          await _local.saveFeaturedDestinations(featured);
+          return featured;
+        }
+      } catch (_) {}
+    }
+
+    try {
+      final cached = await _local.getFeaturedDestinations();
+      if (cached.isNotEmpty) return cached;
+    } catch (_) {}
+
+    return _loadFeaturedFallback();
+  }
+
+  Future<List<FeaturedDestination>> _loadFeaturedFallback() async {
+    final featured = <FeaturedDestination>[];
+    for (final item in CommonDestinations.featured) {
+      try {
+        final place = item.type == 'establishment'
+            ? await getEstablishment(item.id)
+            : await getAttraction(item.id);
+        featured.add(FeaturedDestination(place: place, shortLabel: item.shortLabel));
+      } catch (_) {}
+    }
+    return featured;
   }
 
   Future<List<EmergencyContact>> getEmergencyContacts() async {

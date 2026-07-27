@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:pinpoint/app/constants.dart';
 import 'package:pinpoint/features/explore/domain/place_models.dart';
+import 'package:pinpoint/features/map/data/common_destinations.dart';
 
 /// Hive-backed cache for places and emergency contacts.
 class PlacesLocalDataSource {
@@ -90,6 +91,19 @@ class PlacesLocalDataSource {
       if (place.id == id) return place;
     }
     return null;
+  }
+
+  Future<List<FeaturedDestination>> getFeaturedDestinations() async {
+    final items = await _readList('featured_destinations');
+    return items.map(FeaturedDestination.fromApi).toList();
+  }
+
+  Future<void> saveFeaturedDestinations(List<FeaturedDestination> destinations) async {
+    final box = await _box;
+    await box.put(
+      'featured_destinations',
+      destinations.map((d) => d.toCacheJson()).toList(),
+    );
   }
 
   double _distanceKm(double lat1, double lng1, double lat2, double lng2) {

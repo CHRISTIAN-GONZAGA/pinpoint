@@ -3,7 +3,7 @@
 from flask import Blueprint, jsonify, request
 
 from app.extensions import db
-from app.models.places import Establishment, TouristAttraction
+from app.models.places import Establishment, FeaturedDestination, TouristAttraction
 from app.models.system import Announcement, UserReport
 from app.models.transport import JeepneyRoute
 from app.models.user import User
@@ -28,6 +28,7 @@ def dashboard():
       "active_announcements": Announcement.query.filter_by(active_status=True).count(),
       "total_users": User.query.count(),
       "establishments": Establishment.query.filter_by(active_status=True).count(),
+      "featured_destinations": FeaturedDestination.query.filter_by(active_status=True).count(),
       "routes": JeepneyRoute.query.filter_by(active_status=True).count(),
     }
   )
@@ -148,6 +149,117 @@ def admin_delete_route(route_id: int):
   if not deleted:
     return jsonify({"message": "Route not found"}), 404
   return jsonify({"message": "Route deleted"}), 200
+
+
+_VALID_DESTINATION_CATEGORIES = {
+  "mall",
+  "hospital",
+  "park",
+  "hotel",
+  "school",
+  "government",
+  "restaurant",
+  "other",
+}
+
+
+def _parse_destination_payload(payload: dict, *, partial: bool = False) -> tuple[dict | None, str | None]:
+  data: dict = {}
+  if not partial or "name" in payload:
+    name = (payload.get("name") or "").strip()
+    if not name:
+      return None, "name is required"
+    data["name"] = name
+  if not partial or "short_label" in payload:
+    short_label = (payload.get("short_label") or "").strip()
+    if not short_label:
+      return None, "short_label is required"
+    data["short_label"] = short_label
+  if not partial or "category" in payload:
+    category = (payload.get("category") or "other").strip().lower()
+    if category not in _VALID_DESTINATION_CATEGORIES:
+      return None, f"category must be one of: {', '.join(sorted(_VALID_DESTINATION_CATEGORIES))}"
+    data["category"] = category
+  if not partial or "latitude" in payload or "lat" in payload:
+    lat = payload.get("latitude", payload.get("lat"))
+    if lat is None:
+      return None, "latitude is required"
+    data["latitude"] = float(lat)
+  if not partial or "longitude" in payload or "lng" in payload:
+    lng = payload.get("longitude", payload.get("lng"))
+    if lng is None:
+      return None, "longitude is required"
+    data["longitude"] = float(lng)
+  if "description" in payload:
+    data["description"] = (payload.get("description") or "").strip() or None
+  if "address" in payload:
+    data["address"] = (payload.get("address") or "").strip() or None
+  if "active_status" in payload:
+    data["active_status"] = bool(payload["active_status"])
+  if "sort_order" in payload:
+    data["sort_order"] = int(payload["sort_order"])
+  return data, None
+
+
+@admin_bp.get("/destinations")
+@admin_required()
+def admin_list_destinations():
+  rows = (
+    FeaturedDestination.query.order_by(
+      FeaturedDestination.sort_order.asc(),
+      FeaturedDestination.name.asc(),
+    ).all()
+  )
+  return jsonify({"destinations": [row.to_dict() for row in rows]}), 200
+
+
+@admin_bp.post("/destinations")
+@admin_required()
+def admin_create_destination():
+  payload = request.get_json() or {}
+  data, error = _parse_destination_payload(payload)
+  if error:
+    return jsonify({"message": error}), 400
+  destination = FeaturedDestination(**data)
+  db.session.add(destination)
+  db.session.commit()
+  return jsonify(destination.to_dict()), 201
+
+
+@admin_bp.get("/destinations/<int:destination_id>")
+@admin_required()
+def admin_get_destination(destination_id: int):
+  destination = db.session.get(FeaturedDestination, destination_id)
+  if not destination:
+    return jsonify({"message": "Destination not found"}), 404
+  return jsonify(destination.to_dict()), 200
+
+
+@admin_bp.patch("/destinations/<int:destination_id>")
+@admin_required()
+def admin_update_destination(destination_id: int):
+  destination = db.session.get(FeaturedDestination, destination_id)
+  if not destination:
+    return jsonify({"message": "Destination not found"}), 404
+  payload = request.get_json() or {}
+  data, error = _parse_destination_payload(payload, partial=True)
+  if error:
+    return jsonify({"message": error}), 400
+  for key, value in data.items():
+    setattr(destination, key, value)
+  db.session.commit()
+  return jsonify(destination.to_dict()), 200
+
+
+@admin_bp.delete("/destinations/<int:destination_id>")
+@admin_required()
+def admin_delete_destination(destination_id: int):
+  destination = db.session.get(FeaturedDestination, destination_id)
+  if not destination:
+    return jsonify({"message": "Destination not found"}), 404
+  db.session.delete(destination)
+  db.session.commit()
+  return jsonify({"message": "Destination deleted"}), 200
 
 
 @admin_bp.put("/routes/<int:route_id>/stops")

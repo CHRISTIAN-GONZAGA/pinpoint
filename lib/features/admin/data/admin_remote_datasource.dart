@@ -88,4 +88,33 @@ class AdminRemoteDataSource {
     );
     return JeepneyRoute.fromJson(response.data ?? {});
   }
+
+  Future<List<Map<String, dynamic>>> fetchAdminDestinations() async {
+    final response = await _api.get<Map<String, dynamic>>('/admin/destinations');
+    final list = response.data?['destinations'] as List<dynamic>? ?? [];
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  Future<Map<String, dynamic>> createDestination(Map<String, dynamic> payload) async {
+    final response = await _api.post<Map<String, dynamic>>(
+      '/admin/destinations',
+      data: payload,
+    );
+    return Map<String, dynamic>.from(response.data ?? {});
+  }
+
+  Future<Map<String, dynamic>> updateDestination(
+    int destinationId,
+    Map<String, dynamic> payload,
+  ) async {
+    final response = await _api.patch<Map<String, dynamic>>(
+      '/admin/destinations/$destinationId',
+      data: payload,
+    );
+    return Map<String, dynamic>.from(response.data ?? {});
+  }
+
+  Future<void> deleteDestination(int destinationId) async {
+    await _api.delete<Map<String, dynamic>>('/admin/destinations/$destinationId');
+  }
 }

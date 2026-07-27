@@ -136,6 +136,42 @@ class Favorite(db.Model):
     }
 
 
+class FeaturedDestination(db.Model):
+  """Admin-curated quick-pick destination for passenger navigation."""
+
+  __tablename__ = "featured_destinations"
+
+  destination_id = db.Column(db.Integer, primary_key=True)
+  name = db.Column(db.String(150), nullable=False)
+  short_label = db.Column(db.String(40), nullable=False)
+  category = db.Column(db.String(50), nullable=False, default="other", index=True)
+  latitude = db.Column(db.Float, nullable=False)
+  longitude = db.Column(db.Float, nullable=False)
+  description = db.Column(db.Text, nullable=True)
+  address = db.Column(db.String(255), nullable=True)
+  active_status = db.Column(db.Boolean, nullable=False, default=True)
+  sort_order = db.Column(db.Integer, nullable=False, default=0)
+  created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+  updated_at = db.Column(
+    db.DateTime, nullable=False, default=utcnow, onupdate=utcnow
+  )
+
+  def to_dict(self) -> dict:
+    return {
+      "destination_id": self.destination_id,
+      "name": self.name,
+      "short_label": self.short_label,
+      "category": self.category,
+      "latitude": self.latitude,
+      "longitude": self.longitude,
+      "description": self.description,
+      "address": self.address,
+      "active_status": self.active_status,
+      "sort_order": self.sort_order,
+      "place_type": "featured",
+    }
+
+
 class SearchHistory(db.Model):
   """User search and navigation history entry."""
 

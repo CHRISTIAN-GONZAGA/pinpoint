@@ -114,4 +114,10 @@ class PlacesRemoteDataSource {
   Future<void> clearHistory() async {
     await _api.delete<void>('/history');
   }
+
+  Future<List<Map<String, dynamic>>> fetchFeaturedDestinations() async {
+    final response = await _api.get<Map<String, dynamic>>('/destinations/featured');
+    final list = response.data?['destinations'] as List<dynamic>? ?? [];
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
 }

@@ -16,6 +16,8 @@ import 'package:pinpoint/features/map/domain/map_models.dart';
 import 'package:pinpoint/features/map/presentation/utils/map_camera_helper.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_state.dart';
+import 'package:pinpoint/features/map/presentation/widgets/destination_discover_sheet.dart';
+import 'package:pinpoint/features/map/presentation/widgets/featured_destination_marker.dart';
 import 'package:pinpoint/features/map/presentation/widgets/featured_destination_sheet.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_context_sheet.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_controls.dart';
@@ -39,6 +41,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
   var _showLayerPanel = false;
   var _mapReady = false;
   var _showRoutePanel = false;
+  final _routeSheetController = DraggableScrollableController();
 
   @override
   bool get wantKeepAlive => true;
@@ -57,6 +60,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
   void dispose() {
     _searchController.dispose();
     _mapController.dispose();
+    _routeSheetController.dispose();
     super.dispose();
   }
 
@@ -73,6 +77,25 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
     final notifier = ref.read(mapNotifierProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final zoom = mapState.mapZoom;
+
+    ref.listen(mapNotifierProvider, (prev, next) {
+      if (prev?.isGeneratingRoute == true &&
+          next.isGeneratingRoute == false &&
+          next.plannedRoute != null &&
+          _routeSheetController.isAttached) {
+        _showRoutePanel = true;
+        setState(() {});
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_routeSheetController.isAttached) {
+            _routeSheetController.animateTo(
+              0.42,
+              duration: const Duration(milliseconds: 320),
+              curve: Curves.easeOutCubic,
+            );
+          }
+        });
+      }
+    });
     final layers = mapState.layers;
     final mapRotation = MapCameraHelper.rotation(_mapController);
 
@@ -250,6 +273,13 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
           MapMinimalHeader(
             searchController: _searchController,
             onOpenTools: () => MapToolsSheet.show(context, _searchController),
+            onBrowseDestinations: mapState.featuredDestinations.isEmpty
+                ? null
+                : () => DestinationDiscoverSheet.show(
+                      context,
+                      destinations: mapState.featuredDestinations,
+                      onSelect: notifier.selectFeaturedDestination,
+                    ),
           ),
           if (mapState.transportWarning != null || mapState.tilesUnavailable)
             Positioned(
@@ -399,6 +429,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
               // Keep sheet above the floating bottom nav so the handle stays tappable.
               bottom: _shellBottomClearance(context),
               child: RouteSummarySheet(
+                sheetController: _routeSheetController,
                 route: mapState.plannedRoute,
                 routeOptions: mapState.routeOptions,
                 canGenerate: mapState.canGenerateRoute,
@@ -605,7 +636,6 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
     MapNotifier notifier,
   ) {
     return mapState.featuredDestinations.map((dest) {
-      final color = PlaceUtils.colorForCategory(dest.place.category);
       final isSelected = mapState.destinationAddress != null &&
           (mapState.destinationAddress == dest.place.name ||
               mapState.destinationAddress!.contains(dest.shortLabel));
@@ -614,45 +644,14 @@ class _MapScreenState extends ConsumerState<MapScreen> with AutomaticKeepAliveCl
         width: 110,
         height: 58,
         alignment: Alignment.bottomCenter,
-        child: GestureDetector(
+        child: FeaturedDestinationMarker(
+          destination: dest,
+          isSelected: isSelected,
           onTap: () => FeaturedDestinationSheet.show(
             context,
             destination: dest,
             onNavigateTo: () => notifier.selectFeaturedDestination(dest),
             onNavigateFrom: () => notifier.selectFeaturedAsOrigin(dest),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: isSelected ? color : Colors.white.withValues(alpha: 0.95),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: color, width: isSelected ? 2 : 1),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  dest.shortLabel,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: isSelected ? Colors.white : color,
-                  ),
-                ),
-              ),
-              Icon(
-                PlaceUtils.iconForCategory(dest.place.category),
-                color: color,
-                size: 26,
-              ),
-            ],
           ),
         ),
       );

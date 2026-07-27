@@ -13,7 +13,7 @@ import 'package:pinpoint/features/routing/domain/transport_colors.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// Draggable bottom panel for route planning — content-sized, dismissible.
-class RouteSummarySheet extends StatelessWidget {
+class RouteSummarySheet extends StatefulWidget {
   const RouteSummarySheet({
     super.key,
     required this.route,
@@ -23,6 +23,7 @@ class RouteSummarySheet extends StatelessWidget {
     required this.onGenerate,
     required this.onSelectOption,
     required this.onVehicleModeChanged,
+    this.sheetController,
     this.onPreferenceChanged,
     this.selectedRoutePreference = RoutePreference.balanced,
     this.onPreviewOption,
@@ -52,12 +53,19 @@ class RouteSummarySheet extends StatelessWidget {
   final String? destinationLabel;
   final VehicleMode selectedVehicleMode;
   final int? highlightedStepIndex;
+  final DraggableScrollableController? sheetController;
 
   @override
+  State<RouteSummarySheet> createState() => _RouteSummarySheetState();
+}
+
+class _RouteSummarySheetState extends State<RouteSummarySheet> {
+  @override
   Widget build(BuildContext context) {
-    final hasRoute = route != null;
+    final hasRoute = widget.route != null;
 
     return DraggableScrollableSheet(
+      controller: widget.sheetController,
       initialChildSize: hasRoute ? 0.42 : 0.18,
       minChildSize: 0.14,
       maxChildSize: 0.92,
@@ -106,7 +114,7 @@ class RouteSummarySheet extends StatelessWidget {
                     IconButton(
                       tooltip: 'Hide',
                       visualDensity: VisualDensity.compact,
-                      onPressed: onDismiss,
+                      onPressed: widget.onDismiss,
                       icon: const Icon(Icons.keyboard_arrow_down_rounded),
                     ),
                   ],
@@ -132,12 +140,13 @@ class RouteSummarySheet extends StatelessWidget {
   }
 
   List<Widget> _sheetContent(BuildContext context) {
+    final route = widget.route;
     return [
       if (route == null) ...[
         Text('Plan a route', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 4),
         Text(
-          canGenerate
+          widget.canGenerate
               ? 'Ready to compare routes'
               : 'Set start & destination on the map',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -146,18 +155,18 @@ class RouteSummarySheet extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         _VehicleModeSelector(
-          selected: selectedVehicleMode,
-          onChanged: onVehicleModeChanged,
+          selected: widget.selectedVehicleMode,
+          onChanged: widget.onVehicleModeChanged,
         ),
-        if (onPreferenceChanged != null) ...[
+        if (widget.onPreferenceChanged != null) ...[
           const SizedBox(height: AppSpacing.sm),
           _PreferenceSelector(
-            selected: selectedRoutePreference,
-            onChanged: onPreferenceChanged!,
+            selected: widget.selectedRoutePreference,
+            onChanged: widget.onPreferenceChanged!,
           ),
         ],
         const SizedBox(height: AppSpacing.md),
-        if (isGenerating) ...[
+        if (widget.isGenerating) ...[
           Text(
             'Comparing walk, jeepney, tricycle & taxi…',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -168,11 +177,11 @@ class RouteSummarySheet extends StatelessWidget {
           const _RouteOptionsSkeleton(),
         ] else
           FilledButton.icon(
-            onPressed: canGenerate ? onGenerate : null,
+            onPressed: widget.canGenerate ? widget.onGenerate : null,
             icon: const Icon(Icons.route_rounded),
             label: const Text('Compare routes'),
           ),
-      ] else if (isGenerating) ...[
+      ] else if (widget.isGenerating) ...[
         Text('Route Summary', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: AppSpacing.md),
         const _RouteOptionsSkeleton(),
@@ -189,49 +198,49 @@ class RouteSummarySheet extends StatelessWidget {
               onPressed: () => _exportPdf(context),
               icon: const Icon(Icons.picture_as_pdf_outlined),
             ),
-            IconButton(onPressed: onClose, icon: const Icon(Icons.close)),
+            IconButton(onPressed: widget.onClose, icon: const Icon(Icons.close)),
           ],
         ),
-        if (route!.warningMessage != null) ...[
+        if (route.warningMessage != null) ...[
           const SizedBox(height: AppSpacing.sm),
-          _WarningBanner(message: route!.warningMessage!),
+          _WarningBanner(message: route.warningMessage!),
         ],
-        if (routeOptions.length > 1) ...[
+        if (widget.routeOptions.length > 1) ...[
           const SizedBox(height: AppSpacing.md),
-          Text('${routeOptions.length} options', style: Theme.of(context).textTheme.labelLarge),
+          Text('${widget.routeOptions.length} options', style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: AppSpacing.sm),
           _RouteOptionPicker(
-            options: routeOptions,
-            selected: route!,
-            onSelect: onSelectOption,
-            onPreview: onPreviewOption,
+            options: widget.routeOptions,
+            selected: route,
+            onSelect: widget.onSelectOption,
+            onPreview: widget.onPreviewOption,
           ),
         ],
-        if (route!.explanation != null) ...[
+        if (route.explanation != null) ...[
           const SizedBox(height: AppSpacing.sm),
           Text(
-            route!.explanation!,
+            route.explanation!,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
           ),
         ],
         const SizedBox(height: AppSpacing.md),
-        if (route!.summaryTitle != null)
+        if (route.summaryTitle != null)
           Text(
-            route!.summaryTitle!,
+            route.summaryTitle!,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
           ),
         const SizedBox(height: AppSpacing.sm),
         Row(
           children: [
-            _StatChip(icon: Icons.schedule, label: route!.durationLabel),
+            _StatChip(icon: Icons.schedule, label: route.durationLabel),
             const SizedBox(width: AppSpacing.sm),
-            _StatChip(icon: Icons.flag_outlined, label: route!.arrivalLabel),
+            _StatChip(icon: Icons.flag_outlined, label: route.arrivalLabel),
             const SizedBox(width: AppSpacing.sm),
             _StatChip(
               icon: Icons.payments_outlined,
-              label: '₱${route!.estimatedFare.toStringAsFixed(0)}',
+              label: '₱${route.estimatedFare.toStringAsFixed(0)}',
             ),
           ],
         ),
@@ -240,16 +249,16 @@ class RouteSummarySheet extends StatelessWidget {
           children: [
             _StatChip(
               icon: Icons.directions_walk,
-              label: '${route!.walkingDistanceMeters.round()} m walk',
+              label: '${route.walkingDistanceMeters.round()} m walk',
             ),
             const SizedBox(width: AppSpacing.sm),
-            _StatChip(icon: Icons.flag_outlined, label: route!.arrivalLabel),
+            _StatChip(icon: Icons.flag_outlined, label: route.arrivalLabel),
           ],
         ),
-        if (route!.transferCount > 0) ...[
+        if (route.transferCount > 0) ...[
           const SizedBox(height: AppSpacing.sm),
           Text(
-            '${route!.transferCount} transfer${route!.transferCount > 1 ? 's' : ''}',
+            '${route.transferCount} transfer${route.transferCount > 1 ? 's' : ''}',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   color: AppColors.warning,
                 ),
@@ -258,12 +267,12 @@ class RouteSummarySheet extends StatelessWidget {
         const SizedBox(height: AppSpacing.lg),
         Text('Directions', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: AppSpacing.sm),
-        ...route!.steps.asMap().entries.map(
+        ...route.steps.asMap().entries.map(
               (entry) => _StepTile(
                 index: entry.key + 1,
                 step: entry.value,
-                isHighlighted: highlightedStepIndex == entry.key,
-                onTap: onStepTap != null ? () => onStepTap!(entry.key) : null,
+                isHighlighted: widget.highlightedStepIndex == entry.key,
+                onTap: widget.onStepTap != null ? () => widget.onStepTap!(entry.key) : null,
               ),
             ),
       ],
@@ -271,12 +280,13 @@ class RouteSummarySheet extends StatelessWidget {
   }
 
   Future<void> _exportPdf(BuildContext context) async {
+    final route = widget.route;
     if (route == null) return;
     try {
       final bytes = await RoutePdfService().generate(
-        route: route!,
-        originLabel: originLabel ?? 'Start',
-        destinationLabel: destinationLabel ?? 'Destination',
+        route: route,
+        originLabel: widget.originLabel ?? 'Start',
+        destinationLabel: widget.destinationLabel ?? 'Destination',
       );
       final dir = await getTemporaryDirectory();
       final file = File('${dir.path}/pinpoint-route.pdf');

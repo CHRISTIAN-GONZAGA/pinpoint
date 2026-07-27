@@ -8,6 +8,8 @@ import 'package:pinpoint/app/constants.dart';
 import 'package:pinpoint/app/router.dart';
 import 'package:pinpoint/features/authentication/presentation/viewmodels/auth_notifier.dart';
 import 'package:pinpoint/features/explore/presentation/viewmodels/explore_notifier.dart';
+import 'package:pinpoint/core/utilities/place_utils.dart';
+import 'package:pinpoint/features/map/data/common_destinations.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart';
 import 'package:pinpoint/features/notifications/domain/notification_models.dart';
@@ -159,9 +161,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     const SizedBox(height: 10),
                     const _QuickActionsRow(),
                     const SizedBox(height: 28),
-                    const PremiumSectionLabel('Popular places'),
+                    const PremiumSectionLabel('Popular now'),
                     const SizedBox(height: 10),
-                    const _FeaturedDestinationChips(),
+                    const _PopularNowRail(),
                     const SizedBox(height: 28),
                     const PremiumSectionLabel('Nearby'),
                     const SizedBox(height: 10),
@@ -293,36 +295,107 @@ class _HomeSearchBar extends ConsumerWidget {
   }
 }
 
-class _FeaturedDestinationChips extends ConsumerWidget {
-  const _FeaturedDestinationChips();
+class _PopularNowRail extends ConsumerWidget {
+  const _PopularNowRail();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final featured = ref.watch(mapNotifierProvider).featuredDestinations;
     if (featured.isEmpty) return const SizedBox.shrink();
 
+    final theme = Theme.of(context);
+
     return SizedBox(
-      height: 108,
+      height: 132,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: featured.length,
         separatorBuilder: (_, __) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
           final item = featured[index];
-          return PremiumActionTile(
-            icon: Icons.place_outlined,
-            label: item.shortLabel,
-            accent: Theme.of(context).colorScheme.secondary,
-            onTap: () async {
-              await ref.read(mapNotifierProvider.notifier).planTripTo(
-                    MapLocation(
-                      latitude: item.place.latitude,
-                      longitude: item.place.longitude,
-                      label: item.place.name,
+          final accent = PlaceUtils.colorForCategory(item.place.category);
+          final categoryLabel =
+              CommonDestinations.destinationCategories[item.place.category] ??
+                  PlaceUtils.labelForCategory(item.place.category);
+
+          return Material(
+            color: PremiumTokens.elevatedSurface(context),
+            borderRadius: BorderRadius.circular(PremiumTokens.surfaceRadius),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(PremiumTokens.surfaceRadius),
+              onTap: () async {
+                await ref.read(mapNotifierProvider.notifier).planTripTo(
+                      MapLocation(
+                        latitude: item.place.latitude,
+                        longitude: item.place.longitude,
+                        label: item.place.name,
+                      ),
+                    );
+                if (context.mounted) context.go(AppRoutes.map);
+              },
+              child: Container(
+                width: 168,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(PremiumTokens.surfaceRadius),
+                  border: Border.all(color: PremiumTokens.separator(context), width: 0.5),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: accent.withValues(alpha: 0.14),
+                            borderRadius: BorderRadius.circular(9),
+                          ),
+                          child: Icon(
+                            PlaceUtils.iconForCategory(item.place.category),
+                            size: 18,
+                            color: accent,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          categoryLabel,
+                          style: theme.textTheme.labelSmall?.copyWith(color: accent),
+                        ),
+                      ],
                     ),
-                  );
-              if (context.mounted) context.go(AppRoutes.map);
-            },
+                    const Spacer(),
+                    Text(
+                      item.shortLabel,
+                      style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      item.place.name,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        'Go →',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: accent,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           );
         },
       ),

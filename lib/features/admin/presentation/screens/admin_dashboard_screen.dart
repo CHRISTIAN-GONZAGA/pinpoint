@@ -85,6 +85,18 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                     onTap: () => context.push(AppRoutes.manageRoutes),
                   ),
                 ),
+                const SizedBox(height: AppSpacing.sm),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.place_outlined),
+                    title: const Text('Manage Destinations'),
+                    subtitle: const Text(
+                      'Tap the map to add curated malls, hospitals, parks, and more',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push(AppRoutes.manageDestinations),
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.xl),
                 Text('Publish Announcement', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: AppSpacing.md),
