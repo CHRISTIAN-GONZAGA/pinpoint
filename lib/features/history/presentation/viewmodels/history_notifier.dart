@@ -4,13 +4,16 @@ import 'package:pinpoint/features/authentication/presentation/viewmodels/auth_no
 import 'package:pinpoint/features/explore/domain/place_models.dart';
 import 'package:pinpoint/features/history/presentation/viewmodels/history_state.dart';
 
-/// Manages search and navigation history.
+/// Manages search and navigation history with optimistic updates.
 class HistoryNotifier extends Notifier<HistoryState> {
   @override
   HistoryState build() => const HistoryState();
 
   Future<void> load() async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    final showSpinner = state.items.isEmpty;
+    if (showSpinner) {
+      state = state.copyWith(isLoading: true, clearError: true);
+    }
     try {
       final items = await ref.read(historyRepositoryProvider).getHistory(
             isAuthenticated: ref.read(isAuthenticatedProvider),
@@ -21,19 +24,58 @@ class HistoryNotifier extends Notifier<HistoryState> {
     }
   }
 
+  Future<void> addEntry({
+    required String query,
+    required String searchType,
+    double? latitude,
+    double? longitude,
+  }) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return;
+
+    // Dedupe consecutive identical queries.
+    if (state.items.isNotEmpty &&
+        state.items.first.query.toLowerCase() == trimmed.toLowerCase()) {
+      return;
+    }
+
+    try {
+      final saved = await ref.read(historyRepositoryProvider).addEntry(
+            query: trimmed,
+            searchType: searchType,
+            latitude: latitude,
+            longitude: longitude,
+            isAuthenticated: ref.read(isAuthenticatedProvider),
+          );
+      state = state.copyWith(items: [saved, ...state.items]);
+    } catch (_) {}
+  }
+
   Future<void> remove(HistoryItem item) async {
-    await ref.read(historyRepositoryProvider).removeEntry(
-          item: item,
-          isAuthenticated: ref.read(isAuthenticatedProvider),
-        );
-    await load();
+    final previous = state.items;
+    state = state.copyWith(
+      items: previous.where((h) => h.id != item.id).toList(),
+    );
+    try {
+      await ref.read(historyRepositoryProvider).removeEntry(
+            item: item,
+            isAuthenticated: ref.read(isAuthenticatedProvider),
+          );
+    } catch (_) {
+      state = state.copyWith(items: previous);
+    }
   }
 
   Future<void> clearAll() async {
-    await ref.read(historyRepositoryProvider).clear(
-          isAuthenticated: ref.read(isAuthenticatedProvider),
-        );
-    await load();
+    final previous = state.items;
+    state = state.copyWith(items: const []);
+    try {
+      await ref.read(historyRepositoryProvider).clear(
+            isAuthenticated: ref.read(isAuthenticatedProvider),
+          );
+    } catch (_) {
+      state = state.copyWith(items: previous);
+    }
   }
 }
 

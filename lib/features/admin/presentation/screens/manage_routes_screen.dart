@@ -237,22 +237,23 @@ class _ManageRoutesScreenState extends ConsumerState<ManageRoutesScreen> {
                         for (var i = 0; i < state.waypoints.length; i++)
                           Marker(
                             point: state.waypoints[i],
-                            width: 20,
-                            height: 20,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: i == 0
-                                    ? Colors.green
-                                    : (i == state.waypoints.length - 1
-                                        ? Colors.red
-                                        : Colors.white),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: colorFromHex(state.colorHex),
-                                  width: 2.5,
-                                ),
-                              ),
-                            ),
+                            width: i == 0 || i == state.waypoints.length - 1 ? 36 : 22,
+                            height: i == 0 || i == state.waypoints.length - 1 ? 36 : 22,
+                            child: i == 0
+                                ? const _EndpointDot(label: 'A', color: Colors.green)
+                                : (i == state.waypoints.length - 1 &&
+                                        state.waypoints.length > 1
+                                    ? const _EndpointDot(label: 'B', color: Colors.red)
+                                    : Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: colorFromHex(state.colorHex),
+                                            width: 2.5,
+                                          ),
+                                        ),
+                                      )),
                           ),
                         for (final stop in state.draftStops)
                           Marker(
@@ -397,8 +398,36 @@ class _WorkflowBanner extends StatelessWidget {
         child: const Padding(
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Text(
-            'Tap a route to inspect it, or Create to draw a new road corridor.',
+            'Select a route to edit, or tap Create — then tap Start and End on the map.',
             style: TextStyle(fontSize: 13),
+          ),
+        ),
+      );
+    }
+
+    if (state.canDrawPath) {
+      final tip = state.drawTool == RouteDrawTool.pin
+          ? (state.waypoints.isEmpty
+              ? 'Tap the map for Start (green).'
+              : state.waypoints.length == 1
+                  ? 'Tap End (red) — roads fill in automatically.'
+                  : 'Tap more turns to bend the path, or continue below.')
+          : (state.isBrushStrokeActive
+              ? 'Keep sliding… release when done — we snap to roads.'
+              : 'Slide along streets, then release. Switch to Tap path if map feels stuck.');
+      return Material(
+        elevation: 2,
+        borderRadius: BorderRadius.circular(12),
+        color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.95),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Text(
+            tip,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
           ),
         ),
       );
@@ -445,6 +474,36 @@ class _WorkflowBanner extends StatelessWidget {
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EndpointDot extends StatelessWidget {
+  const _EndpointDot({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: const [
+          BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 1)),
+        ],
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
         ),
       ),
     );
@@ -678,8 +737,8 @@ class _BrowsePanel extends StatelessWidget {
         ),
         FilledButton.icon(
           onPressed: onCreate,
-          icon: const Icon(Icons.gesture),
-          label: const Text('Draw new corridor'),
+          icon: const Icon(Icons.add_road),
+          label: const Text('Add route'),
         ),
       ],
     );
@@ -705,71 +764,112 @@ class _DrawPanel extends StatelessWidget {
   final VoidCallback onCancel;
   final Future<void> Function()? onSave;
 
+  String get _statusLine {
+    if (state.isSnapping) return 'Snapping to roads…';
+    if (state.isBrushStrokeActive) return 'Drawing… release to snap';
+    if (state.waypoints.isEmpty) return 'No path yet — tap Start on the map';
+    if (state.waypoints.length == 1) return 'Start set — tap End next';
+    final n = state.waypoints.length;
+    final pts = state.corridor.length;
+    return 'Ready · $n pins · $pts road points';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final pathReady = state.corridor.length >= 2;
+    final pinMode = state.drawTool == RouteDrawTool.pin;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          '1. Draw the road path',
-          style: Theme.of(context).textTheme.titleMedium,
+          state.mode == ManageRoutesMode.editing
+              ? 'Edit road path'
+              : '1. Set the road path',
+          style: theme.textTheme.titleMedium,
         ),
         const SizedBox(height: 4),
         Text(
-          state.drawTool == RouteDrawTool.brush
-              ? 'Press and slide your finger along the streets. The line snaps to real roads.'
-              : 'Tap points along the route. Each segment follows the road network.',
-          style: Theme.of(context).textTheme.bodySmall,
+          pinMode
+              ? 'Fastest: tap Start, then End. Roads fill in. Tap more points to add turns.'
+              : 'Optional: slide along streets, then release. Tiny strokes become pins.',
+          style: theme.textTheme.bodySmall,
         ),
         const SizedBox(height: AppSpacing.sm),
         SegmentedButton<RouteDrawTool>(
           segments: const [
             ButtonSegment(
+              value: RouteDrawTool.pin,
+              label: Text('Tap path'),
+              icon: Icon(Icons.touch_app_outlined, size: 18),
+            ),
+            ButtonSegment(
               value: RouteDrawTool.brush,
               label: Text('Brush'),
               icon: Icon(Icons.gesture, size: 18),
-            ),
-            ButtonSegment(
-              value: RouteDrawTool.pin,
-              label: Text('Pin points'),
-              icon: Icon(Icons.push_pin_outlined, size: 18),
             ),
           ],
           selected: {state.drawTool},
           onSelectionChanged: (s) => onDrawTool(s.first),
         ),
         const SizedBox(height: AppSpacing.sm),
-        Text(
-          state.corridor.length < 2
-              ? 'No path yet'
-              : 'Path ready · ${state.corridor.length} points'
-                  '${state.isBrushStrokeActive ? ' · drawing…' : ''}',
+        // Quick progress: Start → End → Ready
+        Row(
+          children: [
+            _PinStepChip(
+              label: 'Start',
+              done: state.waypoints.isNotEmpty,
+              active: state.waypoints.isEmpty && pinMode,
+            ),
+            const SizedBox(width: 6),
+            Icon(Icons.arrow_forward, size: 14, color: theme.colorScheme.outline),
+            const SizedBox(width: 6),
+            _PinStepChip(
+              label: 'End',
+              done: state.waypoints.length >= 2,
+              active: state.waypoints.length == 1 && pinMode,
+            ),
+            const SizedBox(width: 6),
+            Icon(Icons.arrow_forward, size: 14, color: theme.colorScheme.outline),
+            const SizedBox(width: 6),
+            _PinStepChip(
+              label: 'Ready',
+              done: pathReady,
+              active: pathReady,
+            ),
+          ],
         ),
+        const SizedBox(height: 8),
+        Text(_statusLine, style: theme.textTheme.labelLarge),
         const SizedBox(height: AppSpacing.md),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
             OutlinedButton.icon(
-              onPressed: state.waypoints.isEmpty && state.corridor.isEmpty ? null : onUndo,
+              onPressed:
+                  state.waypoints.isEmpty && state.corridor.isEmpty ? null : onUndo,
               icon: const Icon(Icons.undo),
               label: const Text('Undo'),
             ),
             OutlinedButton.icon(
-              onPressed: state.corridor.isEmpty ? null : onClear,
+              onPressed: state.corridor.isEmpty && state.waypoints.isEmpty
+                  ? null
+                  : onClear,
               icon: const Icon(Icons.clear_all),
               label: const Text('Clear'),
             ),
             if (onSave == null)
               FilledButton.icon(
-                onPressed: state.corridor.length < 2 ? null : onFinishDrawing,
+                onPressed: pathReady ? onFinishDrawing : null,
                 icon: const Icon(Icons.arrow_forward),
-                label: const Text('Assign vehicle'),
+                label: const Text('Next'),
               )
             else
               FilledButton.icon(
-                onPressed: state.isSaving ? null : () => onSave!(),
+                onPressed: state.isSaving || !pathReady ? null : () => onSave!(),
                 icon: state.isSaving
                     ? const SizedBox(
                         width: 16,
@@ -783,6 +883,46 @@ class _DrawPanel extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _PinStepChip extends StatelessWidget {
+  const _PinStepChip({
+    required this.label,
+    required this.done,
+    required this.active,
+  });
+
+  final String label;
+  final bool done;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bg = done
+        ? theme.colorScheme.primary
+        : active
+            ? theme.colorScheme.secondaryContainer
+            : theme.colorScheme.surfaceContainerHighest;
+    final fg = done
+        ? theme.colorScheme.onPrimary
+        : theme.colorScheme.onSurface;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: fg,
+        ),
+      ),
     );
   }
 }

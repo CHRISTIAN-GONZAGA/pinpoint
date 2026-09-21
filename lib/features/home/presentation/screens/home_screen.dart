@@ -8,12 +8,15 @@ import 'package:pinpoint/app/constants.dart';
 import 'package:pinpoint/app/router.dart';
 import 'package:pinpoint/features/authentication/presentation/viewmodels/auth_notifier.dart';
 import 'package:pinpoint/features/explore/presentation/viewmodels/explore_notifier.dart';
+import 'package:pinpoint/features/favorites/presentation/viewmodels/favorites_notifier.dart';
 import 'package:pinpoint/core/utilities/place_utils.dart';
+import 'package:pinpoint/features/history/presentation/viewmodels/history_notifier.dart';
 import 'package:pinpoint/features/map/data/common_destinations.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart';
 import 'package:pinpoint/features/notifications/domain/notification_models.dart';
 import 'package:pinpoint/features/notifications/presentation/viewmodels/notifications_notifier.dart';
+import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/premium_tokens.dart';
 import 'package:pinpoint/core/widgets/home_greeting_header.dart';
 import 'package:pinpoint/core/widgets/place_card.dart';
@@ -128,6 +131,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     Future.microtask(() async {
       unawaited(ref.read(mapNotifierProvider.notifier).initialize());
       unawaited(ref.read(mapNotifierProvider.notifier).refreshLocation());
+      unawaited(ref.read(favoritesNotifierProvider.notifier).load());
+      unawaited(ref.read(historyNotifierProvider.notifier).load());
       await ref.read(exploreNotifierProvider.notifier).initialize();
       await ref.read(notificationsNotifierProvider.notifier).loadAnnouncements();
       final user = ref.read(currentUserProvider);
@@ -175,6 +180,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         const SizedBox(height: 18),
                       ],
                       const _LocationCard(),
+                      const SizedBox(height: 26),
+                      const _SavedAndRecentSection(),
                       const SizedBox(height: 26),
                       HomeSectionHeader(
                         title: 'Get moving',
@@ -488,12 +495,117 @@ class _QuickActionsRow extends StatelessWidget {
   }
 }
 
+class _SavedAndRecentSection extends ConsumerWidget {
+  const _SavedAndRecentSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final favorites = ref.watch(favoritesNotifierProvider).items;
+    final history = ref.watch(historyNotifierProvider).items;
+    if (favorites.isEmpty && history.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        HomeSectionHeader(
+          title: 'Saved & recent',
+          subtitle: 'Your bookmarks and last searches',
+          actionLabel: 'See all',
+          onAction: () => context.push(
+            favorites.isNotEmpty ? AppRoutes.favorites : AppRoutes.history,
+          ),
+        ),
+        if (favorites.isNotEmpty) ...[
+          SizedBox(
+            height: 44,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: favorites.take(8).length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final item = favorites[index];
+                final accent = PlaceUtils.colorForCategory(item.category);
+                return ActionChip(
+                  avatar: Icon(
+                    PlaceUtils.iconForCategory(item.category),
+                    size: 16,
+                    color: accent,
+                  ),
+                  label: Text(item.label),
+                  backgroundColor: PremiumTokens.elevatedSurface(context),
+                  side: BorderSide(color: PremiumTokens.separator(context)),
+                  onPressed: () async {
+                    if (item.latitude != null && item.longitude != null) {
+                      await ref.read(mapNotifierProvider.notifier).planTripTo(
+                            MapLocation(
+                              latitude: item.latitude!,
+                              longitude: item.longitude!,
+                              label: item.label,
+                            ),
+                          );
+                      if (context.mounted) context.go(AppRoutes.map);
+                    } else if (item.placeId != null) {
+                      context.push(
+                        AppRoutes.placeDetail(item.placeType, item.placeId!),
+                      );
+                    }
+                  },
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
+        if (history.isNotEmpty)
+          PremiumSurface(
+            children: history.take(3).map((item) {
+              return PremiumListRow(
+                dense: true,
+                leading: Icon(
+                  item.searchType == 'route'
+                      ? Icons.route_rounded
+                      : Icons.history_rounded,
+                  size: 20,
+                  color: AppColors.primary,
+                ),
+                title: item.query,
+                subtitle: item.searchType == 'route' ? 'Route' : 'Search',
+                onTap: () async {
+                  if (item.latitude != null && item.longitude != null) {
+                    await ref.read(mapNotifierProvider.notifier).planTripTo(
+                          MapLocation(
+                            latitude: item.latitude!,
+                            longitude: item.longitude!,
+                            label: item.query,
+                          ),
+                        );
+                  } else {
+                    await ref.read(mapNotifierProvider.notifier).searchPlaces(item.query);
+                  }
+                  if (context.mounted) context.go(AppRoutes.map);
+                },
+                trailing: Icon(
+                  Icons.north_east_rounded,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                ),
+              );
+            }).toList(),
+          ),
+      ],
+    );
+  }
+}
+
 class _NearbyList extends ConsumerWidget {
   const _NearbyList();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final nearby = ref.watch(exploreNotifierProvider).nearbyPlaces;
+    final favState = ref.watch(favoritesNotifierProvider);
     if (nearby.isEmpty) {
       return HomeEmptyHint(
         icon: Icons.location_searching_rounded,
@@ -505,10 +617,16 @@ class _NearbyList extends ConsumerWidget {
     }
     return Column(
       children: nearby.take(5).map((place) {
+        final saved = favState.items.any(
+          (f) => f.placeType == place.placeType && f.placeId == place.id,
+        );
         return Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: PlaceCard(
             place: place,
+            isFavorite: saved,
+            onFavorite: () =>
+                ref.read(favoritesNotifierProvider.notifier).toggleFavorite(place),
             onTap: () => context.push(AppRoutes.placeDetail(place.placeType, place.id)),
           ),
         );

@@ -16,7 +16,12 @@ class HistoryRepository {
   Future<List<HistoryItem>> getHistory({bool isAuthenticated = false}) async {
     if (isAuthenticated) {
       try {
-        return await _remote.fetchHistory();
+        final remote = await _remote.fetchHistory();
+        await _local.clear();
+        for (final item in remote.reversed) {
+          await _local.add(item.toJson());
+        }
+        return remote;
       } catch (_) {}
     }
     final local = await _local.getAll();
@@ -38,7 +43,9 @@ class HistoryRepository {
     };
     if (isAuthenticated) {
       try {
-        return await _remote.addHistory(payload);
+        final saved = await _remote.addHistory(payload);
+        await _local.add(saved.toJson());
+        return saved;
       } catch (_) {}
     }
     final item = HistoryItem(

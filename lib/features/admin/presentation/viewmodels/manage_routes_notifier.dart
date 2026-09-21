@@ -35,7 +35,8 @@ class ManageRoutesNotifier extends Notifier<ManageRoutesState> {
     final preset = VehicleRoutePreset.forType('jeepney');
     state = state.copyWith(
       mode: ManageRoutesMode.drawing,
-      drawTool: RouteDrawTool.brush,
+      // Tap path is faster and more reliable than freehand brush.
+      drawTool: RouteDrawTool.pin,
       clearSelection: true,
       waypoints: const [],
       corridor: const [],
@@ -99,11 +100,20 @@ class ManageRoutesNotifier extends Notifier<ManageRoutesState> {
   }
 
   void beginEditSelected() {
-    if (state.selectedRoute == null) return;
+    final route = state.selectedRoute;
+    if (route == null) return;
+    // Keep the saved corridor intact; termini are enough to extend or reshape.
+    final termini = route.polyline.length >= 2
+        ? [route.polyline.first, route.polyline.last]
+        : _sampleWaypoints(route.polyline);
     state = state.copyWith(
       mode: ManageRoutesMode.editing,
       drawTool: RouteDrawTool.pin,
+      waypoints: termini,
+      corridor: route.polyline,
       freehandTrace: const [],
+      replacedPathWhileEditing: false,
+      clearError: true,
     );
   }
 
@@ -118,17 +128,12 @@ class ManageRoutesNotifier extends Notifier<ManageRoutesState> {
       return;
     }
     if (!state.canDrawPath) return;
-    if (state.drawTool == RouteDrawTool.brush) {
-      // Brush uses press/drag; a single tap starts a short stroke and matches it.
-      beginBrushStroke(point);
-      await endBrushStroke();
-      return;
-    }
+    // Brush mode: a tap is just a quick pin (no awkward micro-stroke match).
     await addWaypoint(point);
   }
 
   void beginBrushStroke(LatLng point) {
-    if (!state.canDrawPath) return;
+    if (!state.canDrawPath || state.drawTool != RouteDrawTool.brush) return;
     state = state.copyWith(
       isBrushStrokeActive: true,
       freehandTrace: [point],
@@ -140,7 +145,7 @@ class ManageRoutesNotifier extends Notifier<ManageRoutesState> {
     if (!state.isBrushStrokeActive || !state.canDrawPath) return;
     final trace = state.freehandTrace;
     if (trace.isNotEmpty &&
-        _distance.as(LengthUnit.Meter, trace.last, point) < 12) {
+        _distance.as(LengthUnit.Meter, trace.last, point) < 8) {
       return;
     }
     state = state.copyWith(freehandTrace: [...trace, point]);
@@ -150,24 +155,25 @@ class ManageRoutesNotifier extends Notifier<ManageRoutesState> {
     if (!state.isBrushStrokeActive) return;
     final trace = state.freehandTrace;
     state = state.copyWith(isBrushStrokeActive: false, isSnapping: true);
-    if (trace.length < 2) {
-      state = state.copyWith(
-        freehandTrace: const [],
-        isSnapping: false,
-        errorMessage: 'Drag along the road a bit farther to draw a path.',
-      );
+
+    // Accidental tap / tiny stroke → treat as a single pin instead of failing.
+    if (trace.length < 3) {
+      state = state.copyWith(freehandTrace: const [], isSnapping: false);
+      if (trace.isNotEmpty) await addWaypoint(trace.last);
       return;
     }
 
     try {
-      final matched = await _routing.matchTraceToRoads(trace);
+      List<LatLng> matched = await _routing.matchTraceToRoads(trace);
+      // Fallback: if OSRM Match fails, route start→end of the stroke.
       if (matched.length < 2) {
-        state = state.copyWith(
-          freehandTrace: const [],
-          isSnapping: false,
-          errorMessage: 'Could not snap that stroke to roads. Try again.',
-        );
-        return;
+        matched = await _routing.routeThroughWaypoints([trace.first, trace.last]);
+      }
+      if (matched.length < 2) {
+        final drive = await _routing.getDrivingRoute(trace.first, trace.last);
+        matched = drive.polyline.length >= 2
+            ? drive.polyline
+            : [trace.first, trace.last];
       }
 
       List<LatLng> mergedCorridor;
@@ -179,14 +185,14 @@ class ManageRoutesNotifier extends Notifier<ManageRoutesState> {
           state.corridor.last,
           matched.first,
         );
-        if (gap < 40) {
+        if (gap < 60) {
           mergedCorridor = [...state.corridor, ...matched.skip(1)];
         } else {
           final bridge = await _routing.getDrivingRoute(
             state.corridor.last,
             matched.first,
           );
-          final bridgePts = bridge.polyline.isNotEmpty
+          final bridgePts = bridge.polyline.length >= 2
               ? bridge.polyline
               : [state.corridor.last, matched.first];
           mergedCorridor = [
@@ -197,23 +203,31 @@ class ManageRoutesNotifier extends Notifier<ManageRoutesState> {
         }
       }
 
-      final waypoints = [
-        if (state.waypoints.isEmpty) matched.first else state.waypoints.first,
-        matched.last,
-      ];
+      // Keep prior control points; append stroke end so Undo stays useful.
+      final waypoints = <LatLng>[...state.waypoints];
+      if (waypoints.isEmpty) waypoints.add(matched.first);
+      if (waypoints.isEmpty ||
+          _distance.as(LengthUnit.Meter, waypoints.last, matched.last) >= 25) {
+        waypoints.add(matched.last);
+      }
 
       state = state.copyWith(
         corridor: mergedCorridor,
         waypoints: waypoints,
         freehandTrace: const [],
         isSnapping: false,
+        clearError: true,
       );
     } catch (error) {
-      state = state.copyWith(
-        freehandTrace: const [],
-        isSnapping: false,
-        errorMessage: error.toString(),
-      );
+      // Last resort: pin the end of the stroke so the admin never loses progress.
+      state = state.copyWith(freehandTrace: const [], isSnapping: false);
+      try {
+        await addWaypoint(trace.last);
+      } catch (_) {
+        state = state.copyWith(
+          errorMessage: 'Could not snap that stroke. Try Tap path instead.',
+        );
+      }
     }
   }
 
@@ -221,11 +235,43 @@ class ManageRoutesNotifier extends Notifier<ManageRoutesState> {
     state = state.copyWith(isSnapping: true, clearError: true);
     try {
       final snapped = await _routing.snapToNearestRoad(point);
+      // Ignore accidental double-taps on the same spot.
+      if (state.waypoints.isNotEmpty &&
+          _distance.as(LengthUnit.Meter, state.waypoints.last, snapped) < 25) {
+        state = state.copyWith(isSnapping: false);
+        return;
+      }
+
+      // Extend an existing corridor from its tip — preserves what you already drew.
+      if (state.corridor.length >= 2) {
+        final segment = await _routing.routeThroughWaypoints([
+          state.corridor.last,
+          snapped,
+        ]);
+        final extension = segment.length >= 2
+            ? segment
+            : [state.corridor.last, snapped];
+        state = state.copyWith(
+          waypoints: [...state.waypoints, snapped],
+          corridor: [...state.corridor, ...extension.skip(1)],
+          isSnapping: false,
+        );
+        return;
+      }
+
       final waypoints = [...state.waypoints, snapped];
+      if (waypoints.length == 1) {
+        state = state.copyWith(
+          waypoints: waypoints,
+          corridor: [snapped],
+          isSnapping: false,
+        );
+        return;
+      }
       final corridor = await _routing.routeThroughWaypoints(waypoints);
       state = state.copyWith(
         waypoints: waypoints,
-        corridor: corridor,
+        corridor: corridor.length >= 2 ? corridor : waypoints,
         isSnapping: false,
       );
     } catch (error) {
@@ -235,16 +281,64 @@ class ManageRoutesNotifier extends Notifier<ManageRoutesState> {
 
   Future<void> undoLastWaypoint() async {
     if (state.waypoints.isEmpty && state.corridor.isEmpty) return;
+
+    // Editing an existing route: with only the original termini, Undo restores
+    // the saved corridor instead of wiping it to a single pin.
+    if (state.mode == ManageRoutesMode.editing &&
+        !state.replacedPathWhileEditing &&
+        state.selectedRoute != null &&
+        state.waypoints.length <= 2) {
+      final route = state.selectedRoute!;
+      state = state.copyWith(
+        waypoints: route.polyline.length >= 2
+            ? [route.polyline.first, route.polyline.last]
+            : const [],
+        corridor: List.of(route.polyline),
+        freehandTrace: const [],
+        isBrushStrokeActive: false,
+      );
+      return;
+    }
+
     if (state.waypoints.length <= 1) {
       clearPath();
       return;
     }
+
     final waypoints = [...state.waypoints]..removeLast();
+    final tip = waypoints.last;
+
+    // Prefer trimming the drawn corridor so Undo keeps earlier road shape.
+    var cutAt = 0;
+    var best = double.infinity;
+    for (var i = 0; i < state.corridor.length; i++) {
+      final d = _distance.as(LengthUnit.Meter, state.corridor[i], tip);
+      if (d < best) {
+        best = d;
+        cutAt = i;
+      }
+    }
+    if (best < 90 && cutAt >= 0) {
+      state = state.copyWith(
+        waypoints: waypoints,
+        corridor: state.corridor.sublist(0, cutAt + 1),
+      );
+      return;
+    }
+
     state = state.copyWith(isSnapping: true);
+    if (waypoints.length == 1) {
+      state = state.copyWith(
+        waypoints: waypoints,
+        corridor: [waypoints.first],
+        isSnapping: false,
+      );
+      return;
+    }
     final corridor = await _routing.routeThroughWaypoints(waypoints);
     state = state.copyWith(
       waypoints: waypoints,
-      corridor: corridor,
+      corridor: corridor.length >= 2 ? corridor : waypoints,
       isSnapping: false,
     );
   }
@@ -256,13 +350,14 @@ class ManageRoutesNotifier extends Notifier<ManageRoutesState> {
       freehandTrace: const [],
       draftStops: const [],
       isBrushStrokeActive: false,
+      replacedPathWhileEditing: state.mode == ManageRoutesMode.editing,
     );
   }
 
   void finishDrawing() {
     if (state.corridor.length < 2) {
       state = state.copyWith(
-        errorMessage: 'Draw the road path first (brush along streets or pin points).',
+        errorMessage: 'Tap Start and End on the map first (or use Brush along the streets).',
       );
       return;
     }

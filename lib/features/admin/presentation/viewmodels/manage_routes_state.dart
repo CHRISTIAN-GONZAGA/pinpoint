@@ -141,7 +141,7 @@ class ManageRoutesState {
     this.routes = const [],
     this.selectedRouteId,
     this.mode = ManageRoutesMode.browse,
-    this.drawTool = RouteDrawTool.brush,
+    this.drawTool = RouteDrawTool.pin,
     this.waypoints = const [],
     this.corridor = const [],
     this.freehandTrace = const [],
@@ -158,6 +158,7 @@ class ManageRoutesState {
     this.isSaving = false,
     this.isSnapping = false,
     this.isBrushStrokeActive = false,
+    this.replacedPathWhileEditing = false,
     this.searchQuery = '',
     this.errorMessage,
     this.successMessage,
@@ -183,6 +184,8 @@ class ManageRoutesState {
   final bool isSaving;
   final bool isSnapping;
   final bool isBrushStrokeActive;
+  /// True after Clear while editing — Undo should not restore the old corridor.
+  final bool replacedPathWhileEditing;
   final String searchQuery;
   final String? errorMessage;
   final String? successMessage;
@@ -242,6 +245,7 @@ class ManageRoutesState {
     bool? isSaving,
     bool? isSnapping,
     bool? isBrushStrokeActive,
+    bool? replacedPathWhileEditing,
     String? searchQuery,
     String? errorMessage,
     bool clearError = false,
@@ -269,6 +273,8 @@ class ManageRoutesState {
       isSaving: isSaving ?? this.isSaving,
       isSnapping: isSnapping ?? this.isSnapping,
       isBrushStrokeActive: isBrushStrokeActive ?? this.isBrushStrokeActive,
+      replacedPathWhileEditing:
+          replacedPathWhileEditing ?? this.replacedPathWhileEditing,
       searchQuery: searchQuery ?? this.searchQuery,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       successMessage: clearSuccess ? null : (successMessage ?? this.successMessage),

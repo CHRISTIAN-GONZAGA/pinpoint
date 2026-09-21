@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pinpoint/core/theme/app_spacing.dart';
+import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/premium_tokens.dart';
 import 'package:pinpoint/core/utilities/place_utils.dart';
 import 'package:pinpoint/features/explore/domain/place_models.dart';
@@ -86,10 +86,13 @@ class PlaceCard extends StatelessWidget {
               if (onFavorite != null)
                 IconButton(
                   visualDensity: VisualDensity.compact,
+                  tooltip: isFavorite ? 'Remove bookmark' : 'Save place',
                   onPressed: onFavorite,
                   icon: Icon(
-                    isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                    color: isFavorite ? const Color(0xFFFF3B30) : null,
+                    isFavorite ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                    color: isFavorite
+                        ? AppColors.secondary
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.35),
                     size: 22,
                   ),
                 ),

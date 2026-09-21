@@ -32,7 +32,7 @@ abstract final class AppTheme {
       useMaterial3: true,
       brightness: brightness,
       colorScheme: scheme,
-      scaffoldBackgroundColor: isLight ? const Color(0xFFF2F2F7) : const Color(0xFF000000),
+      scaffoldBackgroundColor: isLight ? const Color(0xFFF3F5F8) : const Color(0xFF0B0F14),
       textTheme: textTheme,
       splashFactory: InkRipple.splashFactory,
       appBarTheme: AppBarTheme(
@@ -40,7 +40,7 @@ abstract final class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: false,
         systemOverlayStyle: isLight ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
-        backgroundColor: isLight ? const Color(0xFFF2F2F7) : const Color(0xFF000000),
+        backgroundColor: isLight ? const Color(0xFFF3F5F8) : const Color(0xFF0B0F14),
         foregroundColor: isLight ? AppColors.textPrimaryLight : AppColors.textPrimaryDark,
         titleTextStyle: textTheme.titleLarge?.copyWith(letterSpacing: -0.3),
       ),
@@ -175,45 +175,46 @@ abstract final class AppTheme {
         ? ThemeData.light().textTheme
         : ThemeData.dark().textTheme;
 
-    return GoogleFonts.interTextTheme(base).copyWith(
-      displayLarge: GoogleFonts.inter(
-        fontSize: 34,
+    // Outfit — contemporary, editorial weight. Avoids generic Inter/Roboto look.
+    return GoogleFonts.outfitTextTheme(base).copyWith(
+      displayLarge: GoogleFonts.outfit(
+        fontSize: 36,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -1.0,
+        height: 1.05,
+      ),
+      headlineMedium: GoogleFonts.outfit(
+        fontSize: 30,
         fontWeight: FontWeight.w700,
         letterSpacing: -0.8,
         height: 1.1,
       ),
-      headlineMedium: GoogleFonts.inter(
-        fontSize: 28,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.6,
-        height: 1.15,
-      ),
-      headlineSmall: GoogleFonts.inter(
+      headlineSmall: GoogleFonts.outfit(
         fontSize: 22,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.4,
       ),
-      titleLarge: GoogleFonts.inter(
-        fontSize: 17,
+      titleLarge: GoogleFonts.outfit(
+        fontSize: 18,
         fontWeight: FontWeight.w600,
-        letterSpacing: -0.3,
+        letterSpacing: -0.35,
       ),
-      titleMedium: GoogleFonts.inter(
-        fontSize: 15,
+      titleMedium: GoogleFonts.outfit(
+        fontSize: 16,
         fontWeight: FontWeight.w600,
-        letterSpacing: -0.2,
+        letterSpacing: -0.25,
       ),
-      titleSmall: GoogleFonts.inter(
+      titleSmall: GoogleFonts.outfit(
         fontSize: 14,
         fontWeight: FontWeight.w600,
-        letterSpacing: -0.1,
+        letterSpacing: -0.15,
       ),
-      bodyLarge: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w400, height: 1.4),
-      bodyMedium: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w400, height: 1.4),
-      bodySmall: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w400, height: 1.35),
-      labelLarge: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: -0.2),
-      labelMedium: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
-      labelSmall: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500, letterSpacing: 0.2),
+      bodyLarge: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w400, height: 1.45),
+      bodyMedium: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w400, height: 1.4),
+      bodySmall: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w400, height: 1.35),
+      labelLarge: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: -0.1),
+      labelMedium: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w500),
+      labelSmall: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.w500, letterSpacing: 0.35),
     );
   }
 }

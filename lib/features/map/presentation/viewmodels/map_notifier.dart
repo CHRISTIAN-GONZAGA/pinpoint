@@ -19,6 +19,7 @@ import 'package:pinpoint/features/routing/domain/route_planning_models.dart';
 import 'package:pinpoint/features/map/presentation/utils/map_camera_helper.dart';
 import 'package:pinpoint/features/map/presentation/utils/map_camera_utils.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_state.dart';
+import 'package:pinpoint/features/history/presentation/viewmodels/history_notifier.dart';
 import 'package:pinpoint/features/routing/domain/route_planner_service.dart';
 
 /// Manages interactive map state, GPS, layers, and route generation.
@@ -106,6 +107,17 @@ class MapNotifier extends Notifier<MapState> {
       await _primeLocationAccess();
     }
     await selectDestination(destination);
+    final label = destination.label?.trim();
+    if (label != null && label.isNotEmpty) {
+      unawaited(
+        ref.read(historyNotifierProvider.notifier).addEntry(
+              query: label,
+              searchType: 'route',
+              latitude: destination.latitude,
+              longitude: destination.longitude,
+            ),
+      );
+    }
   }
 
   Future<void> selectFeaturedAsOrigin(FeaturedDestination featured) async {

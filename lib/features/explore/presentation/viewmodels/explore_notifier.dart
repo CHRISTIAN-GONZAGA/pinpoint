@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pinpoint/app/dependency_injection.dart';
-import 'package:pinpoint/features/authentication/presentation/viewmodels/auth_notifier.dart';
 import 'package:pinpoint/features/explore/domain/place_models.dart';
 import 'package:pinpoint/features/explore/presentation/viewmodels/explore_state.dart';
+import 'package:pinpoint/features/history/presentation/viewmodels/history_notifier.dart';
 import 'package:pinpoint/features/map/presentation/viewmodels/map_notifier.dart';
 
 /// Manages explore, search, and nearby places state.
@@ -43,10 +43,9 @@ class ExploreNotifier extends Notifier<ExploreState> {
     try {
       final results = await ref.read(placesRepositoryProvider).search(query);
       state = state.copyWith(searchResults: results, isSearching: false);
-      await ref.read(historyRepositoryProvider).addEntry(
+      await ref.read(historyNotifierProvider.notifier).addEntry(
             query: query,
             searchType: 'place',
-            isAuthenticated: ref.read(isAuthenticatedProvider),
           );
     } catch (e) {
       state = state.copyWith(isSearching: false, errorMessage: _message(e));
