@@ -71,7 +71,6 @@ class JeepneyPlanBuilder {
       if (plan != null) scored.add(plan);
     }
 
-    final sameRouteCount = scored.length;
     // Only suggest PUJ-to-PUJ transfers when no single route serves the trip.
     if (scored.isEmpty) {
       for (var i = 0; i < activeRoutes.length; i++) {

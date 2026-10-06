@@ -716,6 +716,7 @@ class _EmergencyBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final danger = AppColors.dangerOf(theme.brightness);
     return PremiumSurface(
       children: [
         PremiumListRow(
@@ -723,10 +724,10 @@ class _EmergencyBanner extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: const Color(0xFFFF3B30).withValues(alpha: 0.12),
+              color: danger.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.emergency_outlined, color: Color(0xFFFF3B30), size: 20),
+            child: Icon(Icons.emergency_outlined, color: danger, size: 20),
           ),
           title: 'Need help fast?',
           subtitle: 'Hospitals, police, fire, and hotlines in one tap',

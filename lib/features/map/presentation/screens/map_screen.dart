@@ -145,7 +145,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 initialZoom: AppConstants.defaultMapZoom,
                 minZoom: 11,
                 maxZoom: 18,
-                backgroundColor: const Color(0xFFCBD5E1),
+                backgroundColor: AppColors.stageOf(Theme.of(context).brightness),
                 interactionOptions: const InteractionOptions(
                   flags: InteractiveFlag.all,
                 ),

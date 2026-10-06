@@ -24,7 +24,6 @@ class RoutingGeometry {
   RoutingGeometry(this._routing);
 
   final RoutingService _routing;
-  final Distance _distance = const Distance();
 
   static const shortLegMeters = 90.0;
 
@@ -63,7 +62,6 @@ class RoutingGeometry {
     var bestDist = double.infinity;
     var bestSeg = 0;
     var bestAlongSeg = 0.0;
-    var cumLen = 0.0;
 
     for (var i = 0; i < polyline.length - 1; i++) {
       final a = polyline[i];
@@ -77,7 +75,6 @@ class RoutingGeometry {
         bestSeg = i;
         bestAlongSeg = proj.t * segLen;
       }
-      cumLen += segLen;
     }
 
     // Recompute distanceFromStart for the winning segment.

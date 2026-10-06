@@ -113,9 +113,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authNotifierProvider);
+    final brightness = Theme.of(context).brightness;
 
     return Scaffold(
-      backgroundColor: AppColors.stageOf(Theme.of(context).brightness),
+      backgroundColor: AppColors.stageOf(brightness),
       body: Column(
         children: [
           ZigzagEdge(
@@ -124,8 +125,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(22, 20, 22, 18),
                 child: PlateCard(
-                  color: const Color(0xFFFBFBF7),
-                  borderColor: const Color(0xFF141B26),
+                  color: AppColors.paperOf(brightness),
+                  borderColor: AppColors.edgeOf(brightness),
                   padding: const EdgeInsets.fromLTRB(14, 14, 18, 14),
                   child: Row(
                     children: [
@@ -134,13 +135,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         height: 52,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: AppColors.primary,
+                          color: AppColors.primaryFillOf(brightness),
                           borderRadius: BorderRadius.circular(9),
                         ),
                         child: const Icon(Icons.place, color: Colors.white),
                       ),
                       const SizedBox(width: 14),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -149,18 +150,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: Color(0xFF141B26),
+                                color: AppColors.inkOf(brightness),
                                 fontSize: 40,
                                 fontWeight: FontWeight.w800,
                                 height: 0.95,
                               ),
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
                               'Jeep routes, fares and places in Butuan City',
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(color: Color(0xFF4A5565), fontSize: 13, height: 1.25),
+                              style: TextStyle(
+                                color: AppColors.inkSecondaryOf(brightness),
+                                fontSize: 13,
+                                height: 1.25,
+                              ),
                             ),
                           ],
                         ),
