@@ -34,6 +34,11 @@ class RouteSummarySheet extends StatefulWidget {
     this.destinationLabel,
     this.selectedVehicleMode = VehicleMode.auto,
     this.highlightedStepIndex,
+    this.onSwap,
+    this.isLocating = false,
+    this.locationWarning,
+    this.onUseLocation,
+    this.onOpenLocationSettings,
   });
 
   final PlannedRoute? route;
@@ -51,6 +56,11 @@ class RouteSummarySheet extends StatefulWidget {
   final bool canGenerate;
   final String? originLabel;
   final String? destinationLabel;
+  final VoidCallback? onSwap;
+  final bool isLocating;
+  final String? locationWarning;
+  final VoidCallback? onUseLocation;
+  final VoidCallback? onOpenLocationSettings;
   final VehicleMode selectedVehicleMode;
   final int? highlightedStepIndex;
   final DraggableScrollableController? sheetController;
@@ -142,6 +152,16 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
   List<Widget> _sheetContent(BuildContext context) {
     final route = widget.route;
     return [
+      if (widget.originLabel != null || widget.destinationLabel != null)
+        _EndpointPlate(
+          originLabel: widget.originLabel,
+          destinationLabel: widget.destinationLabel,
+          isLocating: widget.isLocating,
+          locationWarning: widget.locationWarning,
+          onSwap: widget.onSwap,
+          onUseLocation: widget.onUseLocation,
+          onOpenLocationSettings: widget.onOpenLocationSettings,
+        ),
       if (route == null) ...[
         Text('Plan a route', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 4),
@@ -205,10 +225,8 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
           const SizedBox(height: AppSpacing.sm),
           _WarningBanner(message: route.warningMessage!),
         ],
-        if (widget.routeOptions.length > 1) ...[
+        if (widget.routeOptions.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.md),
-          Text('${widget.routeOptions.length} options', style: Theme.of(context).textTheme.labelLarge),
-          const SizedBox(height: AppSpacing.sm),
           _RouteOptionPicker(
             options: widget.routeOptions,
             selected: route,
@@ -302,6 +320,165 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
   }
 }
 
+class _EndpointPlate extends StatelessWidget {
+  const _EndpointPlate({
+    required this.originLabel,
+    required this.destinationLabel,
+    required this.isLocating,
+    required this.locationWarning,
+    this.onSwap,
+    this.onUseLocation,
+    this.onOpenLocationSettings,
+  });
+
+  final String? originLabel;
+  final String? destinationLabel;
+  final bool isLocating;
+  final String? locationWarning;
+  final VoidCallback? onSwap;
+  final VoidCallback? onUseLocation;
+  final VoidCallback? onOpenLocationSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final ink = AppColors.inkOf(brightness);
+    final muted = AppColors.inkSecondaryOf(brightness);
+    final warning = locationWarning?.trim();
+    final from = isLocating
+        ? 'Finding your location…'
+        : (originLabel?.trim().isNotEmpty == true ? originLabel!.trim() : 'Current location');
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.paperOf(brightness),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.edgeOf(brightness), width: 2),
+        ),
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 56, 12),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.primaryFillOf(brightness), width: 3),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('From', style: TextStyle(color: muted, fontSize: 12, fontWeight: FontWeight.w700)),
+                            if (isLocating)
+                              Row(
+                                children: [
+                                  const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(from, maxLines: 1, overflow: TextOverflow.ellipsis),
+                                  ),
+                                ],
+                              )
+                            else
+                              Text(from, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: ink, fontWeight: FontWeight.w700)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (warning != null && warning.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      warning,
+                      style: TextStyle(
+                        color: brightness == Brightness.dark
+                            ? AppColors.dangerTextDark
+                            : AppColors.dangerText,
+                        fontSize: 13,
+                      ),
+                    ),
+                    if (onOpenLocationSettings != null)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton(
+                          onPressed: onOpenLocationSettings,
+                          child: const Text('Open settings'),
+                        ),
+                      ),
+                  ] else if (!isLocating && (originLabel == null || originLabel!.trim().isEmpty) && onUseLocation != null)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: onUseLocation,
+                        child: const Text('Turn on location'),
+                      ),
+                    ),
+                  Divider(height: 18, color: AppColors.hairlineOf(brightness)),
+                  Row(
+                    children: [
+                      Container(
+                        width: 12,
+                        height: 12,
+                        color: AppColors.dangerOf(brightness),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('To', style: TextStyle(color: muted, fontSize: 12, fontWeight: FontWeight.w700)),
+                            Text(
+                              destinationLabel?.trim().isNotEmpty == true ? destinationLabel!.trim() : 'Choose a destination',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: ink, fontWeight: FontWeight.w700),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            if (onSwap != null)
+              Positioned(
+                right: 6,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: IconButton(
+                    tooltip: 'Swap start and destination',
+                    onPressed: onSwap,
+                    icon: const Icon(Icons.swap_vert),
+                    style: IconButton.styleFrom(
+                      minimumSize: const Size(44, 44),
+                      tapTargetSize: MaterialTapTargetSize.padded,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _PreferenceSelector extends StatelessWidget {
   const _PreferenceSelector({required this.selected, required this.onChanged});
 
@@ -391,121 +568,108 @@ class _RouteOptionPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 120,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: options.length,
-        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
-        itemBuilder: (context, index) {
-          final option = options[index];
-          final isSelected = option.optionId == selected.optionId;
-          final color = _modeColor(option.primaryMode, option);
-          return InkWell(
-            onTap: () => onSelect(option),
-            onHighlightChanged: (highlighted) {
-              if (onPreview == null) return;
-              onPreview!(highlighted ? option : null);
-            },
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            child: Container(
-              width: 156,
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(
-                  color: isSelected ? color : Colors.grey.shade300,
-                  width: isSelected ? 2 : 1,
-                ),
-                color: isSelected ? color.withValues(alpha: 0.08) : null,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    children: [
-                      Icon(_modeIcon(option.primaryMode), size: 16, color: color),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          _cardTitle(option, options),
-                          style: Theme.of(context).textTheme.labelMedium,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+    final brightness = Theme.of(context).brightness;
+    final edge = AppColors.edgeOf(brightness);
+    final ink = AppColors.inkOf(brightness);
+    return Column(
+      children: [
+        for (var index = 0; index < options.length; index++) ...[
+          if (index > 0) const SizedBox(height: 10),
+          Builder(
+            builder: (context) {
+              final option = options[index];
+              final isSelected = option.optionId == selected.optionId;
+              final tag = _cardTitle(option, options);
+              final best = index == 0 || option.isRecommended;
+              return Material(
+                color: AppColors.paperOf(brightness),
+                borderRadius: BorderRadius.circular(16),
+                child: InkWell(
+                  onTap: () => onSelect(option),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isSelected ? AppColors.primaryFillOf(brightness) : edge,
+                        width: isSelected ? 3 : 2,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    option.summaryTitle ?? _modeLabel(option.primaryMode),
-                    style: Theme.of(context).textTheme.labelSmall,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '₱${option.estimatedFare.toStringAsFixed(0)} · ${option.durationLabel}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  Text(
-                    '${option.walkingDistanceMeters.round()} m walk',
-                    style: Theme.of(context).textTheme.labelSmall,
-                  ),
-                  if (option.warningMessage != null)
-                    Text(
-                      'Highway restricted',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppColors.warning,
-                          ),
                     ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          option.durationLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: ink),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            for (final step in option.steps) ...[
+                              Icon(_modeIcon(step.type == RouteStepType.walk ? VehicleMode.walk : option.primaryMode), size: 18),
+                              if (step.routeCode != null && step.routeCode!.isNotEmpty)
+                                Text(
+                                  step.routeCode!,
+                                  style: const TextStyle(fontWeight: FontWeight.w800),
+                                ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: best ? AppColors.signal : AppColors.sunkenOf(brightness),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                tag,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                  color: best ? AppColors.ink : ink,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Fare ₱${option.estimatedFare.toStringAsFixed(0)}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: ink, fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ],
     );
   }
 
   String _cardTitle(PlannedRoute option, List<PlannedRoute> options) {
-    if (option.isRecommended) return '⭐ Best value';
+    if (option.isRecommended) return 'Best value';
     final minFare = options.map((o) => o.estimatedFare).reduce((a, b) => a < b ? a : b);
     final minTime = options.map((o) => o.totalDurationSeconds).reduce((a, b) => a < b ? a : b);
-    if (option.estimatedFare <= minFare + 0.01) return '💰 Cheapest';
-    if (option.totalDurationSeconds <= minTime) return '⚡ Fastest';
+    if (option.estimatedFare <= minFare + 0.01) return 'Cheapest';
+    if (option.totalDurationSeconds <= minTime) return 'Fastest';
     return _modeLabel(option.primaryMode);
-  }
-
-  String _cardLabel(PlannedRoute option) {
-    if (option.estimatedFare == options.map((o) => o.estimatedFare).reduce((a, b) => a < b ? a : b)) {
-      return '💰 Cheapest';
-    }
-    return _modeLabel(option.primaryMode);
-  }
-
-  Color _modeColor(VehicleMode mode, PlannedRoute option) {
-    if (mode == VehicleMode.jeepney ||
-        mode == VehicleMode.modernJeepney ||
-        mode == VehicleMode.bus ||
-        mode == VehicleMode.van) {
-      final code = option.steps
-          .where((s) => VehicleTypeMapping.isCorridorStep(s.type))
-          .map((s) => s.routeCode)
-          .firstOrNull;
-      return TransportColors.jeepney(code);
-    }
-    return switch (mode) {
-      VehicleMode.tricycle => TransportColors.tricycle,
-      VehicleMode.taxi => TransportColors.taxi,
-      VehicleMode.walk => TransportColors.walk,
-      VehicleMode.auto => AppColors.primary,
-      VehicleMode.jeepney ||
-      VehicleMode.modernJeepney ||
-      VehicleMode.bus ||
-      VehicleMode.van =>
-        TransportColors.jeepney('R1'),
-    };
   }
 
   IconData _modeIcon(VehicleMode mode) => switch (mode) {

@@ -131,13 +131,22 @@ abstract final class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: primaryFill, width: 2),
+          borderSide: BorderSide(color: primaryFill, width: 3),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: AppColors.dangerOf(brightness), width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.dangerOf(brightness), width: 2),
+        ),
+        errorStyle: TextStyle(
+          color: brightness == Brightness.dark ? AppColors.dangerTextDark : AppColors.dangerText,
+          fontSize: 13,
+          height: 1.3,
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
       ),
       navigationBarTheme: NavigationBarThemeData(
         elevation: 0,

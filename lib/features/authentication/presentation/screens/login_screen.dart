@@ -11,6 +11,28 @@ import 'package:pinpoint/core/widgets/primary_button.dart';
 import 'package:pinpoint/core/widgets/secondary_button.dart';
 import 'package:pinpoint/features/authentication/presentation/viewmodels/auth_notifier.dart';
 
+/// Inline login checks. Copy says what is wrong and how to fix it.
+String? validateLoginEmail(String? value) {
+  final email = value?.trim() ?? '';
+  if (email.isEmpty) {
+    return 'Enter the email on your account.';
+  }
+  if (!email.contains('@')) {
+    return 'Add an @ sign, like you@example.com.';
+  }
+  return null;
+}
+
+String? validateLoginPassword(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Enter your password.';
+  }
+  if (value.length < 8) {
+    return 'Use at least 8 characters.';
+  }
+  return null;
+}
+
 /// Premium login screen with guest access option.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -173,11 +195,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       keyboardType: TextInputType.emailAddress,
                       prefixIcon: Icons.mail_outline,
                       autocorrect: false,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) return 'Email is required';
-                        if (!value.contains('@')) return 'Enter a valid email';
-                        return null;
-                      },
+                      validator: validateLoginEmail,
                     ),
                     const SizedBox(height: AppSpacing.lg),
                     AppTextField(
@@ -191,11 +209,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                         onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) return 'Password is required';
-                        if (value.length < 8) return 'Password must be at least 8 characters';
-                        return null;
-                      },
+                      validator: validateLoginPassword,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     Wrap(

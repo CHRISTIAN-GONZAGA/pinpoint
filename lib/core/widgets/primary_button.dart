@@ -40,6 +40,17 @@ class PrimaryButton extends StatelessWidget {
 
     final button = FilledButton(
       onPressed: isLoading ? null : onPressed,
+      style: FilledButton.styleFrom(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+        disabledForegroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+        minimumSize: const Size(48, 52),
+        textStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+          fontSize: 16,
+        ),
+      ),
       child: child,
     );
 

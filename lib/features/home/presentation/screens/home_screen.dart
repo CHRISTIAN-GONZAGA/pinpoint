@@ -18,6 +18,7 @@ import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/premium_tokens.dart';
 import 'package:intl/intl.dart';
 import 'package:pinpoint/core/design_system/plates.dart';
+import 'package:pinpoint/core/design_system/ticket_card.dart';
 import 'package:pinpoint/core/widgets/home_greeting_header.dart';
 import 'package:pinpoint/core/widgets/place_card.dart';
 import 'package:pinpoint/core/widgets/premium_surface.dart';
@@ -448,18 +449,16 @@ class _ActionGrid extends StatelessWidget {
             children: [
               PlateCard(
                 onTap: () => context.go(AppRoutes.ai),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
-                child: const Row(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(Icons.chat_bubble_outline, size: 22),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Ask the assistant',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontWeight: FontWeight.w700, height: 1.15),
-                      ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Ask the\nassistant',
+                      softWrap: true,
+                      style: TextStyle(fontWeight: FontWeight.w700, height: 1.15),
                     ),
                   ],
                 ),
@@ -467,22 +466,30 @@ class _ActionGrid extends StatelessWidget {
               const SizedBox(height: 10),
               PlateCard(
                 onTap: () => context.push(AppRoutes.emergency),
-                borderColor: AppColors.dangerText,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
-                child: const Row(
+                borderColor: brightness == Brightness.dark
+                    ? AppColors.dangerTextDark
+                    : AppColors.dangerText,
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.call_outlined, size: 22, color: AppColors.dangerText),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Emergency help',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          height: 1.15,
-                          color: AppColors.dangerText,
-                        ),
+                    Icon(
+                      Icons.call_outlined,
+                      size: 22,
+                      color: brightness == Brightness.dark
+                          ? AppColors.dangerTextDark
+                          : AppColors.dangerText,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Emergency\nhelp',
+                      softWrap: true,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        height: 1.15,
+                        color: brightness == Brightness.dark
+                            ? AppColors.dangerTextDark
+                            : AppColors.dangerText,
                       ),
                     ),
                   ],
@@ -525,99 +532,32 @@ class _PopularNowRail extends ConsumerWidget {
     final featured = ref.watch(mapNotifierProvider.select((s) => s.featuredDestinations));
     if (featured.isEmpty) return const SizedBox.shrink();
 
-    final theme = Theme.of(context);
-
     return SizedBox(
-      height: 156,
+      height: 118,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: featured.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        separatorBuilder: (_, _) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
           final item = featured[index];
-          final accent = PlaceUtils.colorForCategory(item.place.category);
           final categoryLabel =
               CommonDestinations.destinationCategories[item.place.category] ??
                   PlaceUtils.labelForCategory(item.place.category);
+          final title = item.shortLabel.trim().isEmpty ? item.place.name : item.shortLabel;
 
-          return Material(
-            color: PremiumTokens.elevatedSurface(context),
-            borderRadius: BorderRadius.circular(PremiumTokens.surfaceRadius),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(PremiumTokens.surfaceRadius),
-              onTap: () async {
-                await ref.read(mapNotifierProvider.notifier).planTripTo(
-                      MapLocation(
-                        latitude: item.place.latitude,
-                        longitude: item.place.longitude,
-                        label: item.place.name,
-                      ),
-                    );
-                if (context.mounted) context.go(AppRoutes.map);
-              },
-              child: Container(
-                width: 168,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(PremiumTokens.surfaceRadius),
-                  border: Border.all(color: PremiumTokens.separator(context), width: 0.5),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: accent.withValues(alpha: 0.14),
-                            borderRadius: BorderRadius.circular(9),
-                          ),
-                          child: Icon(
-                            PlaceUtils.iconForCategory(item.place.category),
-                            size: 18,
-                            color: accent,
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          categoryLabel,
-                          style: theme.textTheme.labelSmall?.copyWith(color: accent),
-                        ),
-                      ],
+          return TicketCard(
+            title: title,
+            category: categoryLabel,
+            onTap: () async {
+              await ref.read(mapNotifierProvider.notifier).planTripTo(
+                    MapLocation(
+                      latitude: item.place.latitude,
+                      longitude: item.place.longitude,
+                      label: item.place.name,
                     ),
-                    const Spacer(),
-                    Text(
-                      item.shortLabel,
-                      style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      item.place.name,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        'Go â†’',
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: accent,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                  );
+              if (context.mounted) context.go(AppRoutes.map);
+            },
           );
         },
       ),

@@ -427,6 +427,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 originLabel: mapState.currentAddress ?? 'Start',
                 destinationLabel:
                     mapState.destinationAddress ?? mapState.destination?.label,
+                isLocating: mapState.isLocating,
+                locationWarning: mapState.locationWarning,
+                onSwap: () => notifier.swapEndpoints(),
+                onUseLocation: () => notifier.refreshLocation(),
+                onOpenLocationSettings: () => notifier.openLocationSettings(),
                 selectedVehicleMode: mapState.selectedVehicleMode,
                 selectedRoutePreference: mapState.routePreference,
                 highlightedStepIndex: mapState.highlightedStepIndex,
