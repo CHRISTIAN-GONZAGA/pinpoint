@@ -17,7 +17,8 @@ abstract final class AppConfig {
     defaultValue: false,
   );
 
-  /// Map tile provider: `carto` (free), `maptiler`, or `mapbox`.
+  /// Map tile provider: `carto` (default), `maptiler`, or `mapbox`.
+  /// CARTO raster tiles need a free key from https://carto.com/basemaps/apikey/
   static const String mapTileProvider = String.fromEnvironment(
     'MAP_TILE_PROVIDER',
     defaultValue: 'carto',

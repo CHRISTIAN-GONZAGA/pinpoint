@@ -50,7 +50,7 @@ abstract final class AppConstants {
   static const String osrmBaseUrl = 'https://router.project-osrm.org';
   static const String nominatimBaseUrl = 'https://nominatim.openstreetmap.org';
 
-  /// Carto basemaps (no API key). Primary tile source for mobile.
+  /// CARTO basemap CDN subdomains. A free key is required or tiles watermark.
   static const List<String> mapTileSubdomains = ['a', 'b', 'c', 'd'];
 
   /// Light basemap with POI labels (Carto Voyager).
@@ -69,9 +69,9 @@ abstract final class AppConstants {
         final style = isDark ? 'dark-v11' : 'streets-v12';
         return 'https://api.mapbox.com/styles/v1/mapbox/$style/tiles/{z}/{x}/{y}?access_token=$key';
       default:
-        return isDark
-            ? 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter/{z}/{x}/{y}{r}.png'
-            : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+        final style = isDark ? 'dark_matter' : 'voyager';
+        final keyQuery = key.isEmpty ? '' : '?key=$key';
+        return 'https://{s}.basemaps.cartocdn.com/rastertiles/$style/{z}/{x}/{y}{r}.png$keyQuery';
     }
   }
 

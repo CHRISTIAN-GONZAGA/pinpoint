@@ -12,7 +12,7 @@ PINPOINT uses **OpenStreetMap and free public routing services by default** — 
 
 | Key / secret | Required? | Where to set it | Used for |
 |--------------|-----------|-----------------|----------|
-| **None for OSM map tiles** | No key | — | Map display (`tile.openstreetmap.org`) |
+| **CARTO map tiles** | Yes, free key | `.env.flutter.json` → `MAP_TILE_API_KEY` | Basemap. Without it, tiles show an "API key required" watermark. Request a key at https://carto.com/basemaps/apikey/ |
 | **None for OSM search (dev)** | No key | — | Place search (`nominatim.openstreetmap.org`) |
 | **None for OSRM routing (dev)** | No key | — | Walk / drive routes (`router.project-osrm.org`) |
 | **`API_URL`** | Cloud mode only | `.env.flutter.json` | Flutter → your Render/local backend |
@@ -27,14 +27,28 @@ PINPOINT uses **OpenStreetMap and free public routing services by default** — 
 
 ### Maps & location (Flutter app)
 
-PINPOINT does **not** use Google Maps or Mapbox. Maps are built with **flutter_map** + **OpenStreetMap**.
+PINPOINT maps use **flutter_map** with **CARTO** raster tiles (Voyager in light mode, Dark Matter in dark mode). A free CARTO key is required or the tiles watermark. OpenStreetMap is only the fallback if a CARTO tile fails. Routing stays on public OSRM. Nominatim handles place search.
 
-#### OpenStreetMap map tiles — **no API key**
+### Design tokens
 
-| Service | Default URL | API key? |
-|---------|-------------|----------|
-| Light map tiles | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` | **No** |
-| Dark map tiles | `https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png` | **No** |
+The UI is a route-signboard system, not a generic card grid.
+
+| Token | Light | Dark |
+|-------|-------|------|
+| Page | `#ECEDE5` | `#0F141C` |
+| Paper | `#FBFBF7` | `#171E29` |
+| Ink | `#141B26` | `#F1EFE6` |
+| Primary | `#1B46C9` | `#3A60EC` |
+| Signal | `#FFC400` | `#FFC400` |
+
+Display type is Archivo Narrow. Body type is Atkinson Hyperlegible. Tokens live in `lib/core/theme/app_colors.dart`. Plates live in `lib/core/design_system/plates.dart`.
+
+#### CARTO map tiles
+
+| Service | URL | API key? |
+|---------|-----|----------|
+| Light | `basemaps.cartocdn.com/rastertiles/voyager` | **Yes** (`MAP_TILE_API_KEY`) |
+| Dark | `basemaps.cartocdn.com/rastertiles/dark_matter` | **Yes** |
 
 Defined in `lib/app/constants.dart`. Tiles download over the internet and are cached by the map engine while you pan/zoom.
 

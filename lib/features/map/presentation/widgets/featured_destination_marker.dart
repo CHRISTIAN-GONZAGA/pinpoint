@@ -19,41 +19,8 @@ class FeaturedDestinationMarker extends StatefulWidget {
   State<FeaturedDestinationMarker> createState() => _FeaturedDestinationMarkerState();
 }
 
-class _FeaturedDestinationMarkerState extends State<FeaturedDestinationMarker>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _pulse;
-  late Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulse = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 420),
-    );
-    _scale = Tween<double>(begin: 1, end: 1.18).animate(
-      CurvedAnimation(parent: _pulse, curve: Curves.easeOutBack),
-    );
-  }
-
-  @override
-  void didUpdateWidget(covariant FeaturedDestinationMarker oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isSelected && !oldWidget.isSelected) {
-      _pulse.forward(from: 0).then((_) => _pulse.reverse());
-    }
-  }
-
-  @override
-  void dispose() {
-    _pulse.dispose();
-    super.dispose();
-  }
-
-  void _handleTap() {
-    _pulse.forward(from: 0).then((_) => _pulse.reverse());
-    widget.onTap();
-  }
+class _FeaturedDestinationMarkerState extends State<FeaturedDestinationMarker> {
+  void _handleTap() => widget.onTap();
 
   @override
   Widget build(BuildContext context) {
@@ -62,51 +29,80 @@ class _FeaturedDestinationMarkerState extends State<FeaturedDestinationMarker>
 
     return GestureDetector(
       onTap: _handleTap,
-      child: ScaleTransition(
-        scale: _scale,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeOut,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (selected)
+            Container(
+              margin: const EdgeInsets.only(bottom: 4),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: selected ? color : Colors.white.withValues(alpha: 0.95),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: color, width: selected ? 2.5 : 1),
-                boxShadow: [
-                  BoxShadow(
-                    color: selected
-                        ? color.withValues(alpha: 0.35)
-                        : Colors.black.withValues(alpha: 0.15),
-                    blurRadius: selected ? 8 : 4,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
+                border: Border.all(color: color, width: 2),
               ),
               child: Text(
                 widget.destination.shortLabel,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: selected ? Colors.white : color,
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+              ),
+            ),
+          Transform.scale(
+            scale: selected ? 1.25 : 1,
+            child: CustomPaint(
+              painter: _TeardropPainter(color),
+              child: SizedBox(
+                width: 28,
+                height: 34,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Icon(
+                    PlaceUtils.iconForCategory(widget.destination.place.category),
+                    color: Colors.white,
+                    size: 14,
+                  ),
                 ),
               ),
             ),
-            AnimatedScale(
-              scale: selected ? 1.15 : 1,
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeOutBack,
-              child: Icon(
-                PlaceUtils.iconForCategory(widget.destination.place.category),
-                color: color,
-                size: selected ? 30 : 26,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+}
+
+class _TeardropPainter extends CustomPainter {
+  _TeardropPainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(size.width / 2, size.height)
+      ..quadraticBezierTo(0, size.height * 0.55, size.width * 0.18, size.height * 0.28)
+      ..arcToPoint(
+        Offset(size.width * 0.82, size.height * 0.28),
+        radius: Radius.circular(size.width * 0.45),
+        clockwise: true,
+      )
+      ..quadraticBezierTo(size.width, size.height * 0.55, size.width / 2, size.height)
+      ..close();
+    canvas.drawPath(path, Paint()..color = Colors.white);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _TeardropPainter oldDelegate) => oldDelegate.color != color;
 }

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:pinpoint/app/constants.dart';
+import 'package:pinpoint/app/dependency_injection.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
 import 'package:pinpoint/core/utilities/color_utils.dart';
 import 'package:pinpoint/features/admin/presentation/viewmodels/manage_routes_notifier.dart';
@@ -29,6 +30,7 @@ class _ManageRoutesScreenState extends ConsumerState<ManageRoutesScreen> {
   final _descriptionController = TextEditingController();
   final _baseFareController = TextEditingController();
   final _additionalFareController = TextEditingController();
+  bool _fingerDraw = false;
 
   @override
   void initState() {
@@ -62,6 +64,27 @@ class _ManageRoutesScreenState extends ConsumerState<ManageRoutesScreen> {
     if (_baseFareController.text != base) _baseFareController.text = base;
     final add = state.additionalFare?.toString() ?? '';
     if (_additionalFareController.text != add) _additionalFareController.text = add;
+  }
+
+  void _fitCorridor(List<LatLng> points) {
+    if (points.length < 2) return;
+    _mapController.fitCamera(
+      CameraFit.coordinates(
+        coordinates: points,
+        padding: const EdgeInsets.fromLTRB(36, 96, 36, 240),
+      ),
+    );
+  }
+
+  Future<void> _goToMe() async {
+    try {
+      final location = await ref.read(locationServiceProvider).getCurrentLocation();
+      if (!mounted) return;
+      _mapController.move(location.latLng, 16);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+    }
   }
 
   LatLng? _toLatLng(Offset local) {
@@ -114,10 +137,29 @@ class _ManageRoutesScreenState extends ConsumerState<ManageRoutesScreen> {
     final notifier = ref.read(manageRoutesNotifierProvider.notifier);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final brushDrawing = state.canDrawPath && state.drawTool == RouteDrawTool.brush;
+    final brushDrawing =
+        state.canDrawPath && state.drawTool == RouteDrawTool.brush && _fingerDraw;
 
     ref.listen(manageRoutesNotifierProvider, (prev, next) {
       _syncFormFromState(next);
+      if (next.drawTool != RouteDrawTool.brush && _fingerDraw) {
+        setState(() => _fingerDraw = false);
+      }
+      if (next.canDrawPath &&
+          next.waypoints.length > (prev?.waypoints.length ?? 0) &&
+          next.waypoints.isNotEmpty) {
+        final point = next.waypoints.last;
+        final center = _mapController.camera.center;
+        final meters = const Distance().as(LengthUnit.Meter, center, point);
+        if (meters > 400) {
+          _mapController.move(point, 16);
+        }
+      }
+      if (next.mode == ManageRoutesMode.editing &&
+          prev?.mode != ManageRoutesMode.editing &&
+          next.corridor.length >= 2) {
+        _fitCorridor(next.corridor);
+      }
       if (next.errorMessage != null && next.errorMessage != prev?.errorMessage) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -237,23 +279,41 @@ class _ManageRoutesScreenState extends ConsumerState<ManageRoutesScreen> {
                         for (var i = 0; i < state.waypoints.length; i++)
                           Marker(
                             point: state.waypoints[i],
-                            width: i == 0 || i == state.waypoints.length - 1 ? 36 : 22,
-                            height: i == 0 || i == state.waypoints.length - 1 ? 36 : 22,
-                            child: i == 0
-                                ? const _EndpointDot(label: 'A', color: Colors.green)
-                                : (i == state.waypoints.length - 1 &&
-                                        state.waypoints.length > 1
-                                    ? const _EndpointDot(label: 'B', color: Colors.red)
-                                    : Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: colorFromHex(state.colorHex),
-                                            width: 2.5,
-                                          ),
+                            width: i == 0 || i == state.waypoints.length - 1 ? 44 : 32,
+                            height: i == 0 || i == state.waypoints.length - 1 ? 44 : 32,
+                            child: GestureDetector(
+                              onPanUpdate: state.canDrawPath
+                                  ? (details) {
+                                      final camera = _mapController.camera;
+                                      final current = camera.latLngToScreenPoint(state.waypoints[i]);
+                                      final next = camera.pointToLatLng(
+                                        math.Point(
+                                          current.x + details.delta.dx,
+                                          current.y + details.delta.dy,
                                         ),
-                                      )),
+                                      );
+                                      notifier.previewWaypoint(i, next);
+                                    }
+                                  : null,
+                              onPanEnd: state.canDrawPath ? (_) => notifier.commitWaypoint(i) : null,
+                              onLongPress: state.canDrawPath
+                                  ? () => notifier.removeWaypointAt(i)
+                                  : null,
+                              child: i == 0
+                                  ? const _EndpointDot(label: 'A', color: Colors.green)
+                                  : (i == state.waypoints.length - 1 && state.waypoints.length > 1
+                                      ? const _EndpointDot(label: 'B', color: Colors.red)
+                                      : Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: colorFromHex(state.colorHex),
+                                              width: 2.5,
+                                            ),
+                                          ),
+                                        )),
+                            ),
                           ),
                         for (final stop in state.draftStops)
                           Marker(
@@ -310,6 +370,15 @@ class _ManageRoutesScreenState extends ConsumerState<ManageRoutesScreen> {
             right: AppSpacing.sm,
             child: Column(
               children: [
+                _MapButton(icon: Icons.my_location, onTap: _goToMe),
+                if (state.corridor.length >= 2) ...[
+                  const SizedBox(height: 8),
+                  _MapButton(
+                    icon: Icons.fit_screen,
+                    onTap: () => _fitCorridor(state.corridor),
+                  ),
+                ],
+                const SizedBox(height: 8),
                 _MapButton(
                   icon: Icons.add,
                   onTap: () {
@@ -354,6 +423,8 @@ class _ManageRoutesScreenState extends ConsumerState<ManageRoutesScreen> {
               },
               onCreate: notifier.startCreate,
               onDrawTool: notifier.setDrawTool,
+              fingerDraw: _fingerDraw,
+              onToggleFingerDraw: () => setState(() => _fingerDraw = !_fingerDraw),
               onUndo: notifier.undoLastWaypoint,
               onClear: notifier.clearPath,
               onFinishDrawing: notifier.finishDrawing,
@@ -544,6 +615,8 @@ class _BottomPanel extends StatelessWidget {
     required this.onSelect,
     required this.onCreate,
     required this.onDrawTool,
+    required this.fingerDraw,
+    required this.onToggleFingerDraw,
     required this.onUndo,
     required this.onClear,
     required this.onFinishDrawing,
@@ -572,6 +645,8 @@ class _BottomPanel extends StatelessWidget {
   final ValueChanged<JeepneyRoute> onSelect;
   final VoidCallback onCreate;
   final ValueChanged<RouteDrawTool> onDrawTool;
+  final bool fingerDraw;
+  final VoidCallback onToggleFingerDraw;
   final VoidCallback onUndo;
   final VoidCallback onClear;
   final VoidCallback onFinishDrawing;
@@ -619,6 +694,8 @@ class _BottomPanel extends StatelessWidget {
             ManageRoutesMode.drawing || ManageRoutesMode.editing => _DrawPanel(
                 state: state,
                 onDrawTool: onDrawTool,
+                fingerDraw: fingerDraw,
+                onToggleFingerDraw: onToggleFingerDraw,
                 onUndo: onUndo,
                 onClear: onClear,
                 onFinishDrawing: onFinishDrawing,
@@ -745,10 +822,96 @@ class _BrowsePanel extends StatelessWidget {
   }
 }
 
+class _PinSearch extends ConsumerStatefulWidget {
+  const _PinSearch();
+
+  @override
+  ConsumerState<_PinSearch> createState() => _PinSearchState();
+}
+
+class _PinSearchState extends ConsumerState<_PinSearch> {
+  final _controller = TextEditingController();
+  List<MapLocation> _results = const [];
+  bool _searching = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _search(String query) async {
+    if (query.trim().length < 2) {
+      setState(() => _results = const []);
+      return;
+    }
+    setState(() => _searching = true);
+    try {
+      final results = await ref.read(placeSearchServiceProvider).search(query);
+      if (!mounted) return;
+      setState(() {
+        _results = results.take(5).toList();
+        _searching = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _searching = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TextField(
+          controller: _controller,
+          decoration: InputDecoration(
+            isDense: true,
+            prefixIcon: const Icon(Icons.search),
+            hintText: 'Search a place to drop a pin',
+            suffixIcon: _searching
+                ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : null,
+          ),
+          onChanged: _search,
+        ),
+        if (_results.isNotEmpty)
+          ..._results.map(
+            (place) => ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              title: Text(place.label ?? 'Place', maxLines: 1, overflow: TextOverflow.ellipsis),
+              onTap: () async {
+                final pinned = await ref
+                    .read(manageRoutesNotifierProvider.notifier)
+                    .addWaypoint(place.latLng);
+                if (!mounted || pinned == null) return;
+                setState(() {
+                  _results = const [];
+                  _controller.clear();
+                });
+              },
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 class _DrawPanel extends StatelessWidget {
   const _DrawPanel({
     required this.state,
     required this.onDrawTool,
+    required this.fingerDraw,
+    required this.onToggleFingerDraw,
     required this.onUndo,
     required this.onClear,
     required this.onFinishDrawing,
@@ -758,6 +921,8 @@ class _DrawPanel extends StatelessWidget {
 
   final ManageRoutesState state;
   final ValueChanged<RouteDrawTool> onDrawTool;
+  final bool fingerDraw;
+  final VoidCallback onToggleFingerDraw;
   final VoidCallback onUndo;
   final VoidCallback onClear;
   final VoidCallback onFinishDrawing;
@@ -793,10 +958,24 @@ class _DrawPanel extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           pinMode
-              ? 'Fastest: tap Start, then End. Roads fill in. Tap more points to add turns.'
-              : 'Optional: slide along streets, then release. Tiny strokes become pins.',
+              ? 'Search a place, or tap the map. Drag A or B to fix the road. Long-press a pin to remove it.'
+              : fingerDraw
+                  ? 'The map is locked. Slide along the street, then tap Unlock map to pan.'
+                  : 'Tap Draw with finger when you are ready. Until then you can still move the map.',
           style: theme.textTheme.bodySmall,
         ),
+        if (!pinMode) ...[
+          const SizedBox(height: 8),
+          FilledButton.tonalIcon(
+            onPressed: onToggleFingerDraw,
+            icon: Icon(fingerDraw ? Icons.lock_open : Icons.gesture),
+            label: Text(fingerDraw ? 'Unlock map' : 'Draw with finger'),
+          ),
+        ],
+        if (pinMode) ...[
+          const SizedBox(height: 8),
+          const _PinSearch(),
+        ],
         const SizedBox(height: AppSpacing.sm),
         SegmentedButton<RouteDrawTool>(
           segments: const [

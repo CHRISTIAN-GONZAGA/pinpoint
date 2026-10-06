@@ -13,26 +13,39 @@ abstract final class AppTheme {
   static ThemeData _build(Brightness brightness) {
     final isLight = brightness == Brightness.light;
     final textTheme = _textTheme(brightness);
-    final surfaceElevated = isLight ? Colors.white : const Color(0xFF1C1C1E);
-    final borderColor = isLight
-        ? Colors.black.withValues(alpha: 0.06)
-        : Colors.white.withValues(alpha: 0.08);
+    final surfaceElevated = AppColors.paperOf(brightness);
+    final borderColor = AppColors.hairlineOf(brightness);
+    final edge = AppColors.edgeOf(brightness);
+    final primaryFill = AppColors.primaryFillOf(brightness);
 
-    final scheme = ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
+    final scheme = ColorScheme(
       brightness: brightness,
-      primary: isLight ? AppColors.primary : AppColors.primaryLight,
-      secondary: AppColors.secondary,
-      tertiary: AppColors.accent,
+      primary: primaryFill,
+      onPrimary: Colors.white,
+      secondary: AppColors.signal,
+      onSecondary: AppColors.ink,
+      tertiary: isLight ? AppColors.accent : AppColors.accentDark,
+      onTertiary: Colors.white,
+      error: AppColors.dangerOf(brightness),
+      onError: Colors.white,
       surface: surfaceElevated,
-      error: AppColors.danger,
+      onSurface: AppColors.inkOf(brightness),
+      onSurfaceVariant: AppColors.inkSecondaryOf(brightness),
+      outline: borderColor,
+      outlineVariant: borderColor,
+      shadow: Colors.transparent,
+      scrim: Colors.black54,
+      inverseSurface: AppColors.inkOf(brightness),
+      onInverseSurface: AppColors.paperOf(brightness),
+      inversePrimary: isLight ? AppColors.primaryText : AppColors.primary,
+      surfaceContainerHighest: AppColors.sunkenOf(brightness),
     );
 
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
       colorScheme: scheme,
-      scaffoldBackgroundColor: isLight ? const Color(0xFFF3F5F8) : const Color(0xFF0B0F14),
+      scaffoldBackgroundColor: AppColors.stageOf(brightness),
       textTheme: textTheme,
       splashFactory: InkRipple.splashFactory,
       appBarTheme: AppBarTheme(
@@ -40,15 +53,15 @@ abstract final class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: false,
         systemOverlayStyle: isLight ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
-        backgroundColor: isLight ? const Color(0xFFF3F5F8) : const Color(0xFF0B0F14),
-        foregroundColor: isLight ? AppColors.textPrimaryLight : AppColors.textPrimaryDark,
+        backgroundColor: AppColors.stageOf(brightness),
+        foregroundColor: AppColors.inkOf(brightness),
         titleTextStyle: textTheme.titleLarge?.copyWith(letterSpacing: -0.3),
       ),
       cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(PremiumTokens.surfaceRadius),
-          side: BorderSide(color: borderColor, width: 0.5),
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: edge, width: 2),
         ),
         color: surfaceElevated,
         margin: EdgeInsets.zero,
@@ -56,14 +69,22 @@ abstract final class AppTheme {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           elevation: 0,
+          minimumSize: const Size(48, 52),
+          backgroundColor: primaryFill,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: AppColors.sunkenOf(brightness),
+          disabledForegroundColor: AppColors.inkSecondaryOf(brightness),
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.buttonPaddingH,
             vertical: 14,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(PremiumTokens.pillRadius),
+            borderRadius: BorderRadius.circular(14),
           ),
-          textStyle: textTheme.labelLarge?.copyWith(letterSpacing: -0.1),
+          textStyle: textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -74,20 +95,22 @@ abstract final class AppTheme {
             vertical: 14,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(PremiumTokens.pillRadius),
+            borderRadius: BorderRadius.circular(14),
           ),
           textStyle: textTheme.labelLarge,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
+          minimumSize: const Size(48, 52),
+          foregroundColor: AppColors.inkOf(brightness),
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.buttonPaddingH,
             vertical: 14,
           ),
-          side: BorderSide(color: borderColor),
+          side: BorderSide(color: edge, width: 2),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(PremiumTokens.pillRadius),
+            borderRadius: BorderRadius.circular(14),
           ),
         ),
       ),
@@ -99,42 +122,45 @@ abstract final class AppTheme {
           fontWeight: FontWeight.w400,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(PremiumTokens.pillRadius),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: edge, width: 2),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(PremiumTokens.pillRadius),
-          borderSide: BorderSide(color: borderColor),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: edge, width: 2),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(PremiumTokens.pillRadius),
-          borderSide: BorderSide(color: scheme.primary, width: 1.5),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: primaryFill, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(PremiumTokens.pillRadius),
-          borderSide: const BorderSide(color: AppColors.danger),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.dangerOf(brightness), width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       ),
       navigationBarTheme: NavigationBarThemeData(
         elevation: 0,
-        height: 64,
-        backgroundColor: surfaceElevated.withValues(alpha: isLight ? 0.95 : 0.94),
-        indicatorColor: scheme.primary.withValues(alpha: isLight ? 0.1 : 0.18),
+        height: 68,
+        backgroundColor: surfaceElevated,
+        indicatorColor: Colors.transparent,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return textTheme.labelSmall?.copyWith(
-            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-            letterSpacing: -0.1,
+            fontSize: 12,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            color: selected
+                ? AppColors.inkOf(brightness)
+                : AppColors.inkSecondaryOf(brightness),
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
-            size: 22,
+            size: selected ? 24 : 22,
             color: selected
-                ? scheme.primary
-                : scheme.onSurface.withValues(alpha: 0.45),
+                ? AppColors.inkOf(brightness)
+                : AppColors.inkSecondaryOf(brightness),
           );
         }),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
@@ -174,47 +200,73 @@ abstract final class AppTheme {
     final base = brightness == Brightness.light
         ? ThemeData.light().textTheme
         : ThemeData.dark().textTheme;
+    final ink = AppColors.inkOf(brightness);
+    final muted = AppColors.inkSecondaryOf(brightness);
+    final body = GoogleFonts.atkinsonHyperlegibleTextTheme(base);
 
-    // Outfit — contemporary, editorial weight. Avoids generic Inter/Roboto look.
-    return GoogleFonts.outfitTextTheme(base).copyWith(
-      displayLarge: GoogleFonts.outfit(
-        fontSize: 36,
+    TextStyle display(double size) => GoogleFonts.archivoNarrow(
+          fontSize: size,
+          fontWeight: FontWeight.w800,
+          height: 0.95,
+          letterSpacing: -0.6,
+          color: ink,
+        );
+
+    return body.copyWith(
+      displayLarge: display(44),
+      displayMedium: display(36),
+      headlineLarge: display(34),
+      headlineMedium: display(28),
+      headlineSmall: display(23),
+      titleLarge: GoogleFonts.atkinsonHyperlegible(
+        fontSize: 17,
         fontWeight: FontWeight.w700,
-        letterSpacing: -1.0,
-        height: 1.05,
+        height: 1.2,
+        color: ink,
       ),
-      headlineMedium: GoogleFonts.outfit(
-        fontSize: 30,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.8,
-        height: 1.1,
-      ),
-      headlineSmall: GoogleFonts.outfit(
-        fontSize: 22,
-        fontWeight: FontWeight.w600,
-        letterSpacing: -0.4,
-      ),
-      titleLarge: GoogleFonts.outfit(
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
-        letterSpacing: -0.35,
-      ),
-      titleMedium: GoogleFonts.outfit(
+      titleMedium: GoogleFonts.atkinsonHyperlegible(
         fontSize: 16,
-        fontWeight: FontWeight.w600,
-        letterSpacing: -0.25,
+        fontWeight: FontWeight.w700,
+        color: ink,
       ),
-      titleSmall: GoogleFonts.outfit(
+      titleSmall: GoogleFonts.atkinsonHyperlegible(
         fontSize: 14,
-        fontWeight: FontWeight.w600,
-        letterSpacing: -0.15,
+        fontWeight: FontWeight.w700,
+        color: ink,
       ),
-      bodyLarge: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w400, height: 1.45),
-      bodyMedium: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w400, height: 1.4),
-      bodySmall: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w400, height: 1.35),
-      labelLarge: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: -0.1),
-      labelMedium: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w500),
-      labelSmall: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.w500, letterSpacing: 0.35),
+      bodyLarge: GoogleFonts.atkinsonHyperlegible(
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        height: 1.4,
+        color: ink,
+      ),
+      bodyMedium: GoogleFonts.atkinsonHyperlegible(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        height: 1.4,
+        color: ink,
+      ),
+      bodySmall: GoogleFonts.atkinsonHyperlegible(
+        fontSize: 13,
+        fontWeight: FontWeight.w400,
+        height: 1.35,
+        color: muted,
+      ),
+      labelLarge: GoogleFonts.atkinsonHyperlegible(
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+        color: ink,
+      ),
+      labelMedium: GoogleFonts.atkinsonHyperlegible(
+        fontSize: 13,
+        fontWeight: FontWeight.w700,
+        color: muted,
+      ),
+      labelSmall: GoogleFonts.atkinsonHyperlegible(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        color: muted,
+      ),
     );
   }
 }

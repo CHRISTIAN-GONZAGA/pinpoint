@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pinpoint/app/dependency_injection.dart';
 import 'package:pinpoint/app/router.dart';
+import 'package:pinpoint/core/design_system/plates.dart';
 import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
 import 'package:pinpoint/core/widgets/app_text_field.dart';
-import 'package:pinpoint/core/widgets/ghost_button.dart';
-import 'package:pinpoint/core/widgets/pinpoint_logo.dart';
 import 'package:pinpoint/core/widgets/primary_button.dart';
 import 'package:pinpoint/core/widgets/secondary_button.dart';
 import 'package:pinpoint/features/authentication/presentation/viewmodels/auth_notifier.dart';
@@ -95,141 +93,169 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final auth = ref.watch(authNotifierProvider);
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
-              Theme.of(context).scaffoldBackgroundColor,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.screenMargin),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: AppSpacing.lg),
-                  PinpointLogo(size: 80, pulsing: true)
-                      .animate()
-                      .fadeIn()
-                      .slideY(begin: -0.2, end: 0),
-                  const SizedBox(height: AppSpacing.xl),
-                  Text(
-                    'Welcome back',
-                    style: Theme.of(context).textTheme.headlineMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    'Sign in to sync favorites and personalized routes.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppSpacing.xxl),
-                  AppTextField(
-                    controller: _emailController,
-                    label: 'Email',
-                    hint: 'you@example.com',
-                    keyboardType: TextInputType.emailAddress,
-                    prefixIcon: Icons.email_outlined,
-                    autocorrect: false,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Email is required';
-                      }
-                      if (!value.contains('@')) return 'Enter a valid email';
-                      return null;
-                    },
-                  ).animate(delay: 100.ms).fadeIn().slideX(begin: 0.05, end: 0),
-                  const SizedBox(height: AppSpacing.lg),
-                  AppTextField(
-                    controller: _passwordController,
-                    label: 'Password',
-                    hint: 'Enter your password',
-                    obscureText: _obscurePassword,
-                    prefixIcon: Icons.lock_outline,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                      ),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return 'Password is required';
-                      if (value.length < 8) return 'Password must be at least 8 characters';
-                      return null;
-                    },
-                  ).animate(delay: 200.ms).fadeIn().slideX(begin: 0.05, end: 0),
-                  const SizedBox(height: AppSpacing.md),
-                  Row(
+      backgroundColor: AppColors.stageOf(Theme.of(context).brightness),
+      body: Column(
+        children: [
+          ZigzagEdge(
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(22, 20, 22, 18),
+                child: PlateCard(
+                  color: const Color(0xFFFBFBF7),
+                  borderColor: const Color(0xFF141B26),
+                  padding: const EdgeInsets.fromLTRB(14, 14, 18, 14),
+                  child: Row(
                     children: [
-                      Checkbox(
-                        value: _rememberMe,
-                        onChanged: (v) => setState(() => _rememberMe = v ?? true),
+                      Container(
+                        width: 52,
+                        height: 52,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(9),
+                        ),
+                        child: const Icon(Icons.place, color: Colors.white),
                       ),
-                      const Text('Remember me'),
-                      const Spacer(),
-                      GhostButton(
-                        label: 'Forgot Password?',
-                        onPressed: () => context.push(AppRoutes.forgotPassword),
+                      const SizedBox(width: 14),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Pinpoint',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Color(0xFF141B26),
+                                fontSize: 40,
+                                fontWeight: FontWeight.w800,
+                                height: 0.95,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Jeep routes, fares and places in Butuan City',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: Color(0xFF4A5565), fontSize: 13, height: 1.25),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  if (_biometricAvailable) ...[
-                    OutlinedButton.icon(
-                      onPressed: auth.isLoading ? null : _unlockWithBiometrics,
-                      icon: const Icon(Icons.fingerprint_rounded),
-                      label: const Text('Unlock with biometrics'),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                  ],
-                  PrimaryButton(
-                    label: 'Login',
-                    isLoading: auth.isLoading,
-                    onPressed: _login,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  SecondaryButton(
-                    label: 'Continue as Guest',
-                    icon: Icons.person_outline,
-                    onPressed: auth.isLoading ? null : _continueAsGuest,
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Don't have an account?",
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      GhostButton(
-                        label: 'Create Account',
-                        onPressed: () => context.push(AppRoutes.register),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(
-                    'Guest users can browse maps, routes, and AI assistance.',
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: AppColors.accent,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.screenMargin),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Sign in', style: Theme.of(context).textTheme.displayMedium),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Keep your saved places and routes on every phone you use.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppColors.inkSecondaryOf(Theme.of(context).brightness),
+                          ),
+                    ),
+                    const SizedBox(height: 20),
+                    AppTextField(
+                      controller: _emailController,
+                      label: 'Email',
+                      hint: 'you@example.com',
+                      keyboardType: TextInputType.emailAddress,
+                      prefixIcon: Icons.mail_outline,
+                      autocorrect: false,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) return 'Email is required';
+                        if (!value.contains('@')) return 'Enter a valid email';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    AppTextField(
+                      controller: _passwordController,
+                      label: 'Password',
+                      hint: 'Enter your password',
+                      obscureText: _obscurePassword,
+                      prefixIcon: Icons.lock_outline,
+                      suffixIcon: IconButton(
+                        tooltip: _obscurePassword ? 'Show password' : 'Hide password',
+                        icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'Password is required';
+                        if (value.length < 8) return 'Password must be at least 8 characters';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      alignment: WrapAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Checkbox(
+                              value: _rememberMe,
+                              onChanged: (v) => setState(() => _rememberMe = v ?? true),
+                            ),
+                            const Text('Keep me signed in'),
+                          ],
+                        ),
+                        TextButton(
+                          onPressed: () => context.push(AppRoutes.forgotPassword),
+                          child: Text(
+                            'Forgot password?',
+                            style: TextStyle(
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? AppColors.primaryText
+                                  : AppColors.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    if (_biometricAvailable) ...[
+                      OutlinedButton.icon(
+                        onPressed: auth.isLoading ? null : _unlockWithBiometrics,
+                        icon: const Icon(Icons.fingerprint),
+                        label: const Text('Unlock with biometrics'),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
+                    PrimaryButton(
+                      label: 'Sign in',
+                      isLoading: auth.isLoading,
+                      onPressed: _login,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    SecondaryButton(
+                      label: 'Continue as guest',
+                      onPressed: auth.isLoading ? null : _continueAsGuest,
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    TextButton(
+                      onPressed: () => context.push(AppRoutes.register),
+                      child: const Text('New here? Create an account'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -38,16 +38,15 @@ abstract final class PlaceUtils {
 
   static Color colorForCategory(String? category) {
     return switch (category) {
-      'restaurant' => AppColors.warning,
-      'hotel' => const Color(0xFF8B5CF6),
-      'hospital' => AppColors.danger,
+      'restaurant' => AppColors.catFood,
+      'hotel' => AppColors.catHotel,
+      'hospital' || 'pharmacy' => AppColors.catHospital,
       'police' => AppColors.primary,
       'fire' => AppColors.danger,
-      'pharmacy' => AppColors.danger,
-      'museum' || 'park' || 'attraction' => AppColors.accent,
-      'government' => Colors.grey,
-      'shopping_center' || 'mall' => AppColors.secondary,
-      'school' => const Color(0xFF0EA5E9),
+      'museum' || 'park' || 'attraction' || 'tourism' => AppColors.catAttraction,
+      'government' => AppColors.inkSecondary,
+      'shopping_center' || 'mall' => AppColors.catMall,
+      'school' => const Color(0xFF0E7FA8),
       _ => AppColors.primary,
     };
   }

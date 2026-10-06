@@ -231,36 +231,68 @@ class ManageRoutesNotifier extends Notifier<ManageRoutesState> {
     }
   }
 
-  Future<void> addWaypoint(LatLng point) async {
+  Future<LatLng?> addWaypoint(LatLng point) async {
     state = state.copyWith(isSnapping: true, clearError: true);
     try {
       final snapped = await _routing.snapToNearestRoad(point);
-      // Ignore accidental double-taps on the same spot.
       if (state.waypoints.isNotEmpty &&
           _distance.as(LengthUnit.Meter, state.waypoints.last, snapped) < 25) {
         state = state.copyWith(isSnapping: false);
-        return;
+        return state.waypoints.last;
       }
 
-      // Extend an existing corridor from its tip — preserves what you already drew.
       if (state.corridor.length >= 2) {
         final segment = await _routing.routeThroughWaypoints([
           state.corridor.last,
           snapped,
         ]);
-        final extension = segment.length >= 2
-            ? segment
-            : [state.corridor.last, snapped];
+        final extension = segment.length >= 2 ? segment : [state.corridor.last, snapped];
         state = state.copyWith(
           waypoints: [...state.waypoints, snapped],
           corridor: [...state.corridor, ...extension.skip(1)],
           isSnapping: false,
         );
-        return;
+        return snapped;
       }
 
       final waypoints = [...state.waypoints, snapped];
       if (waypoints.length == 1) {
+        state = state.copyWith(
+          waypoints: waypoints,
+          corridor: [snapped],
+          isSnapping: false,
+        );
+        return snapped;
+      }
+      final corridor = await _routing.routeThroughWaypoints(waypoints);
+      state = state.copyWith(
+        waypoints: waypoints,
+        corridor: corridor.length >= 2 ? corridor : waypoints,
+        isSnapping: false,
+      );
+      return snapped;
+    } catch (error) {
+      state = state.copyWith(isSnapping: false, errorMessage: error.toString());
+      return null;
+    }
+  }
+
+  /// Follow the finger. The road line updates when the drag ends.
+  void previewWaypoint(int index, LatLng point) {
+    if (!state.canDrawPath || index < 0 || index >= state.waypoints.length) return;
+    final waypoints = [...state.waypoints];
+    waypoints[index] = point;
+    state = state.copyWith(waypoints: waypoints);
+  }
+
+  Future<void> commitWaypoint(int index) async {
+    if (!state.canDrawPath || index < 0 || index >= state.waypoints.length) return;
+    state = state.copyWith(isSnapping: true, clearError: true);
+    try {
+      final snapped = await _routing.snapToNearestRoad(state.waypoints[index]);
+      final waypoints = [...state.waypoints];
+      waypoints[index] = snapped;
+      if (waypoints.length < 2) {
         state = state.copyWith(
           waypoints: waypoints,
           corridor: [snapped],
@@ -277,6 +309,26 @@ class ManageRoutesNotifier extends Notifier<ManageRoutesState> {
     } catch (error) {
       state = state.copyWith(isSnapping: false, errorMessage: error.toString());
     }
+  }
+
+  Future<void> removeWaypointAt(int index) async {
+    if (!state.canDrawPath || index < 0 || index >= state.waypoints.length) return;
+    final waypoints = [...state.waypoints]..removeAt(index);
+    if (waypoints.isEmpty) {
+      clearPath();
+      return;
+    }
+    if (waypoints.length == 1) {
+      state = state.copyWith(waypoints: waypoints, corridor: [waypoints.first]);
+      return;
+    }
+    state = state.copyWith(isSnapping: true);
+    final corridor = await _routing.routeThroughWaypoints(waypoints);
+    state = state.copyWith(
+      waypoints: waypoints,
+      corridor: corridor.length >= 2 ? corridor : waypoints,
+      isSnapping: false,
+    );
   }
 
   Future<void> undoLastWaypoint() async {

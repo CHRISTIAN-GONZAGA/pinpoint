@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PINPOINT redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --stage:#D9DBD0; --bg:#ECEDE5; --paper:#FBFBF7; --sunk:#E1E2D8; --ink:#141B26; --ink2:#4A5565;
+  --line:#CCCEC3; --edge:#141B26;
+  --blue:#1B46C9; --blue-t:#1B46C9; --yellow:#FFC400; --red:#D63A28; --red-t:#C22E1C; --green:#15805A;
+  --r1:#1B46C9; --r2:#D63A28; --r3:#15805A; --r4:#FFC400;
+  --map-land:#EEEDE4; --map-block:#E4E3D8; --map-water:#BCD8D6; --map-park:#C9E0BE; --map-road:#FFFFFF; --map-edge:#D5D4C8; --map-text:#6F7885;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --stage:#06080C; --bg:#0F141C; --paper:#171E29; --sunk:#212A38; --ink:#F1EFE6; --ink2:#A3ADBB;
+    --line:#2B3544; --edge:#3A4658; --blue:#3A60EC; --blue-t:#8CA5FF; --red:#E0533F; --red-t:#FF7B66; --green:#2FB583;
+    --map-land:#141B25; --map-block:#18212C; --map-water:#1B3842; --map-park:#173226; --map-road:#2B3645; --map-edge:#1E2733; --map-text:#7C8797;
+  }
+}
+:root[data-theme="dark"]{
+  --stage:#06080C; --bg:#0F141C; --paper:#171E29; --sunk:#212A38; --ink:#F1EFE6; --ink2:#A3ADBB;
+  --line:#2B3544; --edge:#3A4658; --blue:#3A60EC; --blue-t:#8CA5FF; --red:#E0533F; --red-t:#FF7B66; --green:#2FB583;
+  --map-land:#141B25; --map-block:#18212C; --map-water:#1B3842; --map-park:#173226; --map-road:#2B3645; --map-edge:#1E2733; --map-text:#7C8797;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0}
+body{background:var(--stage);color:var(--ink);font:16px/1.4 "Atkinson Hyperlegible",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:left}
+input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--blue-t);outline-offset:2px;border-radius:6px}
+.ic{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.disp{font-family:"Archivo","Arial Narrow","Helvetica Neue",Arial,sans-serif;font-weight:800;font-stretch:72%;font-variation-settings:"wdth" 72;line-height:.95}
+
+/* ---------- stage ---------- */
+.stage{display:grid;grid-template-columns:minmax(300px,440px) 410px;grid-template-areas:"intro phone" "notes phone";column-gap:72px;justify-content:center;align-items:start;padding:24px;max-width:1100px;margin:0 auto}
+.intro{grid-area:intro;padding-top:12px}
+.intro h1{font-size:64px;margin-bottom:14px}
+.intro p{color:var(--ink2);max-width:42ch}
+.jump{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.jump button{padding:8px 14px;border-radius:999px;border:2px solid var(--edge);font-weight:700;font-size:14px}
+.jump button.on{background:var(--ink);color:var(--bg)}
+.notes{grid-area:notes;margin-top:36px;display:grid;gap:18px;padding-bottom:40px}
+.notes h2{font-size:15px;font-weight:700;margin-bottom:2px}
+.notes p{font-size:15px;color:var(--ink2);max-width:46ch}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.sw{width:56px}
+.sw i{display:block;height:36px;border-radius:6px;border:2px solid var(--edge)}
+.sw span{font-size:12px;color:var(--ink2)}
+.spec{display:flex;gap:18px;align-items:baseline;flex-wrap:wrap}
+.spec .disp{font-size:44px}
+.fine{font-size:13px;color:var(--ink2)}
+.phone{grid-area:phone;position:sticky;top:20px;width:410px;height:min(860px,calc(100dvh - 40px));min-height:700px;border:10px solid #0A0D12;border-radius:48px;overflow:hidden;background:var(--bg);--sb:44px;isolation:isolate}
+.statusbar{position:absolute;inset:0 0 auto 0;height:var(--sb);z-index:7;display:flex;justify-content:space-between;align-items:center;padding:0 28px;font-weight:700;font-size:14px;background:var(--bg);pointer-events:none}
+.phone[data-screen="map"] .statusbar,.phone[data-screen="login"] .statusbar{background:transparent}
+.phone[data-screen="login"] .statusbar{color:#141B26}
+.sb-r{display:flex;gap:6px;align-items:center}
+.sb-r .ic{width:16px;height:16px}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;display:none;background:var(--bg);scrollbar-width:none}
+.screen::-webkit-scrollbar{display:none}
+.screen.active{display:block;animation:fade .16s ease-out}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.pad{padding:calc(var(--sb) + 16px) 20px 110px}
+.phone[data-screen="plan"] .tabbar,.phone[data-screen="emergency"] .tabbar,.phone[data-screen="login"] .tabbar{display:none}
+
+/* ---------- shared pieces ---------- */
+.plate{background:var(--paper);border:2px solid var(--edge);border-radius:12px;position:relative}
+.plate::after{content:"";position:absolute;inset:3px;border:1px solid var(--line);border-radius:8px;pointer-events:none}
+.code{display:inline-grid;place-items:center;min-width:36px;height:36px;padding:0 6px;border-radius:7px;background:var(--rc,var(--r1));color:#fff;font:800 22px/1 "Archivo",Arial,sans-serif;font-stretch:75%;font-variation-settings:"wdth" 75;flex:none}
+.code.sm{min-width:26px;height:26px;font-size:17px;border-radius:5px}
+.code.lg{min-width:52px;height:52px;font-size:34px;border-radius:9px}
+.r1{--rc:var(--r1)}.r2{--rc:var(--r2)}.r3{--rc:var(--r3)}.r4{--rc:var(--r4);color:#141B26}.rw{--rc:#141B26}
+.btn{height:52px;border-radius:14px;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;text-align:center}
+.btn.primary{background:var(--blue);color:#fff}
+.btn.ghost{border:2px solid var(--edge)}
+.iconbtn{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;flex:none}
+.iconbtn.line{border:2px solid var(--edge)}
+.link{color:var(--blue-t);font-weight:700;font-size:15px;padding:6px 0}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;margin:30px 0 12px}
+.sec-h h2{font-size:23px;font-family:"Archivo",Arial,sans-serif;font-stretch:78%;font-variation-settings:"wdth" 78;font-weight:800}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:999px;border:2px solid var(--edge);font-weight:700;font-size:14px;background:var(--paper)}
+.chip .ic{width:17px;height:17px}
+.chip.on{background:var(--ink);color:var(--bg)}
+.bar{display:flex;align-items:center;gap:6px;margin:0 -8px 14px}
+.bar h1{font-size:34px}
+.title{font-size:44px}
+.sub{color:var(--ink2);font-size:15px;margin-top:6px;max-width:34ch}
+
+/* ---------- login ---------- */
+#s-login{background:var(--bg)}
+.l-hero{background:var(--yellow);padding:calc(var(--sb) + 28px) 22px 30px}
+.sign{display:flex;align-items:center;gap:14px;padding:14px 18px 14px 14px;color:#141B26;background:#FBFBF7;border-color:#141B26}
+.sign::after{border-color:#CCCEC3}
+.sign .code{--rc:#1B46C9;color:#fff}
+.sign .t{font-size:46px;color:#141B26}
+.sign small{display:block;font-size:13px;color:#4A5565;margin-top:4px;line-height:1.25}
+.zig{height:14px;background:linear-gradient(135deg,var(--bg) 25%,transparent 25%) 0 0/20px 14px,linear-gradient(225deg,var(--bg) 25%,transparent 25%) 0 0/20px 14px,var(--yellow);margin-top:-1px}
+.l-body{padding:26px 22px 40px}
+.l-body h1{font-size:42px}
+.field{display:block;margin-top:20px}
+.field>span{display:block;font-weight:700;font-size:15px;margin-bottom:7px}
+.input{display:flex;align-items:center;gap:10px;height:54px;padding:0 6px 0 14px;border:2px solid var(--edge);border-radius:12px;background:var(--paper);color:var(--ink2)}
+.input:focus-within{border-color:var(--blue-t);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue-t) 25%,transparent)}
+.input input{flex:1;min-width:0;border:0;background:none;outline:0;color:var(--ink);height:100%}
+.input input::placeholder{color:var(--ink2);opacity:.8}
+.l-row{display:flex;justify-content:space-between;align-items:center;margin:14px 0 22px}
+.chk{display:flex;align-items:center;gap:9px;font-size:15px}
+.chk input{width:20px;height:20px;accent-color:var(--blue)}
+.l-body .btn+.btn{margin-top:10px}
+.l-foot{text-align:center;margin-top:22px;color:var(--ink2);font-size:15px}
+
+/* ---------- home ---------- */
+.home-top{display:flex;justify-content:space-between;align-items:center}
+.loc{display:flex;gap:6px;align-items:center;font-weight:700;font-size:15px;padding:8px 14px 8px 10px;border-radius:999px;background:var(--sunk)}
+.loc .ic{width:18px;height:18px;color:var(--blue-t)}
+.avatar{width:42px;height:42px;border-radius:50%;background:var(--yellow);color:#141B26;font:800 22px "Archivo",Arial,sans-serif;display:grid;place-items:center;border:2px solid var(--edge);text-align:center}
+.date{margin-top:24px;color:var(--ink2);font-size:15px}
+.hero{font-size:60px;margin-top:6px}
+.search{display:flex;align-items:center;gap:12px;width:100%;margin-top:20px;padding:0 16px;height:58px;color:var(--ink2);font-size:16px}
+.search span{flex:1}
+.notice{margin-top:14px;padding:11px 14px;background:var(--paper);border-left:6px solid var(--yellow);border-radius:4px 10px 10px 4px}
+.notice b{display:block;font-size:15px}
+.notice span{font-size:14px;color:var(--ink2)}
+.actions{display:grid;grid-template-columns:1.3fr 1fr;grid-template-rows:auto auto;gap:10px;margin-top:18px}
+.act{border-radius:16px;padding:14px;display:flex;flex-direction:column;justify-content:space-between;gap:10px}
+.act.plan{grid-row:1/3;min-height:176px;background:var(--blue);color:#fff;border-radius:22px 22px 22px 6px}
+.act.plan .disp{font-size:34px}
+.act.plan small{display:block;font-size:14px;opacity:.9;margin-top:6px;line-height:1.3}
+.act.ask,.act.sos{border:2px solid var(--edge);background:var(--paper);min-height:80px;flex-direction:row;align-items:center;justify-content:flex-start;gap:10px;font-weight:700;line-height:1.15}
+.act.sos{border-color:var(--red-t);color:var(--red-t)}
+.tickets{display:flex;gap:12px;overflow-x:auto;margin:0 -20px;padding:2px 20px 8px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.tickets::-webkit-scrollbar{display:none}
+.ticket{flex:none;width:268px;display:flex;border:2px solid var(--edge);border-radius:12px;background:var(--paper);overflow:hidden;scroll-snap-align:start}
+.ticket .code{width:62px;min-width:62px;height:auto;border-radius:0;font-size:38px}
+.tbody{flex:1;padding:12px 12px 12px 14px;border-left:2px dashed var(--bg);display:flex;flex-direction:column;gap:2px;min-width:0}
+.tbody b{font-size:16px;line-height:1.2}
+.tbody span{font-size:14px;color:var(--ink2)}
+.tfare{margin-top:6px;font:800 22px "Archivo",Arial,sans-serif;font-stretch:80%}
+.around{border:2px dashed var(--edge);border-radius:14px;padding:16px;display:flex;gap:14px;align-items:flex-start}
+.around .ic{width:28px;height:28px;color:var(--ink2);margin-top:2px}
+.around b{display:block;font-size:17px}
+.around p{font-size:14px;color:var(--ink2);margin:2px 0 12px}
+.around .btn{height:44px;width:auto;padding:0 18px;font-size:15px}
+.near{display:grid;gap:0}
+.near .prow{padding:12px 0;border-bottom:1px solid var(--line)}
+.sos-wide{margin-top:14px;display:flex;align-items:center;gap:12px;width:100%;padding:14px;border-radius:14px;background:var(--paper);border:2px solid var(--edge)}
+.sos-wide .ico{width:42px;height:42px;border-radius:10px;background:var(--red);color:#fff;display:grid;place-items:center}
+.sos-wide b{display:block}
+.sos-wide span{font-size:14px;color:var(--ink2)}
+.sos-wide>.ic{margin-left:auto;color:var(--ink2)}
+
+/* ---------- map ---------- */
+#s-map{overflow:hidden}
+#s-map svg.map{position:absolute;inset:0;width:100%;height:100%}
+.m-land{fill:var(--map-land)}.m-block{fill:var(--map-block)}.m-water{fill:none;stroke:var(--map-water);stroke-linecap:round}
+.m-park{fill:var(--map-park)}
+.m-case{stroke:var(--map-edge);fill:none}.m-road{stroke:var(--map-road);fill:none}
+.mlabel{font:700 11px "Atkinson Hyperlegible",sans-serif;fill:var(--map-text);letter-spacing:.02em}
+.pin{cursor:pointer}
+.pin-l rect{fill:var(--paper);stroke:var(--edge);stroke-width:2}
+.pin-l text{font:700 12px "Atkinson Hyperlegible",sans-serif;fill:var(--ink);text-anchor:middle}
+.m-top{position:absolute;left:14px;right:14px;top:calc(var(--sb) + 8px);z-index:3;display:grid;gap:10px}
+.m-top .search{margin:0;height:52px;box-shadow:0 2px 0 rgba(20,27,38,.12)}
+.m-top .chips{margin:0 -14px;padding:0 14px}
+.m-tools{position:absolute;right:14px;top:calc(var(--sb) + 130px);display:grid;gap:10px;z-index:3}
+.m-tools .iconbtn{background:var(--paper);border:2px solid var(--edge)}
+.sheet{position:absolute;left:0;right:0;bottom:68px;z-index:4;background:var(--paper);border-top:2px solid var(--edge);border-radius:22px 22px 0 0;padding:10px 18px 16px}
+.grab{width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 12px}
+.sh-top{display:flex;gap:10px;align-items:flex-start}
+.sh-top>div{flex:1;min-width:0}
+.sh-top h2{font-size:29px}
+.sh-top p{font-size:14px;color:var(--ink2);margin-top:4px}
+.ride{display:flex;align-items:center;gap:12px;margin:14px 0;padding:12px;border:2px solid var(--edge);border-radius:12px}
+.ride .rd{flex:1;min-width:0}
+.ride .rd b{display:block;font-size:16px}
+.ride .rd span{font-size:14px;color:var(--ink2)}
+.ride .rt{text-align:right}
+.ride .rt b{display:block;font:800 24px/1 "Archivo",Arial,sans-serif;font-stretch:80%}
+.ride .rt span{font-size:13px;color:var(--ink2)}
+.sh-actions{display:grid;grid-template-columns:1.4fr 1fr;gap:10px}
+
+/* ---------- explore ---------- */
+.list-h{display:flex;justify-content:space-between;align-items:baseline;margin:22px 0 12px}
+.list-h h2{font-size:23px;font-family:"Archivo",Arial,sans-serif;font-stretch:78%;font-variation-settings:"wdth" 78;font-weight:800}
+.list-h span{font-size:14px;color:var(--ink2)}
+.feat{position:relative;display:block;width:100%;min-height:176px;padding:16px;border-radius:22px 22px 6px 22px;background:var(--c);color:#fff;overflow:hidden}
+.feat-g{position:absolute;right:-22px;bottom:-26px;opacity:.22}
+.feat-g .ic{width:170px;height:170px;stroke-width:1.2}
+.feat-t{position:relative;display:block;font-size:34px;max-width:11ch;margin-top:46px}
+.feat-a{position:relative;display:block;font-size:14px;margin-top:8px;opacity:.95}
+.feat-r{position:absolute;right:14px;top:14px;display:flex;align-items:center;gap:8px;background:var(--paper);color:var(--ink);border-radius:999px;padding:5px 12px 5px 6px;font-weight:700;font-size:14px}
+.prow{display:flex;align-items:center;gap:14px;width:100%;padding:13px 0;border-bottom:1px solid var(--line)}
+.rtile{width:50px;height:50px;border-radius:12px;background:var(--c);color:#fff;display:grid;place-items:center;flex:none}
+.rmid{flex:1;min-width:0}
+.rmid b{display:block;font-size:17px;line-height:1.2}
+.rmid span{font-size:14px;color:var(--ink2)}
+.rride{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:13px;font-weight:700;color:var(--ink2)}
+
+/* ---------- assistant ---------- */
+#s-assistant.active{display:flex;flex-direction:column;padding-bottom:68px;overflow:hidden}
+.a-head{padding:calc(var(--sb) + 14px) 20px 12px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.a-head h1{font-size:40px}
+.a-head p{font-size:14px;color:var(--ink2);margin-top:4px;max-width:30ch}
+.a-tools{display:flex;gap:6px}
+.lang{height:44px;padding:0 12px;border-radius:12px;border:2px solid var(--edge);font-weight:700;display:flex;align-items:center;gap:6px;font-size:14px}
+.log{flex:1;overflow-y:auto;padding:8px 20px;display:flex;flex-direction:column;gap:12px;scrollbar-width:none}
+.msg{max-width:90%;font-size:16px}
+.msg.bot{align-self:flex-start;background:var(--paper);border:2px solid var(--edge);border-radius:4px 16px 16px 16px;padding:12px 14px}
+.msg.me{align-self:flex-end;background:var(--blue);color:#fff;border-radius:16px 4px 16px 16px;padding:10px 14px}
+.msg .ride{margin:10px 0 2px;padding:10px}
+.msg p+p{margin-top:6px}
+.msg .btn{height:44px;margin-top:10px;background:var(--red);color:#fff;font-size:15px}
+.msg .prow{padding:9px 0}
+.msg .rtile{width:38px;height:38px;border-radius:9px}
+.msg .rmid b{font-size:15px}
+.dots{display:flex;gap:5px;padding:4px 2px}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--ink2);animation:bob 1s infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes bob{50%{transform:translateY(-4px);opacity:.5}}
+.sugg{padding:10px 20px 4px}
+.sugg .chip{font-weight:400}
+.composer{display:flex;gap:10px;padding:10px 20px 14px;align-items:center}
+.composer .input{flex:1;height:50px;padding-right:14px;border-radius:25px}
+.send{width:50px;height:50px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;flex:none}
+
+/* ---------- profile ---------- */
+.who{display:flex;gap:14px;align-items:center;margin-top:16px}
+.who .av{width:68px;height:68px;border-radius:20px 20px 20px 6px;background:var(--yellow);color:#141B26;font:800 38px "Archivo",Arial,sans-serif;display:grid;place-items:center;border:2px solid var(--edge);flex:none}
+.who b{display:block;font-size:20px;line-height:1.2}
+.who span{font-size:14px;color:var(--ink2);word-break:break-all}
+.badge{display:inline-block;margin-top:6px;padding:2px 9px;border-radius:5px;background:var(--ink);color:var(--bg);font-weight:700;font-size:12px}
+.grp-h{font-size:15px;font-weight:700;margin:28px 0 10px}
+.group{border:2px solid var(--edge);border-radius:14px;background:var(--paper);overflow:hidden}
+.gr{display:flex;align-items:center;gap:14px;width:100%;padding:14px 16px;border-top:1px solid var(--line)}
+.gr:first-child{border-top:0}
+.gr>.ic:first-child{color:var(--ink)}
+.gr .mid{flex:1;min-width:0}
+.gr b{display:block;font-size:16px;font-weight:700}
+.gr span{font-size:14px;color:var(--ink2)}
+.gr>.ic:last-child{color:var(--ink2);width:18px;height:18px}
+.gr.admin{background:var(--sunk)}
+.tag{font-size:12px;font-weight:700;padding:2px 8px;border-radius:5px;border:1.5px solid var(--edge);color:var(--ink)}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);border:2px solid var(--edge);border-radius:12px;overflow:hidden;background:var(--paper)}
+.seg button{display:flex;align-items:center;justify-content:center;gap:7px;height:48px;font-weight:700;font-size:15px;border-left:2px solid var(--edge);text-align:center}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.acct{margin-top:28px;display:grid;gap:10px}
+.danger{color:var(--red-t);font-weight:700;text-align:center;padding:12px;font-size:15px}
+.confirm{display:none;border:2px solid var(--red-t);border-radius:14px;padding:14px;background:var(--paper)}
+.confirm.show{display:block}
+.confirm p{font-size:15px;margin-bottom:12px}
+.confirm .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.confirm .btn{height:46px}
+.btn.red{background:var(--red);color:#fff}
+.ver{text-align:center;font-size:13px;color:var(--ink2);margin-top:8px}
+
+/* ---------- plan ---------- */
+.rf-card{padding:6px 14px;margin-top:4px}
+.rf{display:flex;align-items:center;gap:14px;padding:10px 0;position:relative}
+.rf+.rf{border-top:1px solid var(--line)}
+.rf small{display:block;font-size:13px;color:var(--ink2)}
+.rf b{font-size:17px}
+.dot{width:14px;height:14px;border-radius:50%;border:3px solid var(--blue-t);flex:none}
+.dot.to{border-radius:3px;border-color:var(--red-t);background:var(--red-t)}
+.rf .iconbtn{margin-left:auto}
+.rf-card .iconbtn{position:absolute;right:8px;top:50%;margin-top:-22px;z-index:2;background:var(--paper);border:2px solid var(--edge)}
+.opts{display:grid;gap:12px;margin-top:20px}
+.opt{display:block;width:100%;border:2px solid var(--edge);border-radius:16px;background:var(--paper);padding:14px}
+.opt[aria-pressed="true"]{border-width:3px;padding:13px}
+.opt-h{display:flex;align-items:center;gap:12px}
+.opt-t{font:800 36px/1 "Archivo",Arial,sans-serif;font-stretch:72%;font-variation-settings:"wdth" 72}
+.opt-t small{font-size:16px;font-weight:700;margin-left:3px}
+.legs{display:flex;align-items:center;gap:6px;margin-left:auto;color:var(--ink2)}
+.legs .ic{width:18px;height:18px}
+.opt-m{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:14px;color:var(--ink2)}
+.pill{padding:2px 9px;border-radius:999px;background:var(--sunk);font-weight:700;font-size:13px;color:var(--ink)}
+.pill.y{background:var(--yellow);color:#141B26}
+.steps{list-style:none;padding:0;margin:16px 0 4px;position:relative}
+.steps::before{content:"";position:absolute;left:15px;top:14px;bottom:14px;border-left:3px dotted var(--line)}
+.steps li{position:relative;display:flex;gap:14px;padding:8px 0;align-items:flex-start}
+.node{width:32px;height:32px;flex:none;display:grid;place-items:center;border-radius:50%;background:var(--sunk);position:relative;z-index:1}
+.node .ic{width:18px;height:18px}
+.node .code{min-width:32px;height:32px;border-radius:8px;font-size:19px}
+.steps b{display:block;font-size:16px}
+.steps span{font-size:14px;color:var(--ink2)}
+.say{display:inline-block;margin-top:4px;padding:3px 10px;border-radius:6px;background:var(--yellow);color:#141B26;font-weight:700;font-size:14px}
+.actionbar{position:sticky;bottom:0;display:flex;gap:10px;padding:12px 20px calc(14px);background:var(--bg);border-top:2px solid var(--edge);margin-top:-92px}
+#s-plan .pad{padding-bottom:120px}
+
+/* ---------- emergency ---------- */
+.call{display:flex;align-items:center;gap:16px;width:100%;padding:18px;border-radius:22px 22px 22px 6px;background:var(--red);color:#fff;margin-top:6px}
+.call .ic{width:34px;height:34px}
+.call .disp{font-size:44px}
+.call span{font-size:14px;display:block;margin-top:4px}
+
+/* ---------- tabbar ---------- */
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:68px;display:grid;grid-template-columns:repeat(5,1fr);background:var(--paper);border-top:2px solid var(--edge);z-index:6}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:700;color:var(--ink2);position:relative;text-align:center}
+.tab.on{color:var(--ink)}
+.tab.on::before{content:"";position:absolute;top:-2px;left:22%;right:22%;height:4px;background:var(--blue-t)}
+.tab.on .ic{stroke-width:2.3}
+
+/* ---------- responsive ---------- */
+@media (max-width:980px){
+  .stage{grid-template-columns:minmax(0,430px);grid-template-areas:"intro" "phone" "notes";row-gap:20px;padding:16px}
+  .phone{position:relative;top:0;width:100%;max-width:430px;margin:0 auto}
+  .intro h1{font-size:48px}
+}
+@media (max-width:520px){
+  .stage{padding:0;row-gap:0}
+  .intro{padding:16px 16px 10px}
+  .intro h1{font-size:38px;margin-bottom:6px}
+  .intro p{display:none}
+  .jump{flex-wrap:nowrap;overflow-x:auto;margin:12px -16px 0;padding:0 16px;scrollbar-width:none}
+  .jump button{flex:none}
+  .phone{border:0;border-radius:0;max-width:none;height:calc(100dvh - 118px);min-height:560px;--sb:0px}
+  .statusbar{display:none}
+  .notes{padding:24px 16px 40px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 9.5V20h5v-6h4v6h5V9.5"/></symbol>
+<symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></symbol>
+<symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H10l-5 4v-4H4z"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+<symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+<symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
+<symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5"/></symbol>
+<symbol id="i-walk" viewBox="0 0 24 24"><circle cx="13" cy="4.5" r="1.8"/><path d="M8 21l3-7 3 2v5M11 14l-1-5 4-1 2 4 3 1M10 9L7 12"/></symbol>
+<symbol id="i-trike" viewBox="0 0 24 24"><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17l4-8h4l4 8M10 9L9 6H7"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></symbol>
+<symbol id="i-cross" viewBox="0 0 24 24"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></symbol>
+<symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 016 0v2"/></symbol>
+<symbol id="i-fork" viewBox="0 0 24 24"><path d="M7 3v8M5 3v5a2 2 0 004 0V3M7 11v10M17 3c-2 2-2.5 5-2.5 8H17v10"/></symbol>
+<symbol id="i-bed" viewBox="0 0 24 24"><path d="M3 18V6M3 14h18v4M21 14v-2a3 3 0 00-3-3h-7v5"/><circle cx="7" cy="11" r="1.6"/></symbol>
+<symbol id="i-landmark" viewBox="0 0 24 24"><path d="M3 9l9-5 9 5M5 9v8M9 9v8M15 9v8M19 9v8M3 20h18"/></symbol>
+<symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-8-5-8-11a4.5 4.5 0 018-2.5A4.5 4.5 0 0120 9c0 6-8 11-8 11z"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 0112 0v5l2 2H4zM10 21h4"/></symbol>
+<symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></symbol>
+<symbol id="i-access" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="1.8"/><path d="M5 8l7 1 7-1M12 9v5M9 21l3-7 3 7"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+<symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 4v14M7 18l-3-3M7 18l3-3M17 20V6M17 6l-3 3M17 6l3 3"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-eyeoff" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M4 4l16 16"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3 3 0 000-6H9a3 3 0 010-6h7"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/></symbol>
+<symbol id="i-auto" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 010 18z" fill="currentColor"/></symbol>
+<symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 01-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/></symbol>
+<symbol id="i-trans" viewBox="0 0 24 24"><path d="M4 6h9M8.5 4v2M6 6c1 4 4 7 7 8M12 6c-1 4-4 7-8 9M14 20l4-9 4 9M15.5 17h5"/></symbol>
+<symbol id="i-wifi" viewBox="0 0 24 24"><path d="M2 9a15 15 0 0120 0M5.5 12.5a10 10 0 0113 0M9 16a5 5 0 016 0M12 19.5h.01"/></symbol>
+</defs></svg>
+
+<main class="stage">
+  <section class="intro">
+    <h1 class="disp">PINPOINT, redesigned</h1>
+    <p>An interactive mock of the Butuan commuter app. Tap the tabs, tap a pin on the map, ask the assistant a question. The theme switch in Profile works.</p>
+    <div class="jump" role="group" aria-label="Jump to screen">
+      <button data-jump="login">Login</button>
+      <button data-jump="home">Home</button>
+      <button data-jump="map">Map</button>
+      <button data-jump="plan">Plan</button>
+      <button data-jump="explore">Explore</button>
+      <button data-jump="assistant">Assistant</button>
+      <button data-jump="profile">Profile</button>
+      <button data-jump="emergency">Emergency</button>
+    </div>
+  </section>
+
+  <div class="phone" id="phone" data-screen="home">
+    <div class="statusbar" aria-hidden="true"><span>8:51</span><span class="sb-r"><svg class="ic"><use href="#i-wifi"/></svg>88%</span></div>
+
+    <!-- LOGIN -->
+    <section class="screen" id="s-login">
+      <div class="l-hero">
+        <div class="plate sign">
+          <span class="code lg"><svg class="ic"><use href="#i-pin"/></svg></span>
+          <div><div class="disp t">Pinpoint</div><small>Jeep routes, fares and places in Butuan City</small></div>
+        </div>
+      </div>
+      <div class="zig"></div>
+      <div class="l-body">
+        <h1 class="disp">Sign in</h1>
+        <p class="sub">Keep your saved places and routes on every phone you use.</p>
+        <label class="field"><span>Email</span>
+          <div class="input"><svg class="ic"><use href="#i-mail"/></svg><input type="email" placeholder="you@example.com" autocomplete="email"></div></label>
+        <label class="field"><span>Password</span>
+          <div class="input"><svg class="ic"><use href="#i-lock"/></svg><input id="pw" type="password" placeholder="Enter your password" autocomplete="current-password">
+          <button class="iconbtn" id="pwtoggle" type="button" aria-label="Show password"><svg class="ic"><use href="#i-eye"/></svg></button></div></label>
+        <div class="l-row">
+          <label class="chk"><input type="checkbox" checked> Keep me signed in</label>
+          <button class="link" type="button">Forgot password?</button>
+        </div>
+        <button class="btn primary" data-go="home">Sign in</button>
+        <button class="btn ghost" data-go="home">Continue as guest</button>
+        <p class="l-foot">New here? <button class="link" style="display:inline">Create an account</button></p>
+      </div>
+    </section>
+
+    <!-- HOME -->
+    <section class="screen active" id="s-home">
+      <div class="pad">
+        <div class="home-top">
+          <button class="loc" aria-label="Current area: Butuan City"><svg class="ic"><use href="#i-pin"/></svg>Butuan City</button>
+          <button class="avatar" data-go="profile" aria-label="Open profile">P</button>
+        </div>
+        <p class="date">Tuesday, October 6</p>
+        <h1 class="disp hero">Where to today?</h1>
+        <button class="plate search" data-push="plan"><svg class="ic"><use href="#i-search"/></svg><span>Search a place in Butuan</span><svg class="ic"><use href="#i-mic"/></svg></button>
+        <div class="notice"><b>Fares follow the city fare matrix</b><span>Jeepney and tricycle prices come from the latest matrix the administrator published.</span></div>
+
+        <div class="actions">
+          <button class="act plan" data-push="plan"><svg class="ic" style="width:30px;height:30px"><use href="#i-route"/></svg><span><span class="disp">Plan a trip</span><small>Find the jeep, the fare and where to get off</small></span></button>
+          <button class="act ask" data-go="assistant"><svg class="ic"><use href="#i-chat"/></svg>Ask the assistant</button>
+          <button class="act sos" data-push="emergency"><svg class="ic"><use href="#i-phone"/></svg>Emergency help</button>
+        </div>
+
+        <div class="sec-h"><h2>Popular destinations</h2><button class="link" data-go="explore">See all</button></div>
+        <div class="tickets" id="tickets"></div>
+
+        <div class="sec-h"><h2>Around you</h2></div>
+        <div id="around"></div>
+      </div>
+    </section>
+
+    <!-- MAP -->
+    <section class="screen" id="s-map">
+      <svg class="map" viewBox="0 0 390 840" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Map of central Butuan with places marked">
+        <rect class="m-land" width="390" height="840"/>
+        <g id="blocks"></g>
+        <rect class="m-park" x="52" y="212" width="90" height="66" rx="10"/>
+        <path class="m-water" stroke-width="46" d="M20 -20C60 150 -10 350 40 520S70 700 40 860"/>
+        <defs><path id="rd" d="M150 -10V850M230 -10V850M300 -10V850M-10 250H400M-10 310H400M-10 380H400"/><path id="art" d="M-10 470H400"/></defs>
+        <use href="#rd" class="m-case" stroke-width="12"/><use href="#art" class="m-case" stroke-width="18"/>
+        <use href="#rd" class="m-road" stroke-width="8"/><use href="#art" class="m-road" stroke-width="12"/>
+        <text class="mlabel" x="190" y="492">J.C. Aquino Ave</text>
+        <text class="mlabel" transform="translate(66 650) rotate(-84)">Agusan River</text>
+        <text class="mlabel" x="58" y="248">Guingona Park</text>
+        <path id="routeC" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+        <path id="routeP" fill="none" stroke="#1B46C9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        <g transform="translate(150 440)"><circle r="17" fill="#2F6BFF" opacity=".22"/><circle r="8" fill="#2F6BFF" stroke="#fff" stroke-width="3.5"/></g>
+        <g id="pinsG"></g>
+      </svg>
+      <div class="m-top">
+        <button class="plate search" data-push="plan"><svg class="ic"><use href="#i-search"/></svg><span>Where to?</span></button>
+        <div class="chips" id="mchips"></div>
+      </div>
+      <div class="m-tools">
+        <button class="iconbtn" aria-label="Center on my location"><svg class="ic"><use href="#i-target"/></svg></button>
+        <button class="iconbtn" aria-label="Map layers"><svg class="ic"><use href="#i-layers"/></svg></button>
+      </div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <div class="sh-top"><div><h2 class="disp" id="shName"></h2><p id="shSub"></p></div>
+          <button class="iconbtn line" aria-label="Save place"><svg class="ic"><use href="#i-heart"/></svg></button></div>
+        <div class="ride" id="shRide"></div>
+        <div class="sh-actions"><button class="btn primary" data-push="plan">Plan route</button><button class="btn ghost">Details</button></div>
+      </div>
+    </section>
+
+    <!-- EXPLORE -->
+    <section class="screen" id="s-explore">
+      <div class="pad">
+        <h1 class="disp title">Explore</h1>
+        <p class="sub">Malls, parks, food and landmarks around Butuan, with the jeep that gets you there.</p>
+        <button class="plate search" style="margin-top:18px"><svg class="ic"><use href="#i-search"/></svg><span>Search attractions, food, hotels</span></button>
+        <div class="chips" id="echips" style="margin:16px -20px 0;padding:0 20px"></div>
+        <div class="list-h"><h2 id="eTitle"></h2><span id="eCount"></span></div>
+        <div id="eList"></div>
+      </div>
+    </section>
+
+    <!-- ASSISTANT -->
+    <section class="screen" id="s-assistant">
+      <div class="a-head">
+        <div><h1 class="disp">Assistant</h1><p>Ask about jeepney routes, fares, tourist spots or emergency contacts.</p></div>
+        <div class="a-tools"><button class="lang" aria-label="Language: English"><svg class="ic" style="width:18px;height:18px"><use href="#i-trans"/></svg>EN</button>
+        <button class="iconbtn line" id="clearChat" aria-label="Clear conversation"><svg class="ic"><use href="#i-trash"/></svg></button></div>
+      </div>
+      <div class="log" id="log" aria-live="polite"></div>
+      <div class="sugg"><div class="chips" id="sugg"></div></div>
+      <form class="composer" id="composer" onsubmit="return false">
+        <div class="input"><input id="msg" placeholder="Ask about a route or fare" aria-label="Message"></div>
+        <button class="send" id="send" type="submit" aria-label="Send"><svg class="ic"><use href="#i-send"/></svg></button>
+      </form>
+    </section>
+
+    <!-- PROFILE -->
+    <section class="screen" id="s-profile">
+      <div class="pad">
+        <h1 class="disp title">Profile</h1>
+        <div class="who"><div class="av">P</div><div><b>PINPOINT Administrator</b><span>admin@pinpoint.local</span><br><span class="badge">Admin</span></div></div>
+
+        <h2 class="grp-h">Appearance</h2>
+        <div class="seg" role="group" aria-label="Theme" id="seg">
+          <button data-theme-set="light" aria-pressed="false"><svg class="ic" style="width:18px;height:18px"><use href="#i-sun"/></svg>Light</button>
+          <button data-theme-set="dark" aria-pressed="false"><svg class="ic" style="width:18px;height:18px"><use href="#i-moon"/></svg>Dark</button>
+          <button data-theme-set="auto" aria-pressed="true"><svg class="ic" style="width:18px;height:18px"><use href="#i-auto"/></svg>Auto</button>
+        </div>
+
+        <h2 class="grp-h">Your places</h2>
+        <div class="group">
+          <button class="gr"><svg class="ic"><use href="#i-heart"/></svg><div class="mid"><b>Favorites</b><span>Places you saved</span></div><svg class="ic"><use href="#i-chev"/></svg></button>
+          <button class="gr"><svg class="ic"><use href="#i-clock"/></svg><div class="mid"><b>History</b><span>Recent routes and searches</span></div><svg class="ic"><use href="#i-chev"/></svg></button>
+          <button class="gr"><svg class="ic"><use href="#i-route"/></svg><div class="mid"><b>Saved routes</b><span>Works without a connection</span></div><svg class="ic"><use href="#i-chev"/></svg></button>
+        </div>
+
+        <h2 class="grp-h">Safety and help</h2>
+        <div class="group">
+          <button class="gr" data-push="emergency"><svg class="ic" style="color:var(--red-t)"><use href="#i-phone"/></svg><div class="mid"><b>Emergency</b><span>Hotlines and nearby facilities</span></div><svg class="ic"><use href="#i-chev"/></svg></button>
+          <button class="gr"><svg class="ic"><use href="#i-bell"/></svg><div class="mid"><b>Notifications</b><span>Route updates and news</span></div><svg class="ic"><use href="#i-chev"/></svg></button>
+          <button class="gr"><svg class="ic"><use href="#i-flag"/></svg><div class="mid"><b>Report an issue</b><span>Wrong fare, route or place</span></div><svg class="ic"><use href="#i-chev"/></svg></button>
+          <button class="gr"><svg class="ic"><use href="#i-access"/></svg><div class="mid"><b>Accessibility</b><span>Text size and motion</span></div><svg class="ic"><use href="#i-chev"/></svg></button>
+        </div>
+
+        <h2 class="grp-h">Admin</h2>
+        <div class="group">
+          <button class="gr admin"><svg class="ic"><use href="#i-shield"/></svg><div class="mid"><b>Admin dashboard</b><span>Announcements, fares and analytics</span></div><span class="tag">Admin only</span></button>
+        </div>
+
+        <div class="acct">
+          <button class="btn ghost" data-go="login">Sign out</button>
+          <button class="danger" id="delAsk">Delete account</button>
+          <div class="confirm" id="delBox">
+            <p>This permanently removes your account, saved places and routes. You can't undo it.</p>
+            <div class="two"><button class="btn ghost" id="delNo">Keep account</button><button class="btn red" data-go="login">Delete account</button></div>
+          </div>
+          <p class="ver">PINPOINT v2.0.0</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLAN -->
+    <section class="screen" id="s-plan">
+      <div class="pad">
+        <div class="bar"><button class="iconbtn" data-back aria-label="Back"><svg class="ic"><use href="#i-back"/></svg></button><h1 class="disp">Plan a trip</h1></div>
+        <div class="plate rf-card">
+          <div class="rf"><span class="dot"></span><div><small>From</small><b>Current location</b></div></div>
+          <div class="rf"><span class="dot to"></span><div><small>To</small><b>Robinsons Place Butuan</b></div></div>
+          <button class="iconbtn" aria-label="Swap start and destination"><svg class="ic"><use href="#i-swap"/></svg></button>
+        </div>
+        <div class="chips" id="pchips" style="margin-top:14px">
+          <button class="chip on" aria-pressed="true">Leave now</button>
+          <button class="chip" aria-pressed="false">Pick a time</button>
+          <button class="chip" aria-pressed="false">Student, senior or PWD fare</button>
+        </div>
+        <div class="opts" id="opts"></div>
+      </div>
+      <div class="actionbar"><button class="btn primary">Start trip</button><button class="iconbtn line" aria-label="Save route" style="height:52px;width:52px"><svg class="ic"><use href="#i-bookmark"/></svg></button></div>
+    </section>
+
+    <!-- EMERGENCY -->
+    <section class="screen" id="s-emergency">
+      <div class="pad">
+        <div class="bar"><button class="iconbtn" data-back aria-label="Back"><svg class="ic"><use href="#i-back"/></svg></button><h1 class="disp">Emergency</h1></div>
+        <button class="call"><svg class="ic"><use href="#i-phone"/></svg><div><div class="disp">Call 911</div><span>National emergency hotline</span></div></button>
+        <h2 class="grp-h">Other hotlines</h2>
+        <div class="group">
+          <button class="gr"><svg class="ic"><use href="#i-cross"/></svg><div class="mid"><b>Philippine Red Cross</b><span>143</span></div><svg class="ic"><use href="#i-phone"/></svg></button>
+        </div>
+        <p class="fine" style="margin-top:8px">City hotlines are added by the administrator.</p>
+        <h2 class="grp-h">Find nearby</h2>
+        <div class="group">
+          <button class="gr" data-go="map"><svg class="ic"><use href="#i-cross"/></svg><div class="mid"><b>Hospitals</b><span>Show on the map</span></div><svg class="ic"><use href="#i-chev"/></svg></button>
+          <button class="gr" data-go="map"><svg class="ic"><use href="#i-shield"/></svg><div class="mid"><b>Police stations</b><span>Show on the map</span></div><svg class="ic"><use href="#i-chev"/></svg></button>
+          <button class="gr" data-go="map"><svg class="ic"><use href="#i-flame"/></svg><div class="mid"><b>Fire stations</b><span>Show on the map</span></div><svg class="ic"><use href="#i-chev"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <nav class="tabbar" aria-label="Main">
+      <button class="tab on" data-go="home"><svg class="ic"><use href="#i-home"/></svg>Home</button>
+      <button class="tab" data-go="map"><svg class="ic"><use href="#i-map"/></svg>Map</button>
+      <button class="tab" data-go="explore"><svg class="ic"><use href="#i-compass"/></svg>Explore</button>
+      <button class="tab" data-go="assistant"><svg class="ic"><use href="#i-chat"/></svg>Assistant</button>
+      <button class="tab" data-go="profile"><svg class="ic"><use href="#i-user"/></svg>Profile</button>
+    </nav>
+  </div>
+
+  <section class="notes">
+    <div><h2>What changed</h2><p><b>Every place carries its jeep.</b> Route plates, like the painted signboards behind a jeepney windshield, show which jeep, the fare and where to say “para”. That is the job of the app, so it became the look of the app.</p></div>
+    <div><p><b>Home asks one question.</b> Three equal tiles became one main action and two supporting ones.</p></div>
+    <div><p><b>The map labels only the pin you tap.</b> The old one stacked four labels on top of each other. The “API key required” watermark in your screenshots comes from the CARTO tile provider settings, not the UI.</p></div>
+    <div><p><b>Login button is solid.</b> The current one reads as disabled. Profile is grouped by what people do, admin tools sit apart, and Delete account asks first.</p></div>
+    <div><h2>Colors</h2>
+      <div class="swatches">
+        <div class="sw"><i style="background:#ECEDE5"></i><span>Pavement</span></div>
+        <div class="sw"><i style="background:#141B26"></i><span>Tar</span></div>
+        <div class="sw"><i style="background:#1B46C9"></i><span>Route 1</span></div>
+        <div class="sw"><i style="background:#D63A28"></i><span>Route 2</span></div>
+        <div class="sw"><i style="background:#15805A"></i><span>Route 3</span></div>
+        <div class="sw"><i style="background:#FFC400"></i><span>Route 4</span></div>
+      </div></div>
+    <div><h2>Type</h2><div class="spec"><span class="disp">Archivo</span><span style="font-size:22px;font-weight:700">Atkinson Hyperlegible</span></div>
+    <p style="margin-top:6px">Condensed Archivo for signboard headings. Atkinson Hyperlegible for everything you read in the sun.</p></div>
+    <p class="fine">Routes, fares, times and distances are sample data. The map is illustrative.</p>
+  </section>
+</main>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const ic=(n,st='')=>`<svg class="ic" ${st?`style="${st}"`:''} aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const CATS={
+  attr:{label:'Attractions',icon:'landmark',color:'#1E8A5A'},
+  food:{label:'Food',icon:'fork',color:'#C9650F'},
+  hotel:{label:'Hotels',icon:'bed',color:'#7A55D6'},
+  mall:{label:'Malls',icon:'bag',color:'#0E7FA8'},
+  hosp:{label:'Hospitals',icon:'cross',color:'#D63A28'}
+};
+const PLACES=[
+  {id:'rob',name:'Robinsons Place Butuan',cat:'mall',addr:'Butuan City',code:2,fare:13,min:18,note:'Say “para” at the Robinsons gate',x:300,y:380},
+  {id:'sm',name:'SM City Butuan',cat:'mall',addr:'Butuan City',code:4,fare:15,min:22,note:'Say “para” at the SM entrance',x:300,y:310},
+  {id:'guin',name:'Guingona Park',cat:'attr',addr:'J.C. Aquino Ave, Butuan City',code:1,fare:13,min:12,note:'Say “para” along J.C. Aquino Ave',x:96,y:250},
+  {id:'fop',name:'Fopings',cat:'food',addr:'Butuan City',code:1,fare:13,min:14,note:'Say “para” before the corner',x:230,y:250},
+  {id:'alm',name:'Almont Hotel',cat:'hotel',addr:'Butuan City',code:1,fare:13,min:10,note:'Say “para” at the hotel',x:150,y:310},
+  {id:'hosp',name:'Butuan Medical Center',cat:'hosp',addr:'Butuan City',code:3,fare:13,min:16,note:'Say “para” at the main gate',x:230,y:310},
+  {id:'bal',name:'Balangay Shrine Museum',cat:'attr',addr:'Brgy. Libertad, Butuan City',code:3,fare:15,min:25,note:'Say “para” at the museum gate'},
+  {id:'nat',name:'Butuan National Museum',cat:'attr',addr:'Jose S. Aquino Ave, Butuan City',code:1,fare:13,min:15,note:'Say “para” on Jose S. Aquino Ave'},
+  {id:'delta',name:'Delta Discovery Park',cat:'attr',addr:'Brgy. Bonbon, Butuan City',code:4,fare:15,min:28,note:'Say “para” at the park entrance'}
+];
+const byId=id=>PLACES.find(p=>p.id===id);
+const rc=n=>'r'+n;
+
+/* ---------- navigation ---------- */
+const phone=$('#phone'); let stack=[];
+function show(name){
+  $$('.screen').forEach(s=>s.classList.toggle('active',s.id==='s-'+name));
+  phone.dataset.screen=name;
+  $$('.tab').forEach(t=>{const on=t.dataset.go===name;t.classList.toggle('on',on);on?t.setAttribute('aria-current','page'):t.removeAttribute('aria-current')});
+  $$('[data-jump]').forEach(c=>c.classList.toggle('on',c.dataset.jump===name));
+  const s=$('#s-'+name); if(s) s.scrollTop=0;
+  if(name==='assistant') scrollLog();
+}
+function go(n){stack=[];show(n)}
+function push(n){stack.push(phone.dataset.screen);show(n)}
+function back(){show(stack.pop()||'home')}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-go],[data-push],[data-back],[data-jump],[data-place]');
+  if(!t) return;
+  if(t.dataset.go) go(t.dataset.go);
+  else if(t.dataset.push) push(t.dataset.push);
+  else if('back' in t.dataset) back();
+  else if(t.dataset.jump){ if(t.dataset.jump==='plan'||t.dataset.jump==='emergency'){stack=['home'];show(t.dataset.jump)} else go(t.dataset.jump) }
+  else if(t.dataset.place){ const p=byId(t.dataset.place); if(p&&p.x){sel=p.id;renderMap()} go(p&&p.x?'map':'explore'); }
+});
+
+/* ---------- login ---------- */
+$('#pwtoggle').addEventListener('click',()=>{
+  const i=$('#pw'),on=i.type==='password'; i.type=on?'text':'password';
+  $('#pwtoggle').innerHTML=ic(on?'eyeoff':'eye'); $('#pwtoggle').setAttribute('aria-label',on?'Hide password':'Show password');
+});
+
+/* ---------- home ---------- */
+$('#tickets').innerHTML=['rob','sm','delta'].map(id=>{const p=byId(id);
+  return `<button class="ticket" data-place="${id}"><span class="code ${rc(p.code)}">${p.code}</span><span class="tbody"><b>${p.name}</b><span>${CATS[p.cat].label.replace(/s$/,'')}</span><span class="tfare">₱${p.fare}</span></span></button>`}).join('');
+function aroundOff(){
+  $('#around').innerHTML=`<div class="around">${ic('target')}<div><b>Location is off</b><p>Turn it on to see hospitals, malls and stops near you.</p><button class="btn primary" id="locOn">Turn on location</button></div></div>
+  <button class="sos-wide" data-push="emergency"><span class="ico">${ic('cross')}</span><span><b>Need help fast?</b><span>Hospitals, police, fire and hotlines</span></span>${ic('chev')}</button>`;
+  $('#locOn').onclick=aroundOn;
+}
+function aroundOn(){
+  const l=['hosp','rob','guin'].map(id=>{const p=byId(id),c=CATS[p.cat];
+   return `<button class="prow" data-place="${id}"><span class="rtile" style="--c:${c.color}">${ic(c.icon)}</span><span class="rmid"><b>${p.name}</b><span>${p.min<=12?'About 5 min away':p.min<=16?'About 10 min away':'About 15 min away'}</span></span><span class="rride"><span class="code sm ${rc(p.code)}">${p.code}</span>₱${p.fare}</span></button>`}).join('');
+  $('#around').innerHTML=`<div class="near">${l}</div><button class="sos-wide" data-push="emergency"><span class="ico">${ic('cross')}</span><span><b>Need help fast?</b><span>Hospitals, police, fire and hotlines</span></span>${ic('chev')}</button>`;
+}
+aroundOff();
+
+/* ---------- map ---------- */
+let sel='rob', mapCat='all';
+(function blocks(){
+  const xs=[-10,150,230,300,400], ys=[-10,250,310,380,470,850]; let h='';
+  for(let i=0;i<xs.length-1;i++)for(let j=0;j<ys.length-1;j++){
+    const x=xs[i]+12,y=ys[j]+12,w=xs[i+1]-xs[i]-24,hh=ys[j+1]-ys[j]-24; if(w>0&&hh>0) h+=`<rect class="m-block" x="${x}" y="${y}" width="${w}" height="${hh}" rx="8"/>`;
+  } $('#blocks').innerHTML=h;
+})();
+$('#mchips').innerHTML=`<button class="chip on" data-mcat="all">All</button>`+Object.entries(CATS).map(([k,c])=>`<button class="chip" data-mcat="${k}">${ic(c.icon)}${c.label}</button>`).join('');
+$('#mchips').addEventListener('click',e=>{const b=e.target.closest('[data-mcat]');if(!b)return;mapCat=b.dataset.mcat;$$('#mchips .chip').forEach(c=>c.classList.toggle('on',c===b));
+  const vis=PLACES.filter(p=>p.x&&(mapCat==='all'||p.cat===mapCat)); if(!vis.find(p=>p.id===sel)&&vis[0]) sel=vis[0].id; renderMap();});
+function renderMap(){
+  const vis=PLACES.filter(p=>p.x&&(mapCat==='all'||p.cat===mapCat));
+  let g='',lab='';
+  vis.forEach(p=>{const c=CATS[p.cat],s=p.id===sel;
+    g+=`<g class="pin" data-pin="${p.id}" transform="translate(${p.x} ${p.y}) scale(${s?1.25:1})" tabindex="0" role="button" aria-label="${p.name}">
+      <path d="M0,0 C-10,-12 -14,-18 -14,-24 a14,14 0 1,1 28,0 c0,6 -4,12 -14,24z" fill="${c.color}" stroke="#fff" stroke-width="2.5"/>
+      <use href="#i-${c.icon}" x="-8" y="-32" width="16" height="16" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+    if(s){const w=p.name.length*6.8+22,x=Math.min(Math.max(p.x,w/2+8),390-w/2-8);
+      lab=`<g class="pin-l" transform="translate(${x} ${p.y-62})"><rect x="${-w/2}" y="-15" width="${w}" height="26" rx="7"/><text y="3">${p.name}</text></g>`;}
+  });
+  $('#pinsG').innerHTML=g+lab;
+  const p=byId(sel),d=`M150 440 L150 ${p.y} L${p.x} ${p.y}`;
+  $('#routeC').setAttribute('d',d);$('#routeP').setAttribute('d',d);
+  const c=CATS[p.cat];
+  $('#shName').textContent=p.name; $('#shSub').textContent=c.label.replace(/s$/,'')+' · '+p.addr;
+  $('#shRide').innerHTML=`<span class="code lg ${rc(p.code)}">${p.code}</span><div class="rd"><b>Take Jeep ${p.code}</b><span>${p.note}</span></div><div class="rt"><b>₱${p.fare}</b><span>${p.min} min</span></div>`;
+}
+$('#pinsG').addEventListener('click',e=>{const g=e.target.closest('[data-pin]');if(g){sel=g.dataset.pin;renderMap()}});
+$('#pinsG').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const g=e.target.closest('[data-pin]');if(g){e.preventDefault();sel=g.dataset.pin;renderMap()}}});
+renderMap();
+
+/* ---------- explore ---------- */
+let eCat='attr';
+$('#echips').innerHTML=`<button class="chip" data-ecat="all">All</button>`+Object.entries(CATS).map(([k,c])=>`<button class="chip" data-ecat="${k}">${ic(c.icon)}${c.label}</button>`).join('');
+$('#echips').addEventListener('click',e=>{const b=e.target.closest('[data-ecat]');if(b){eCat=b.dataset.ecat;renderExplore()}});
+function renderExplore(){
+  $$('#echips .chip').forEach(c=>c.classList.toggle('on',c.dataset.ecat===eCat));
+  const list=PLACES.filter(p=>eCat==='all'||p.cat===eCat), [f,...rest]=list;
+  $('#eTitle').textContent=eCat==='all'?'Everything nearby':CATS[eCat].label;
+  $('#eCount').textContent=list.length+(list.length===1?' place':' places');
+  if(!f){$('#eList').innerHTML='';return}
+  const fc=CATS[f.cat];
+  const feat=`<button class="feat" style="--c:${fc.color}" data-place="${f.id}"><span class="feat-g">${ic(fc.icon)}</span>
+    <span class="feat-r"><span class="code sm ${rc(f.code)}">${f.code}</span>₱${f.fare}</span>
+    <span class="feat-t disp">${f.name}</span><span class="feat-a">${f.addr}</span></button>`;
+  const rows=rest.map(p=>{const c=CATS[p.cat];return `<button class="prow" data-place="${p.id}"><span class="rtile" style="--c:${c.color}">${ic(c.icon)}</span><span class="rmid"><b>${p.name}</b><span>${p.addr}</span></span><span class="rride"><span class="code sm ${rc(p.code)}">${p.code}</span>₱${p.fare}</span></button>`}).join('');
+  $('#eList').innerHTML=feat+`<div style="margin-top:6px">${rows}</div>`;
+}
+renderExplore();
+
+/* ---------- assistant ---------- */
+const log=$('#log');
+function scrollLog(){log.scrollTop=log.scrollHeight}
+function rideHTML(p){return `<div class="ride"><span class="code ${rc(p.code)}">${p.code}</span><div class="rd"><b>Jeep ${p.code}</b><span>${p.note}</span></div><div class="rt"><b>₱${p.fare}</b><span>${p.min} min</span></div></div>`}
+const QA=[
+ {q:'Which jeep goes to Robinsons?',a:()=>`<p>Take <b>Jeep 2</b> and get off at the Robinsons gate.</p>${rideHTML(byId('rob'))}`},
+ {q:'Nearest hospital',a:()=>`<p>Turn on location and I’ll find the closest one. If this is urgent, call now.</p><button class="btn">Call 911</button>`},
+ {q:'Fare to Ampayon?',a:()=>`<p>Jeep fares follow the latest city fare matrix. For Ampayon, the matrix says ₱15 for a regular passenger. Students, seniors and PWD get a discount.</p>`},
+ {q:'Tourist spots near me',a:()=>`<p>Three places worth a visit:</p>${['bal','nat','guin'].map(id=>{const p=byId(id),c=CATS[p.cat];return `<button class="prow" data-place="${id}"><span class="rtile" style="--c:${c.color}">${ic(c.icon)}</span><span class="rmid"><b>${p.name}</b></span><span class="rride"><span class="code sm ${rc(p.code)}">${p.code}</span></span></button>`}).join('')}`}
+];
+function say(who,html){const d=document.createElement('div');d.className='msg '+who;d.innerHTML=html;log.appendChild(d);scrollLog();return d}
+function greet(){say('bot','<p>Hi, I’m the PINPOINT assistant for Butuan City. Ask me which jeep to take, what it costs, or where to go.</p>')}
+function ask(q,reply){
+  say('me',q); const t=say('bot','<div class="dots"><i></i><i></i><i></i></div>');
+  setTimeout(()=>{t.innerHTML=reply;scrollLog()},650);
+}
+$('#sugg').innerHTML=QA.map((x,i)=>`<button class="chip" data-q="${i}">${x.q}</button>`).join('');
+$('#sugg').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(b){const x=QA[b.dataset.q];ask(x.q,x.a())}});
+function sendFree(){const v=$('#msg').value.trim();if(!v)return;$('#msg').value='';
+  const hit=QA.find(x=>v.toLowerCase().includes(x.q.toLowerCase().split(' ')[0])&&false);
+  ask(v,'<p>This mock only answers the four suggested questions. In the real app, I would look up the route and fare from your fare matrix.</p>')}
+$('#send').addEventListener('click',sendFree);
+$('#composer').addEventListener('submit',sendFree);
+$('#clearChat').addEventListener('click',()=>{log.innerHTML='';greet()});
+greet();
+
+/* ---------- plan ---------- */
+const OPTS=[
+ {tag:'Fastest',min:18,fare:'₱13',legs:['walk','j2','walk'],steps:[
+   {n:'walk',t:'Walk 3 min',d:'To the nearest Jeep 2 stop'},
+   {n:'j2',t:'Board Jeep 2',d:'About 12 min on the road',say:'Say “para” at the Robinsons gate'},
+   {n:'walk',t:'Walk 3 min',d:'To the mall entrance'}]},
+ {tag:'Fewer walking',min:22,fare:'₱15',legs:['j4','walk'],steps:[
+   {n:'j4',t:'Board Jeep 4',d:'Stops close to your location',say:'Say “para” before the overpass'},
+   {n:'walk',t:'Walk 6 min',d:'To Robinsons Place Butuan'}]},
+ {tag:'Door to door',min:11,fare:'₱45',legs:['trike'],steps:[
+   {n:'trike',t:'Take a tricycle',d:'Fare depends on the zone. Check the fare matrix before you ride.'}]}
+];
+let optSel=0;
+function legIcon(n){return n==='walk'?ic('walk'):n==='trike'?ic('trike'):`<span class="code sm ${rc(n[1])}">${n[1]}</span>`}
+function renderOpts(){
+  $('#opts').innerHTML=OPTS.map((o,i)=>{const s=i===optSel;
+    const steps=s?`<ul class="steps"><li><span class="node">${ic('pin')}</span><div><b>Current location</b></div></li>${o.steps.map(x=>`<li><span class="node">${legIcon(x.n)}</span><div><b>${x.t}</b><span>${x.d}</span>${x.say?`<br><span class="say">${x.say}</span>`:''}</div></li>`).join('')}<li><span class="node" style="background:var(--red);color:#fff">${ic('pin')}</span><div><b>Robinsons Place Butuan</b></div></li></ul>`:'';
+    return `<button class="opt" data-opt="${i}" aria-pressed="${s}"><div class="opt-h"><span class="opt-t">${o.min}<small>min</small></span><span class="legs">${o.legs.map(legIcon).join(ic('chev','width:14px;height:14px'))}</span></div>
+      <div class="opt-m"><span class="pill ${i===0?'y':''}">${o.tag}</span><span>Fare ${o.fare}</span></div>${steps}</button>`}).join('');
+}
+$('#opts').addEventListener('click',e=>{const b=e.target.closest('[data-opt]');if(b){optSel=+b.dataset.opt;renderOpts()}});
+$('#pchips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;const on=!b.classList.contains('on');b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
+renderOpts();
+
+/* ---------- profile ---------- */
+function setTheme(t){
+  const r=document.documentElement; t==='auto'?r.removeAttribute('data-theme'):r.setAttribute('data-theme',t);
+  $$('#seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.themeSet===t));
+}
+$('#seg').addEventListener('click',e=>{const b=e.target.closest('[data-theme-set]');if(b)setTheme(b.dataset.themeSet)});
+$('#delAsk').addEventListener('click',()=>{$('#delBox').classList.add('show');$('#delAsk').style.display='none'});
+$('#delNo').addEventListener('click',()=>{$('#delBox').classList.remove('show');$('#delAsk').style.display=''});
+
+show('home');
+</script>
+</body>
+</html>

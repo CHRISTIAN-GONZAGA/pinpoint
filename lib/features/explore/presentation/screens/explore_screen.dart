@@ -75,7 +75,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                     children: [
                       PremiumSectionHeader(
                         title: 'Explore',
-                        subtitle: 'Malls, parks, food, and landmarks around Butuan.',
+                        subtitle: 'Malls, parks, food and landmarks around Butuan, with the jeep that gets you there.',
                         trailing: IconButton(
                           visualDensity: VisualDensity.compact,
                           onPressed: () => context.push(AppRoutes.emergency),
@@ -87,7 +87,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                         onChanged: (q) =>
                             ref.read(exploreNotifierProvider.notifier).search(q),
                         decoration: InputDecoration(
-                          hintText: 'Search attractions, food, services…',
+                          hintText: 'Search attractions, food, hotels',
                           prefixIcon: const Icon(Icons.search_rounded, size: 22),
                           suffixIcon: state.isSearching
                               ? const Padding(

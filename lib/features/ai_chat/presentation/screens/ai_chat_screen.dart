@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pinpoint/app/router.dart';
+import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
 import 'package:pinpoint/core/theme/premium_tokens.dart';
 import 'package:pinpoint/features/ai_chat/domain/ai_response_language.dart';
@@ -80,7 +81,24 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     return Scaffold(
       backgroundColor: PremiumTokens.groupedBackground(context),
       appBar: AppBar(
-        title: const Text('Assistant'),
+        toolbarHeight: 88,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Assistant',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.displayMedium,
+            ),
+            Text(
+              'Ask about jeepney routes, fares, tourist spots or emergency contacts.',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
         actions: [
           PopupMenuButton<String>(
             tooltip: 'Response language',
@@ -169,18 +187,21 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
             ),
           ),
           if (!state.hasMessages || state.messages.length <= 1)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: aiChatSuggestions.take(4).map((suggestion) {
-                  return ActionChip(
-                    label: Text(suggestion),
-                    labelStyle: Theme.of(context).textTheme.labelMedium,
-                    onPressed: state.isSending ? null : () => _send(suggestion),
-                  );
-                }).toList(),
+            SizedBox(
+              height: 48,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: [
+                  for (final suggestion in aiChatSuggestions.take(4))
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ActionChip(
+                        label: Text(suggestion),
+                        onPressed: state.isSending ? null : () => _send(suggestion),
+                      ),
+                    ),
+                ],
               ),
             ),
           Container(
@@ -256,7 +277,6 @@ class _ChatBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final isUser = message.isUser;
     final theme = Theme.of(context);
-    const userBlue = Color(0xFF007AFF);
 
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -270,16 +290,16 @@ class _ChatBubble extends StatelessWidget {
             ),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: isUser
-                  ? userBlue
-                  : PremiumTokens.elevatedSurface(context),
-              borderRadius: BorderRadius.circular(18).copyWith(
-                bottomRight: isUser ? const Radius.circular(4) : null,
-                bottomLeft: !isUser ? const Radius.circular(4) : null,
+              color: isUser ? AppColors.primaryFillOf(theme.brightness) : PremiumTokens.elevatedSurface(context),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(isUser ? 16 : 4),
+                topRight: Radius.circular(isUser ? 4 : 16),
+                bottomLeft: const Radius.circular(16),
+                bottomRight: const Radius.circular(16),
               ),
               border: isUser
                   ? null
-                  : Border.all(color: PremiumTokens.separator(context), width: 0.5),
+                  : Border.all(color: AppColors.edgeOf(theme.brightness), width: 2),
             ),
             child: Text(
               message.content,

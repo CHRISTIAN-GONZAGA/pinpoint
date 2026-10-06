@@ -94,58 +94,72 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
               : ListView(
                   padding: const EdgeInsets.all(AppSpacing.screenMargin),
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(AppSpacing.lg),
-                      decoration: BoxDecoration(
-                        gradient: AppColors.emergencyGradient,
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
+                    Material(
+                      color: AppColors.dangerOf(Theme.of(context).brightness),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(22),
+                        topRight: Radius.circular(22),
+                        bottomLeft: Radius.circular(22),
+                        bottomRight: Radius.circular(6),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(
+                      child: InkWell(
+                        onTap: () => _call('911'),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(22),
+                          topRight: Radius.circular(22),
+                          bottomLeft: Radius.circular(22),
+                          bottomRight: Radius.circular(6),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(18),
+                          child: Row(
                             children: [
-                              Icon(Icons.emergency_rounded, color: Colors.white, size: 32),
-                              SizedBox(width: AppSpacing.md),
-                              Text(
-                                'Need help now?',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          Row(
-                            children: [
+                              Icon(Icons.call, color: Colors.white, size: 34),
+                              SizedBox(width: 16),
                               Expanded(
-                                child: FilledButton.icon(
-                                  onPressed: () => _call('911'),
-                                  style: FilledButton.styleFrom(
-                                    backgroundColor: Colors.white,
-                                    foregroundColor: AppColors.danger,
-                                  ),
-                                  icon: const Icon(Icons.call_rounded),
-                                  label: const Text('Call 911'),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Call 911',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 40,
+                                        fontWeight: FontWeight.w800,
+                                        height: 0.95,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      'National emergency hotline',
+                                      style: TextStyle(color: Colors.white, fontSize: 14),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              const SizedBox(width: AppSpacing.sm),
-                              IconButton.filled(
-                                onPressed: _shareLocation,
-                                style: IconButton.styleFrom(backgroundColor: Colors.white),
-                                color: AppColors.danger,
-                                icon: const Icon(Icons.share_location_rounded),
-                                tooltip: 'Share location',
                               ),
                             ],
                           ),
-                        ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton.icon(
+                        onPressed: _shareLocation,
+                        icon: const Icon(Icons.share_location_outlined),
+                        label: const Text('Share my location'),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xl),
-                    Text('Emergency Contacts', style: Theme.of(context).textTheme.titleLarge),
+                    Text('Other hotlines', style: Theme.of(context).textTheme.headlineSmall),
+                    const SizedBox(height: 4),
+                    Text(
+                      'City hotlines are added by the administrator.',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                     const SizedBox(height: AppSpacing.md),
                     ..._contacts.map((contact) {
                       final color = PlaceUtils.colorForCategory(contact.category);

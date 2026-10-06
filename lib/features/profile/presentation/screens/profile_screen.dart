@@ -6,6 +6,7 @@ import 'package:pinpoint/app/dependency_injection.dart';
 import 'package:pinpoint/app/router.dart';
 import 'package:pinpoint/core/accessibility/accessibility_notifier.dart';
 import 'package:pinpoint/core/localization/pinpoint_localizations.dart';
+import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/premium_tokens.dart';
 import 'package:pinpoint/core/widgets/premium_surface.dart';
 import 'package:pinpoint/features/authentication/presentation/viewmodels/auth_notifier.dart';
@@ -23,6 +24,7 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   int _versionTapCount = 0;
   bool _developerModeEnabled = false;
+  bool _confirmDelete = false;
 
   @override
   void initState() {
@@ -76,62 +78,76 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
         children: [
-          PremiumSectionHeader(title: t('profile')),
-          PremiumSurface(
+          Text('Profile', style: Theme.of(context).textTheme.displayLarge, maxLines: 1, overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 16),
+          Row(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
+              Container(
+                width: 68,
+                height: 68,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.signal,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(6),
+                  ),
+                  border: Border.all(color: AppColors.edgeOf(Theme.of(context).brightness), width: 2),
+                ),
+                child: Text(
+                  (user?.fullName.trim().isNotEmpty == true ? user!.fullName.trim()[0] : 'P').toUpperCase(),
+                  style: const TextStyle(color: AppColors.ink, fontSize: 32, fontWeight: FontWeight.w800),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 32,
-                      backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                      child: Icon(
-                        isGuest ? Icons.person_outline_rounded : Icons.person_rounded,
-                        size: 32,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+                    Text(
+                      user?.fullName.trim().isNotEmpty == true
+                          ? user!.fullName
+                          : (isGuest ? 'Guest traveler' : 'PINPOINT user'),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, height: 1.2),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            user?.fullName.trim().isNotEmpty == true
-                                ? user!.fullName
-                                : (isGuest ? 'Guest traveler' : 'PINPOINT user'),
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.4,
-                                ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            isGuest && !offline
-                                ? 'Sign in to sync favorites and history'
-                                : isLocal
-                                    ? 'Saved on this device'
-                                    : (user!.email.isNotEmpty
-                                        ? user.email
-                                        : 'Butuan City traveler'),
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.5),
-                                ),
-                          ),
-                        ],
-                      ),
+                    Text(
+                      isGuest && !offline
+                          ? 'Sign in to sync favorites and history'
+                          : isLocal
+                              ? 'Saved on this device'
+                              : (user!.email.isNotEmpty ? user.email : 'Butuan City traveler'),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
+                    if (isAdmin)
+                      Container(
+                        margin: const EdgeInsets.only(top: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.inkOf(Theme.of(context).brightness),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Text(
+                          'Admin',
+                          style: TextStyle(
+                            color: AppColors.stageOf(Theme.of(context).brightness),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          const PremiumSectionLabel('Appearance', subtitle: 'Theme for day and night rides'),
+          const SizedBox(height: 28),
+          const PremiumSectionLabel('Appearance'),
           PremiumSurface(
             children: [
               Padding(
@@ -151,12 +167,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          const PremiumSectionLabel('Your data', subtitle: 'Favorites, history, and saved routes'),
+          const PremiumSectionLabel('Your places'),
           PremiumSurface(
             children: [
               PremiumListRow(
                 title: 'Favorites',
-                subtitle: isGuest && !offline ? 'Sign in to sync' : 'Saved places',
+                subtitle: isGuest && !offline ? 'Sign in to sync' : 'Places you saved',
                 leading: const Icon(Icons.favorite_border_rounded, size: 22),
                 onTap: () => context.push(AppRoutes.favorites),
               ),
@@ -167,15 +183,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 onTap: () => context.push(AppRoutes.history),
               ),
               PremiumListRow(
-                title: t('cached_routes'),
-                subtitle: t('cached_routes_subtitle'),
+                title: 'Saved routes',
+                subtitle: 'Works without a connection',
                 leading: const Icon(Icons.route_rounded, size: 22),
                 onTap: () => context.push(AppRoutes.cachedRoutes),
               ),
             ],
           ),
           const SizedBox(height: 24),
-          const PremiumSectionLabel('Safety & support', subtitle: 'Alerts, reports, and admin tools'),
+          const PremiumSectionLabel('Safety and help'),
           PremiumSurface(
             children: [
               PremiumListRow(
@@ -199,19 +215,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   leading: const Icon(Icons.flag_outlined, size: 22),
                   onTap: () => context.push(AppRoutes.reportIssue),
                 ),
-              if (isAdmin)
-                PremiumListRow(
-                  title: 'Admin dashboard',
-                  subtitle: 'Announcements and analytics',
-                  leading: const Icon(Icons.admin_panel_settings_outlined, size: 22),
-                  onTap: () => context.push(AppRoutes.admin),
-                ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          const PremiumSectionLabel('Preferences', subtitle: 'Accessibility and developer options'),
-          PremiumSurface(
-            children: [
               PremiumListRow(
                 title: t('accessibility'),
                 subtitle: 'Text size and motion',
@@ -227,51 +230,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
             ],
           ),
-          if (user != null && !isGuest && !offline && !isLocal) ...[
+          if (isAdmin) ...[
             const SizedBox(height: 24),
+            const PremiumSectionLabel('Admin'),
             PremiumSurface(
               children: [
                 PremiumListRow(
-                  title: t('delete_account'),
-                  subtitle: t('delete_account_subtitle'),
-                  leading: Icon(
-                    Icons.delete_outline_rounded,
-                    size: 22,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  onTap: () async {
-                    final confirmed = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text(t('delete_account')),
-                        content: const Text(
-                          'This permanently deletes your account, favorites, history, and AI chat history.',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Cancel'),
-                          ),
-                          FilledButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            child: const Text('Delete'),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (confirmed != true || !context.mounted) return;
-                    final success =
-                        await ref.read(authNotifierProvider.notifier).deleteAccount();
-                    if (!context.mounted) return;
-                    if (success) {
-                      context.go(AppRoutes.login);
-                    } else {
-                      final error = ref.read(authNotifierProvider).errorMessage;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(error ?? 'Unable to delete account')),
-                      );
-                    }
-                  },
+                  title: 'Admin dashboard',
+                  subtitle: 'Admin only',
+                  leading: const Icon(Icons.admin_panel_settings_outlined, size: 22),
+                  onTap: () => context.push(AppRoutes.admin),
                 ),
               ],
             ),
@@ -312,7 +280,59 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: Text(t('sign_out')),
               ),
             ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+          if (user != null && !isGuest && !offline && !isLocal)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextButton(
+                  onPressed: () => setState(() => _confirmDelete = !_confirmDelete),
+                  child: Text(
+                    'Delete account',
+                    style: TextStyle(color: AppColors.dangerOf(Theme.of(context).brightness)),
+                  ),
+                ),
+                if (_confirmDelete)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          "This permanently removes your account, saved places and routes. You can't undo it.",
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 8),
+                        OutlinedButton(
+                          onPressed: () => setState(() => _confirmDelete = false),
+                          child: const Text('Keep account', maxLines: 1, overflow: TextOverflow.ellipsis),
+                        ),
+                        const SizedBox(height: 8),
+                        FilledButton(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.dangerOf(Theme.of(context).brightness),
+                          ),
+                          onPressed: () async {
+                            final success = await ref
+                                .read(authNotifierProvider.notifier)
+                                .deleteAccount();
+                            if (!context.mounted) return;
+                            if (success) {
+                              context.go(AppRoutes.login);
+                            } else {
+                              final error = ref.read(authNotifierProvider).errorMessage;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(error ?? 'Unable to delete account')),
+                              );
+                            }
+                          },
+                          child: const Text('Delete account', maxLines: 1, overflow: TextOverflow.ellipsis),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
           Center(
             child: GestureDetector(
               onTap: _onVersionTap,

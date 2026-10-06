@@ -340,30 +340,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
             child: Column(
               children: [
                 MapGlassButton(
-                  icon: Icons.add,
-                  tooltip: 'Zoom in',
-                  onPressed: () {
-                    final c = _mapController;
-                    if (!MapCameraHelper.isReady(c)) return;
-                    c.move(c.camera.center, c.camera.zoom + 1);
-                  },
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                MapGlassButton(
-                  icon: Icons.remove,
-                  tooltip: 'Zoom out',
-                  onPressed: () {
-                    final c = _mapController;
-                    if (!MapCameraHelper.isReady(c)) return;
-                    c.move(c.camera.center, c.camera.zoom - 1);
-                  },
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                MapGlassButton(
-                  icon: Icons.my_location_rounded,
-                  tooltip: 'Recenter',
-                  onPressed: () =>
-                      ref.read(mapNotifierProvider.notifier).refreshLocation(animate: true),
+                  icon: Icons.my_location,
+                  tooltip: 'Locate me',
+                  onPressed: () => notifier.refreshLocation(animate: true),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 MapGlassButton(

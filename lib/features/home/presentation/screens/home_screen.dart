@@ -1,10 +1,8 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pinpoint/app/constants.dart';
 import 'package:pinpoint/app/router.dart';
 import 'package:pinpoint/features/authentication/presentation/viewmodels/auth_notifier.dart';
 import 'package:pinpoint/features/explore/presentation/viewmodels/explore_notifier.dart';
@@ -18,12 +16,13 @@ import 'package:pinpoint/features/notifications/domain/notification_models.dart'
 import 'package:pinpoint/features/notifications/presentation/viewmodels/notifications_notifier.dart';
 import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/premium_tokens.dart';
+import 'package:intl/intl.dart';
+import 'package:pinpoint/core/design_system/plates.dart';
 import 'package:pinpoint/core/widgets/home_greeting_header.dart';
 import 'package:pinpoint/core/widgets/place_card.dart';
 import 'package:pinpoint/core/widgets/premium_surface.dart';
 import 'package:pinpoint/shared/widgets/destination_search_field.dart';
 
-/// Main bottom navigation shell with five primary tabs.
 class MainShellScreen extends ConsumerWidget {
   const MainShellScreen({super.key, required this.navigationShell});
 
@@ -32,86 +31,136 @@ class MainShellScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      extendBody: true,
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 280),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
-        transitionBuilder: (child, animation) {
-          final slide = Tween<Offset>(
-            begin: const Offset(0, 0.015),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
-          return FadeTransition(
-            opacity: animation,
-            child: SlideTransition(position: slide, child: child),
-          );
+      body: navigationShell,
+      bottomNavigationBar: _DockBar(
+        currentIndex: navigationShell.currentIndex,
+        onSelected: (index) {
+          if (index == 0 || index == 1) {
+            unawaited(
+              ref.read(mapNotifierProvider.notifier).refreshFeaturedDestinations(),
+            );
+          }
+          if (index != navigationShell.currentIndex) {
+            navigationShell.goBranch(index);
+          }
         },
-        child: KeyedSubtree(
-          key: ValueKey<int>(navigationShell.currentIndex),
-          child: navigationShell,
-        ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(PremiumTokens.navBarRadius),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(PremiumTokens.navBarRadius),
-            child: NavigationBar(
-              selectedIndex: navigationShell.currentIndex,
-              onDestinationSelected: (index) {
-                // Home (0) and Map (1) should pick up admin destination edits.
-                if (index == 0 || index == 1) {
-                  unawaited(
-                    ref.read(mapNotifierProvider.notifier).refreshFeaturedDestinations(),
-                  );
-                }
-                if (index != navigationShell.currentIndex) {
-                  navigationShell.goBranch(index);
-                }
-              },
-              animationDuration: const Duration(milliseconds: 320),
-              destinations: const [
-                NavigationDestination(
-                  icon: Icon(Icons.home_outlined),
-                  selectedIcon: Icon(Icons.home_rounded),
-                  label: 'Home',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.map_outlined),
-                  selectedIcon: Icon(Icons.map_rounded),
-                  label: 'Map',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.explore_outlined),
-                  selectedIcon: Icon(Icons.explore_rounded),
-                  label: 'Explore',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.bubble_chart_outlined),
-                  selectedIcon: Icon(Icons.bubble_chart_rounded),
-                  label: 'Assistant',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.person_outline),
-                  selectedIcon: Icon(Icons.person_rounded),
-                  label: 'Profile',
-                ),
+    );
+  }
+}
+
+class _DockBar extends StatelessWidget {
+  const _DockBar({required this.currentIndex, required this.onSelected});
+
+  final int currentIndex;
+  final ValueChanged<int> onSelected;
+
+  static const _items = <(IconData, String)>[
+    (Icons.home_outlined, 'Home'),
+    (Icons.map_outlined, 'Map'),
+    (Icons.explore_outlined, 'Explore'),
+    (Icons.chat_bubble_outline, 'Assistant'),
+    (Icons.person_outline, 'Profile'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final bottom = MediaQuery.paddingOf(context).bottom;
+    return Material(
+      color: AppColors.paperOf(brightness),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: AppColors.edgeOf(brightness), width: 2)),
+        ),
+        child: Padding(
+          padding: EdgeInsets.only(bottom: bottom),
+          child: SizedBox(
+            height: 68,
+            child: Row(
+              children: [
+                for (var i = 0; i < _items.length; i++)
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => onSelected(i),
+                      child: _DockItem(
+                        icon: _items[i].$1,
+                        label: _items[i].$2,
+                        selected: i == currentIndex,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _DockItem extends StatelessWidget {
+  const _DockItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final color = selected
+        ? AppColors.inkOf(brightness)
+        : AppColors.inkSecondaryOf(brightness);
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (selected)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: FractionallySizedBox(
+                widthFactor: 0.56,
+                child: Container(
+                  height: 4,
+                  color: brightness == Brightness.dark
+                      ? AppColors.primaryText
+                      : AppColors.primary,
+                ),
+              ),
+            ),
+          ),
+        Column(
+          children: [
+            const SizedBox(height: 8),
+            const Spacer(),
+            Icon(icon, size: 22, color: color),
+            const SizedBox(height: 2),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                  height: 1.1,
+                ),
+              ),
+            ),
+            const Spacer(),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -145,9 +194,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
-    final announcements = ref.watch(notificationsNotifierProvider).announcements;
-    final featured = ref.watch(mapNotifierProvider).featuredDestinations;
-    final nearby = ref.watch(exploreNotifierProvider).nearbyPlaces;
+    final announcements = ref.watch(
+      notificationsNotifierProvider.select((s) => s.announcements),
+    );
+    final featured = ref.watch(
+      mapNotifierProvider.select((s) => s.featuredDestinations),
+    );
+    final nearby = ref.watch(
+      exploreNotifierProvider.select((s) => s.nearbyPlaces),
+    );
 
     return Scaffold(
       backgroundColor: PremiumTokens.groupedBackground(context),
@@ -171,31 +226,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      HomeGreetingHeader(user: user),
-                      const SizedBox(height: 20),
-                      const _HomeSearchBar(),
-                      const SizedBox(height: 18),
-                      if (announcements.isNotEmpty) ...[
-                        _AnnouncementsBanner(announcements: announcements.take(3).toList()),
-                        const SizedBox(height: 18),
-                      ],
-                      const _LocationCard(),
-                      const SizedBox(height: 26),
-                      const _SavedAndRecentSection(),
-                      const SizedBox(height: 26),
-                      HomeSectionHeader(
-                        title: 'Get moving',
-                        subtitle: 'Jump into a route, browse places, or ask for help',
+                      _HomeTop(user: user),
+                      const SizedBox(height: 24),
+                      Text(
+                        _todayLabel(),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.inkSecondaryOf(Theme.of(context).brightness),
+                            ),
                       ),
-                      const _QuickActionsRow(),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Where to today?',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 52),
+                      ),
+                      const SizedBox(height: 16),
+                      const _HomeSearchBar(),
+                      const SizedBox(height: 14),
+                      _FareNotice(announcements: announcements),
+                      const SizedBox(height: 16),
+                      const _ActionGrid(),
                       const SizedBox(height: 26),
                       HomeSectionHeader(
-                        title: 'Popular now',
-                        subtitle: 'One-tap destinations curated for Butuan',
-                        actionLabel: featured.isEmpty ? null : 'Browse',
-                        onAction: featured.isEmpty
-                            ? null
-                            : () => context.go(AppRoutes.map),
+                        title: 'Popular destinations',
                       ),
                       if (featured.isEmpty)
                         HomeEmptyHint(
@@ -215,9 +269,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         onAction: nearby.isEmpty ? null : () => context.go(AppRoutes.explore),
                       ),
                       const _NearbyList(),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 12),
                       _EmergencyBanner(),
-                      const SizedBox(height: 100),
+                      const SizedBox(height: 18),
+                      const _SavedAndRecentSection(),
+                      const SizedBox(height: 110),
                     ],
                   ),
                 ),
@@ -230,123 +286,228 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-class _AnnouncementsBanner extends StatelessWidget {
-  const _AnnouncementsBanner({required this.announcements});
+String _todayLabel() => DateFormat('EEEE, MMMM d').format(DateTime.now());
 
-  final List<Announcement> announcements;
+class _HomeTop extends StatelessWidget {
+  const _HomeTop({required this.user});
+
+  final dynamic user;
 
   @override
   Widget build(BuildContext context) {
-    final item = announcements.first;
-    final theme = Theme.of(context);
-    return PremiumSurface(
+    final name = (user?.fullName as String?)?.trim();
+    final initial = (name != null && name.isNotEmpty) ? name[0].toUpperCase() : 'B';
+    final brightness = Theme.of(context).brightness;
+    return Row(
       children: [
-        PremiumListRow(
-          dense: true,
-          leading: Icon(
-            Icons.info_outline_rounded,
-            color: item.isHighPriority ? theme.colorScheme.error : theme.colorScheme.primary,
-            size: 22,
+        Container(
+          padding: const EdgeInsets.fromLTRB(10, 8, 14, 8),
+          decoration: BoxDecoration(
+            color: AppColors.sunkenOf(brightness),
+            borderRadius: BorderRadius.circular(999),
           ),
-          title: item.title,
-          subtitle: item.content,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.place_outlined, size: 18, color: brightness == Brightness.dark ? AppColors.primaryText : AppColors.primary),
+              const SizedBox(width: 6),
+              const Text('Butuan City', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+            ],
+          ),
+        ),
+        const Spacer(),
+        GestureDetector(
+          onTap: () => context.go(AppRoutes.profile),
+          child: Container(
+            width: 42,
+            height: 42,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.signal,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.edgeOf(brightness), width: 2),
+            ),
+            child: Text(
+              initial,
+              style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w800, fontSize: 20),
+            ),
+          ),
         ),
       ],
     );
   }
 }
 
-class _LocationCard extends ConsumerWidget {
-  const _LocationCard();
+class _FareNotice extends StatelessWidget {
+  const _FareNotice({required this.announcements});
+
+  final List<Announcement> announcements;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final mapState = ref.watch(mapNotifierProvider);
-    final address = mapState.currentAddress ?? AppConstants.cityName;
+  Widget build(BuildContext context) {
+    final item = announcements.isEmpty ? null : announcements.first;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.paperOf(Theme.of(context).brightness),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(4),
+          topRight: Radius.circular(10),
+          bottomRight: Radius.circular(10),
+          bottomLeft: Radius.circular(4),
+        ),
+        border: const Border(left: BorderSide(color: AppColors.signal, width: 6)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 11, 14, 11),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              item?.title ?? 'Fares follow the city fare matrix',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              item?.content ??
+                  'Jeepney and tricycle prices come from the latest matrix the administrator published.',
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-    return PremiumSurface(
+class _ActionGrid extends StatelessWidget {
+  const _ActionGrid();
+
+  @override
+  Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: PremiumTokens.subtleFill(context),
-                  borderRadius: BorderRadius.circular(11),
-                ),
-                child: mapState.isLocating
-                    ? const Padding(
-                        padding: EdgeInsets.all(10),
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Icon(
-                        Icons.near_me_rounded,
-                        size: 20,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+        Expanded(
+          flex: 13,
+          child: Material(
+            color: AppColors.primaryFillOf(brightness),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(22),
+              topRight: Radius.circular(22),
+              bottomLeft: Radius.circular(22),
+              bottomRight: Radius.circular(6),
+            ),
+            child: InkWell(
+              onTap: () => context.go(AppRoutes.map),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(22),
+                topRight: Radius.circular(22),
+                bottomLeft: Radius.circular(22),
+                bottomRight: Radius.circular(6),
               ),
-              const SizedBox(width: 14),
-              Expanded(
+              child: const Padding(
+                padding: EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Icon(Icons.route, color: Colors.white, size: 30),
+                    SizedBox(height: 18),
                     Text(
-                      'Current location',
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.45),
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      address,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.2,
-                          ),
+                      'Plan a trip',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w800,
+                        height: 0.95,
+                      ),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      'Find the jeep, the fare and where to get off',
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: Colors.white, fontSize: 14, height: 1.3),
                     ),
                   ],
                 ),
               ),
-              TextButton(
-                onPressed: mapState.currentLocation == null
-                    ? null
-                    : () {
-                        context.go(AppRoutes.map);
-                      },
-                child: const Text('Plan'),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          flex: 10,
+          child: Column(
+            children: [
+              PlateCard(
+                onTap: () => context.go(AppRoutes.ai),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+                child: const Row(
+                  children: [
+                    Icon(Icons.chat_bubble_outline, size: 22),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Ask the assistant',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontWeight: FontWeight.w700, height: 1.15),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                tooltip: 'Refresh location',
-                onPressed: mapState.isLocating
-                    ? null
-                    : () => ref.read(mapNotifierProvider.notifier).refreshLocation(),
-                icon: const Icon(Icons.my_location_rounded, size: 20),
+              const SizedBox(height: 10),
+              PlateCard(
+                onTap: () => context.push(AppRoutes.emergency),
+                borderColor: AppColors.dangerText,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+                child: const Row(
+                  children: [
+                    Icon(Icons.call_outlined, size: 22, color: AppColors.dangerText),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Emergency help',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          height: 1.15,
+                          color: AppColors.dangerText,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
       ],
-    ).animate(delay: 80.ms).fadeIn();
+    );
   }
 }
+
 
 class _HomeSearchBar extends ConsumerWidget {
   const _HomeSearchBar();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final mapState = ref.watch(mapNotifierProvider);
+    final isSearching = ref.watch(mapNotifierProvider.select((s) => s.isSearching));
+    final results = ref.watch(mapNotifierProvider.select((s) => s.searchResults));
     return DestinationSearchField(
-      hintText: 'Search a place in Butuan…',
-      isSearching: mapState.isSearching,
-      results: mapState.searchResults,
+      hintText: 'Search a place in Butuan',
+      isSearching: isSearching,
+      results: results,
       onQueryChanged: (q) => ref.read(mapNotifierProvider.notifier).searchPlaces(q),
       onSelect: (loc) async {
         await ref.read(mapNotifierProvider.notifier).planTripTo(loc);
@@ -361,13 +522,13 @@ class _PopularNowRail extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final featured = ref.watch(mapNotifierProvider).featuredDestinations;
+    final featured = ref.watch(mapNotifierProvider.select((s) => s.featuredDestinations));
     if (featured.isEmpty) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
 
     return SizedBox(
-      height: 132,
+      height: 156,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: featured.length,
@@ -446,7 +607,7 @@ class _PopularNowRail extends ConsumerWidget {
                     Align(
                       alignment: Alignment.centerRight,
                       child: Text(
-                        'Go →',
+                        'Go â†’',
                         style: theme.textTheme.labelLarge?.copyWith(
                           color: accent,
                           fontWeight: FontWeight.w700,
@@ -464,43 +625,13 @@ class _PopularNowRail extends ConsumerWidget {
   }
 }
 
-class _QuickActionsRow extends StatelessWidget {
-  const _QuickActionsRow();
-
-  static const _actions = [
-    (Icons.route_rounded, 'Plan a trip', AppRoutes.map),
-    (Icons.explore_outlined, 'Discover', AppRoutes.explore),
-    (Icons.bubble_chart_outlined, 'Ask AI', AppRoutes.ai),
-    (Icons.emergency_outlined, 'SOS', AppRoutes.emergency),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 108,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: _actions.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
-        itemBuilder: (context, index) {
-          final (icon, label, route) = _actions[index];
-          return PremiumActionTile(
-            icon: icon,
-            label: label,
-            onTap: () => context.push(route),
-          );
-        },
-      ),
-    );
-  }
-}
 
 class _SavedAndRecentSection extends ConsumerWidget {
   const _SavedAndRecentSection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final favorites = ref.watch(favoritesNotifierProvider).items;
+    final favorites = ref.watch(favoritesNotifierProvider.select((s) => s.items));
     final history = ref.watch(historyNotifierProvider).items;
     if (favorites.isEmpty && history.isEmpty) {
       return const SizedBox.shrink();
@@ -604,20 +735,26 @@ class _NearbyList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final nearby = ref.watch(exploreNotifierProvider).nearbyPlaces;
-    final favState = ref.watch(favoritesNotifierProvider);
+    final nearby = ref.watch(exploreNotifierProvider.select((s) => s.nearbyPlaces));
+    final favorites = ref.watch(favoritesNotifierProvider.select((s) => s.items));
     if (nearby.isEmpty) {
+      final locating = ref.watch(mapNotifierProvider.select((s) => s.currentLocation)) == null;
       return HomeEmptyHint(
         icon: Icons.location_searching_rounded,
-        title: 'Looking for nearby places',
-        message: 'Turn on location to see hospitals, malls, and spots around you.',
-        actionLabel: 'Retry',
-        onAction: () => ref.read(exploreNotifierProvider.notifier).initialize(),
+        title: locating ? 'Location is off' : 'No places nearby yet',
+        message: locating
+            ? 'Turn on location to see hospitals, malls, and spots around you.'
+            : 'Pull to refresh, or open Explore to browse places.',
+        actionLabel: locating ? 'Turn on location' : 'Retry',
+        onAction: () {
+          ref.read(mapNotifierProvider.notifier).refreshLocation();
+          ref.read(exploreNotifierProvider.notifier).initialize();
+        },
       );
     }
     return Column(
       children: nearby.take(5).map((place) {
-        final saved = favState.items.any(
+        final saved = favorites.any(
           (f) => f.placeType == place.placeType && f.placeId == place.id,
         );
         return Padding(
