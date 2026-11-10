@@ -213,12 +213,14 @@ def _polygon_geojson(coordinates: list[list[float]]) -> str:
   )
 
 
-def seed_transport_data() -> None:
-  """Populate jeepney routes, tricycle zones, and fares if empty."""
+def seed_transport_data(*, allow_route_upgrade: bool = True) -> None:
+  """Populate missing transport data and optionally upgrade legacy routes."""
   from app.utilities.lptrp_loader import import_lptrp_routes, needs_lptrp_upgrade
 
-  if needs_lptrp_upgrade():
+  if allow_route_upgrade and needs_lptrp_upgrade():
     import_lptrp_routes(force=JeepneyRoute.query.count() > 0)
+  elif not allow_route_upgrade and JeepneyRoute.query.count() == 0:
+    import_lptrp_routes()
 
   if JeepneyRoute.query.count() == 0:
     for route_def in _ROUTE_DEFINITIONS:

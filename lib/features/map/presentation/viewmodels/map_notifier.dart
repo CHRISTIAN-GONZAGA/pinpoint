@@ -60,7 +60,7 @@ class MapNotifier extends Notifier<MapState> {
     );
 
     unawaited(_loadTransportOverlays());
-    unawaited(_loadFeaturedDestinations(force: true));
+    unawaited(_loadFeaturedDestinations());
     unawaited(_primeLocationAccess());
   }
 
@@ -177,7 +177,7 @@ class MapNotifier extends Notifier<MapState> {
     } catch (_) {
       // Permission dialog declined or GPS off — refreshLocation surfaces a banner.
     }
-    await refreshLocation(animate: true);
+    await refreshLocation();
   }
 
   void onTileLoadError() {
@@ -291,7 +291,17 @@ class MapNotifier extends Notifier<MapState> {
   }
 
   void updateMapZoom(double zoom) {
-    if ((state.mapZoom - zoom).abs() < 0.05) return;
+    final prev = state.mapZoom;
+    if ((prev - zoom).abs() < 0.25) return;
+    final linesFlip =
+        state.layers.showJeepneyLinesAtZoom(zoom) != state.layers.showJeepneyLinesAtZoom(prev);
+    final stopsFlip =
+        state.layers.showStopsAtZoom(zoom) != state.layers.showStopsAtZoom(prev);
+    final labelsFlip =
+        state.layers.showLabelsAtZoom(zoom) != state.layers.showLabelsAtZoom(prev);
+    if (!linesFlip && !stopsFlip && !labelsFlip && (prev - zoom).abs() < 1) {
+      return;
+    }
     final autoLabels = zoom >= 16.5;
     state = state.copyWith(
       mapZoom: zoom,

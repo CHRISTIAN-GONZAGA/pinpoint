@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -50,48 +50,124 @@ class MainShellScreen extends ConsumerWidget {
   }
 }
 
-class _DockBar extends StatelessWidget {
+class _DockBar extends StatefulWidget {
   const _DockBar({required this.currentIndex, required this.onSelected});
 
   final int currentIndex;
   final ValueChanged<int> onSelected;
 
-  static const _items = <(IconData, String)>[
-    (Icons.home_outlined, 'Home'),
-    (Icons.map_outlined, 'Map'),
-    (Icons.explore_outlined, 'Explore'),
-    (Icons.chat_bubble_outline, 'Assistant'),
-    (Icons.person_outline, 'Profile'),
+  @override
+  State<_DockBar> createState() => _DockBarState();
+}
+
+class _DockBarState extends State<_DockBar> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _pillAnim;
+  int _prevIndex = 0;
+
+  static const _items = <(IconData, IconData, String)>[
+    (Icons.home_outlined, Icons.home_rounded, 'Home'),
+    (Icons.map_outlined, Icons.map_rounded, 'Map'),
+    (Icons.explore_outlined, Icons.explore_rounded, 'Explore'),
+    (Icons.chat_bubble_outline, Icons.chat_bubble_rounded, 'Assistant'),
+    (Icons.person_outline, Icons.person_rounded, 'Profile'),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _prevIndex = widget.currentIndex;
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _pillAnim = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
+  }
+
+  @override
+  void didUpdateWidget(_DockBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentIndex != widget.currentIndex) {
+      _prevIndex = oldWidget.currentIndex;
+      _controller.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final bottom = MediaQuery.paddingOf(context).bottom;
+    final primary = brightness == Brightness.dark ? AppColors.primaryText : AppColors.primary;
+
     return Material(
       color: AppColors.paperOf(brightness),
-      child: DecoratedBox(
+      child: Container(
         decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: AppColors.edgeOf(brightness), width: 2)),
+          border: Border(
+            top: BorderSide(
+              color: AppColors.hairlineOf(brightness),
+              width: 1,
+            ),
+          ),
         ),
         child: Padding(
           padding: EdgeInsets.only(bottom: bottom),
           child: SizedBox(
-            height: 68,
-            child: Row(
-              children: [
-                for (var i = 0; i < _items.length; i++)
-                  Expanded(
-                    child: InkWell(
-                      onTap: () => onSelected(i),
-                      child: _DockItem(
-                        icon: _items[i].$1,
-                        label: _items[i].$2,
-                        selected: i == currentIndex,
-                      ),
+            height: 64,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final itemWidth = constraints.maxWidth / _items.length;
+                return Stack(
+                  children: [
+                    // Animated sliding pill indicator
+                    AnimatedBuilder(
+                      animation: _pillAnim,
+                      builder: (context, _) {
+                        final from = _prevIndex * itemWidth;
+                        final to = widget.currentIndex * itemWidth;
+                        final x = from + (to - from) * _pillAnim.value;
+                        return Positioned(
+                          top: 0,
+                          left: x + itemWidth * 0.18,
+                          width: itemWidth * 0.64,
+                          height: 3,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: primary,
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(2),
+                                bottomRight: Radius.circular(2),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  ),
-              ],
+                    // Nav items
+                    Row(
+                      children: [
+                        for (var i = 0; i < _items.length; i++)
+                          Expanded(
+                            child: _DockItem(
+                              outlineIcon: _items[i].$1,
+                              filledIcon: _items[i].$2,
+                              label: _items[i].$3,
+                              selected: i == widget.currentIndex,
+                              primaryColor: primary,
+                              onTap: () => widget.onSelected(i),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ),
@@ -100,68 +176,103 @@ class _DockBar extends StatelessWidget {
   }
 }
 
-class _DockItem extends StatelessWidget {
+class _DockItem extends StatefulWidget {
   const _DockItem({
-    required this.icon,
+    required this.outlineIcon,
+    required this.filledIcon,
     required this.label,
     required this.selected,
+    required this.primaryColor,
+    required this.onTap,
   });
 
-  final IconData icon;
+  final IconData outlineIcon;
+  final IconData filledIcon;
   final String label;
   final bool selected;
+  final Color primaryColor;
+  final VoidCallback onTap;
+
+  @override
+  State<_DockItem> createState() => _DockItemState();
+}
+
+class _DockItemState extends State<_DockItem> with SingleTickerProviderStateMixin {
+  late final AnimationController _scaleCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _scaleCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 100),
+      lowerBound: 0.82,
+      upperBound: 1.0,
+      value: 1.0,
+    );
+  }
+
+  @override
+  void dispose() {
+    _scaleCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
-    final color = selected
-        ? AppColors.inkOf(brightness)
+    final color = widget.selected
+        ? widget.primaryColor
         : AppColors.inkSecondaryOf(brightness);
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        if (selected)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: FractionallySizedBox(
-                widthFactor: 0.56,
-                child: Container(
-                  height: 4,
-                  color: brightness == Brightness.dark
-                      ? AppColors.primaryText
-                      : AppColors.primary,
-                ),
+
+    return GestureDetector(
+      onTapDown: (_) => _scaleCtrl.reverse(),
+      onTapUp: (_) {
+        _scaleCtrl.forward();
+        widget.onTap();
+      },
+      onTapCancel: () => _scaleCtrl.forward(),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedBuilder(
+        animation: _scaleCtrl,
+        builder: (context, child) => Transform.scale(
+          scale: _scaleCtrl.value,
+          child: child,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 10),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+              child: Icon(
+                widget.selected ? widget.filledIcon : widget.outlineIcon,
+                key: ValueKey(widget.selected),
+                size: 24,
+                color: color,
               ),
             ),
-          ),
-        Column(
-          children: [
-            const SizedBox(height: 8),
-            const Spacer(),
-            Icon(icon, size: 22, color: color),
-            const SizedBox(height: 2),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
+            const SizedBox(height: 3),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: widget.selected ? FontWeight.w700 : FontWeight.w500,
+                color: color,
+                height: 1.1,
+              ),
               child: Text(
-                label,
+                widget.label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                  height: 1.1,
-                ),
               ),
             ),
             const Spacer(),
           ],
         ),
-      ],
+      ),
     );
   }
 }

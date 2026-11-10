@@ -25,8 +25,9 @@ class _PinpointTileLayerState extends State<PinpointTileLayer> {
       CancellableNetworkTileProvider(
     dioClient: Dio(
       BaseOptions(
-        connectTimeout: const Duration(seconds: 12),
-        receiveTimeout: const Duration(seconds: 20),
+        // Faster timeout → quicker fallback to OSM mirror on slow networks.
+        connectTimeout: const Duration(seconds: 4),
+        receiveTimeout: const Duration(seconds: 8),
         responseType: ResponseType.bytes,
         headers: {
           'User-Agent':
@@ -53,8 +54,11 @@ class _PinpointTileLayerState extends State<PinpointTileLayer> {
       // High-DPI simulation can prevent tiles from appearing on some Android devices.
       retinaMode: false,
       maxNativeZoom: 19,
-      keepBuffer: 3,
+      // Larger buffers pre-fetch more tiles during pan/zoom → faster perceived loading.
+      keepBuffer: 4,
       panBuffer: 2,
+      // Immediately discard broken tiles so they don't linger as grey boxes.
+      evictErrorTileStrategy: EvictErrorTileStrategy.dispose,
       tileProvider: _tileProvider,
       errorTileCallback: (tile, error, stackTrace) =>
           widget.onTileError?.call(error),

@@ -110,6 +110,7 @@ def create_app(config_class: type[Config] = Config) -> Flask:
         with app.app_context():
             db.create_all()
             _ensure_route_management_columns()
+            seed_transport_data(allow_route_upgrade=False)
             # Always repair bootstrap admin — production sets AUTO_SEED=false after
             # the first seed pass, which previously left broken admin hashes stuck.
             try:

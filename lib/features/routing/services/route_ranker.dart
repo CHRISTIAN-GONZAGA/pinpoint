@@ -8,8 +8,6 @@ class RouteRanker {
 
   final RouteScorer _scorer;
 
-  static const maxDisplayedOptions = 8;
-
   List<PlannedRoute> rank({
     required List<PlannedRoute> candidates,
     required RoutePreference preference,
@@ -83,38 +81,7 @@ class RouteRanker {
       );
     }).toList();
 
-    return _capOptions(labeled);
-  }
-
-  List<PlannedRoute> _capOptions(List<PlannedRoute> routes) {
-    if (routes.length <= maxDisplayedOptions) return routes;
-
-    final kept = <PlannedRoute>[];
-    final seenModes = <String>{};
-
-    for (final route in routes) {
-      final key = _optionKey(route);
-      if (seenModes.contains(key)) continue;
-      seenModes.add(key);
-      kept.add(route);
-      if (kept.length >= maxDisplayedOptions) break;
-    }
-
-    final recommended = routes.where((r) => r.isRecommended).firstOrNull;
-    if (recommended != null && !kept.any((r) => r.optionId == recommended.optionId)) {
-      kept.insert(0, recommended);
-      if (kept.length > maxDisplayedOptions) kept.removeLast();
-    }
-
-    return kept;
-  }
-
-  String _optionKey(PlannedRoute route) {
-    final modes = route.steps
-        .where((s) => s.distanceMeters > 0 && s.type != RouteStepType.walk)
-        .map((s) => s.type == RouteStepType.jeepney ? (s.routeCode ?? 'jeep') : s.type.name)
-        .join('+');
-    return modes.isEmpty ? route.primaryMode.name : modes;
+    return labeled;
   }
 
   int _pickRecommendedIndex({
@@ -183,10 +150,20 @@ class RouteRanker {
 
     if (directTrike != null && directTrike.totalDistanceMeters < 4500) {
       final jeepAlt = jeepOptions.firstOrNull;
-      if (jeepAlt == null ||
-          directTrike.estimatedFare <= jeepAlt.estimatedFare + 5) {
+      if (jeepAlt == null) {
         return scored.indexOf(directTrike);
       }
+      final jeepneyNeedsLongWalk =
+          jeepAlt.walkingDistanceMeters > RouteScorer.longWalkThresholdMeters &&
+          !_hasOriginFeeder(jeepAlt);
+      final tricycleIsClearlyBetter =
+          directTrike.totalDurationSeconds <=
+              jeepAlt.totalDurationSeconds * 0.75 &&
+          directTrike.estimatedFare <= jeepAlt.estimatedFare + 15;
+      if (jeepneyNeedsLongWalk || tricycleIsClearlyBetter) {
+        return scored.indexOf(directTrike);
+      }
+      return scored.indexOf(jeepAlt);
     }
 
     final feederJeep = nonTaxi.where(_hasOriginFeeder).toList();

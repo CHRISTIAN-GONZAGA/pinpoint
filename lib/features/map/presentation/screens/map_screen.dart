@@ -283,6 +283,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
           ),
           MapMinimalHeader(
             searchController: _searchController,
+            compact: _showRoutePanel || mapState.plannedRoute != null,
             onOpenTools: () => MapToolsSheet.show(context, _searchController),
             onBrowseDestinations: mapState.featuredDestinations.isEmpty
                 ? null
@@ -335,9 +336,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
               ),
             ),
           Positioned(
-            right: AppSpacing.md,
-            top: MediaQuery.paddingOf(context).top + 96,
+            right: 12,
+            top: MediaQuery.paddingOf(context).top +
+                ((_showRoutePanel || mapState.plannedRoute != null) ? 68 : 118),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 MapGlassButton(
                   icon: Icons.my_location,
@@ -400,11 +403,14 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 onClose: () => setState(() => _showLayerPanel = false),
               ),
             ),
+          // ── Route / Jeepney sheets — anchored at bottom, NOT full screen ──
+          // The DraggableScrollableSheet controls its own height; using top:0 caused
+          // the sheet to float with a gap above the navigation bar.
           if (mapState.selectedRoute != null)
             Positioned(
               left: 0,
               right: 0,
-              bottom: _shellBottomClearance(context),
+              bottom: 0,
               child: JeepneyRouteSheet(
                 route: mapState.selectedRoute!,
                 onClose: () =>
@@ -415,9 +421,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
             Positioned(
               left: 0,
               right: 0,
-              top: 0,
-              // Keep sheet above the floating bottom nav so the handle stays tappable.
-              bottom: _shellBottomClearance(context),
+              // Cover from bottom up — DraggableScrollableSheet sizes itself.
+              bottom: 0,
+              // Height is 92% of screen max (matches maxChildSize: 0.92) so the
+              // sheet can expand fully without being clipped.
+              height: MediaQuery.sizeOf(context).height * 0.95,
               child: RouteSummarySheet(
                 sheetController: _routeSheetController,
                 route: mapState.plannedRoute,
@@ -449,55 +457,92 @@ class _MapScreenState extends ConsumerState<MapScreen>
               mapState.plannedRoute == null &&
               mapState.selectedRoute == null)
             Positioned(
-              left: AppSpacing.lg,
-              bottom: _shellBottomClearance(context) + 12,
-              child: FloatingActionButton.extended(
-                heroTag: 'map-route-fab',
-                elevation: 4,
-                onPressed: mapState.isGeneratingRoute
-                    ? null
-                    : () async {
-                        setState(() => _showRoutePanel = true);
-                        if (mapState.canGenerateRoute) {
-                          await notifier.generateRoute();
-                        }
-                      },
-                icon: mapState.isGeneratingRoute
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Icon(Icons.route_rounded, size: 20),
-                label: Text(mapState.isGeneratingRoute ? 'Planning…' : 'Plan route'),
+              left: 16,
+              right: 16,
+              bottom: 16,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                transitionBuilder: (child, anim) => FadeTransition(
+                  opacity: anim,
+                  child: SlideTransition(
+                    position: Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
+                        .animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
+                    child: child,
+                  ),
+                ),
+                child: FloatingActionButton.extended(
+                  key: ValueKey(mapState.isGeneratingRoute),
+                  heroTag: 'map-route-fab',
+                  elevation: 6,
+                  onPressed: mapState.isGeneratingRoute
+                      ? null
+                      : () async {
+                          setState(() => _showRoutePanel = true);
+                          if (mapState.canGenerateRoute) {
+                            await notifier.generateRoute();
+                          }
+                        },
+                  icon: mapState.isGeneratingRoute
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Icon(Icons.route_rounded, size: 20),
+                  label: Text(
+                    mapState.isGeneratingRoute ? 'Planning…' : 'Plan route',
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
               ),
             ),
-          if (mapState.plannedRoute != null)
+          if (mapState.plannedRoute != null &&
+              !_showRoutePanel &&
+              mapState.selectedRoute == null)
             Positioned(
-              left: AppSpacing.md,
-              bottom: _shellBottomClearance(context) +
-                  MediaQuery.sizeOf(context).height * 0.22,
+              left: 12,
+              bottom: 80,
               child: MapRouteLegend(route: mapState.plannedRoute!),
             ),
-          if (mapState.isLocating)
-            const Positioned(
-              top: 100,
+          if (mapState.isLocating && !_showRoutePanel && mapState.plannedRoute == null)
+            Positioned(
+              top: MediaQuery.paddingOf(context).top + 64,
               left: 0,
               right: 0,
               child: Center(
-                child: Card(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.12),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         SizedBox(
                           width: 16,
                           height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
-                        SizedBox(width: 8),
-                        Text('Locating...'),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Finding you…',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -509,11 +554,6 @@ class _MapScreenState extends ConsumerState<MapScreen>
     );
   }
 
-  /// Space reserved for the floating shell NavigationBar (`extendBody: true`).
-  double _shellBottomClearance(BuildContext context) {
-    final safe = MediaQuery.paddingOf(context).bottom;
-    return 72 + safe; // nav bar ~60 + outer padding 12
-  }
 
   List<Marker> _buildStopMarkers(MapState mapState, MapNotifier notifier, double zoom) {
     if (!mapState.layers.showStopsAtZoom(zoom)) return [];

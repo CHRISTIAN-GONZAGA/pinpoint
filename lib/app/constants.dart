@@ -38,7 +38,7 @@ abstract final class AppConstants {
   static const String announcementsCacheBoxName = 'announcements_cache_box';
   static const String developerModeKey = 'developer_mode_enabled';
 
-  static const Duration splashDuration = Duration(milliseconds: 2500);
+  static const Duration splashDuration = Duration(milliseconds: 800);
   static const Duration tokenRefreshBuffer = Duration(minutes: 5);
 
   // Butuan City center coordinates

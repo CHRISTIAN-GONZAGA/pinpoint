@@ -17,7 +17,12 @@ PlannedRoute _route({
     steps: steps ??
         [
           RouteStep(
-            type: RouteStepType.jeepney,
+            type: switch (mode) {
+              VehicleMode.tricycle => RouteStepType.tricycle,
+              VehicleMode.taxi => RouteStepType.taxi,
+              VehicleMode.walk => RouteStepType.walk,
+              _ => RouteStepType.jeepney,
+            },
             instruction: 'Ride',
             distanceMeters: 1000,
             durationSeconds: duration,
@@ -61,6 +66,37 @@ void main() {
     );
 
     expect(ranked.firstWhere((r) => r.isRecommended).optionId, 'taxi');
+  });
+
+  test('retains all generated route alternatives beyond the old display cap', () {
+    final candidates = List.generate(
+      10,
+      (index) => _route(
+        id: 'route-$index',
+        mode: VehicleMode.jeepney,
+        steps: [
+          RouteStep(
+            type: RouteStepType.jeepney,
+            instruction: 'Ride route $index',
+            routeCode: 'R$index',
+            distanceMeters: 1000,
+            durationSeconds: 600 + index,
+            polyline: const [LatLng(8.95, 125.54)],
+          ),
+        ],
+      ),
+    );
+
+    final ranked = ranker.rank(
+      candidates: candidates,
+      preference: RoutePreference.balanced,
+    );
+
+    expect(ranked, hasLength(candidates.length));
+    expect(
+      ranked.map((route) => route.optionId),
+      containsAll(candidates.map((route) => route.optionId)),
+    );
   });
 
   test('balanced preference prefers jeepney over taxi when viable', () {
@@ -115,22 +151,59 @@ void main() {
     );
   });
 
-  test('balanced prefers direct tricycle for short city trips', () {
-    final ranked = ranker.rank(
-      candidates: [
-        _route(
-          id: 'trike',
-          mode: VehicleMode.tricycle,
-          fare: 18,
-          duration: 480,
-        ),
-        _route(id: 'jeep', mode: VehicleMode.jeepney, fare: 28, duration: 720, walk: 650),
-      ],
-      preference: RoutePreference.balanced,
-    );
+  test(
+    'balanced prefers an accessible jeepney over a similar short tricycle trip',
+    () {
+      final ranked = ranker.rank(
+        candidates: [
+          _route(
+            id: 'trike',
+            mode: VehicleMode.tricycle,
+            fare: 24,
+            duration: 680,
+          ),
+          _route(
+            id: 'jeep',
+            mode: VehicleMode.jeepney,
+            fare: 28,
+            duration: 720,
+            walk: 250,
+          ),
+        ],
+        preference: RoutePreference.balanced,
+      );
 
-    expect(ranked.firstWhere((r) => r.isRecommended).optionId, 'trike');
-  });
+      expect(ranked.firstWhere((r) => r.isRecommended).optionId, 'jeep');
+      expect(ranked.map((r) => r.optionId), containsAll(['trike', 'jeep']));
+    },
+  );
+
+  test(
+    'balanced prefers direct tricycle when jeepney access requires a long walk',
+    () {
+      final ranked = ranker.rank(
+        candidates: [
+          _route(
+            id: 'trike',
+            mode: VehicleMode.tricycle,
+            fare: 18,
+            duration: 480,
+          ),
+          _route(
+            id: 'jeep',
+            mode: VehicleMode.jeepney,
+            fare: 28,
+            duration: 720,
+            walk: 650,
+          ),
+        ],
+        preference: RoutePreference.balanced,
+      );
+
+      expect(ranked.firstWhere((r) => r.isRecommended).optionId, 'trike');
+      expect(ranked.map((r) => r.optionId), containsAll(['trike', 'jeep']));
+    },
+  );
 
   test('vehicle mode filter overrides preference recommendation', () {
     final ranked = ranker.rank(
