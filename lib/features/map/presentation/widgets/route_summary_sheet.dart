@@ -78,13 +78,11 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
 
     return DraggableScrollableSheet(
       controller: widget.sheetController,
-      initialChildSize: hasRoute ? 0.42 : 0.18,
+      initialChildSize: hasRoute ? 0.68 : 0.18,
       minChildSize: 0.14,
       maxChildSize: 0.92,
       snap: true,
-      snapSizes: hasRoute
-          ? const [0.18, 0.42, 0.72, 0.92]
-          : const [0.14, 0.18, 0.42],
+      snapSizes: hasRoute ? const [0.18, 0.68, 0.92] : const [0.14, 0.18, 0.42],
       shouldCloseOnMinExtent: false,
       builder: (context, scrollController) {
         final brightness = Theme.of(context).brightness;
@@ -97,18 +95,23 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
           child: Container(
             decoration: BoxDecoration(
               color: AppColors.paperOf(brightness),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
               border: Border(
                 top: BorderSide(
-                  color: isDark ? AppColors.edgeDark.withValues(alpha: 0.7) : AppColors.edge.withValues(alpha: 0.15),
+                  color: isDark
+                      ? AppColors.edgeDark.withValues(alpha: 0.7)
+                      : AppColors.edge.withValues(alpha: 0.15),
                   width: 1.5,
                 ),
                 left: BorderSide(
-                  color: isDark ? AppColors.edgeDark.withValues(alpha: 0.5) : AppColors.edge.withValues(alpha: 0.08),
+                  color: isDark
+                      ? AppColors.edgeDark.withValues(alpha: 0.5)
+                      : AppColors.edge.withValues(alpha: 0.08),
                   width: 1.5,
                 ),
                 right: BorderSide(
-                  color: isDark ? AppColors.edgeDark.withValues(alpha: 0.5) : AppColors.edge.withValues(alpha: 0.08),
+                  color: isDark
+                      ? AppColors.edgeDark.withValues(alpha: 0.5)
+                      : AppColors.edge.withValues(alpha: 0.08),
                   width: 1.5,
                 ),
               ),
@@ -124,7 +127,12 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
               children: [
                 // ── Drag handle + hint ──
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 10, AppSpacing.lg, 4),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    10,
+                    AppSpacing.lg,
+                    4,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
@@ -140,9 +148,14 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              hasRoute ? 'Swipe up for full route details' : 'Route planner',
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    color: AppColors.inkSecondaryOf(brightness).withValues(alpha: 0.7),
+                              hasRoute
+                                  ? 'Swipe up for full route details'
+                                  : 'Route planner',
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: AppColors.inkSecondaryOf(
+                                      brightness,
+                                    ).withValues(alpha: 0.7),
                                   ),
                             ),
                           ],
@@ -159,7 +172,10 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
                             color: AppColors.sunkenOf(brightness),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
+                          child: const Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            size: 18,
+                          ),
                         ),
                       ),
                     ],
@@ -200,15 +216,20 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
           onOpenLocationSettings: widget.onOpenLocationSettings,
         ),
       if (route == null) ...[
-        Text('Plan a route', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+        Text(
+          'Plan a route',
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+        ),
         const SizedBox(height: 4),
         Text(
           widget.canGenerate
               ? 'Ready to compare routes'
               : 'Set start & destination on the map',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.inkSecondaryOf(Theme.of(context).brightness),
-              ),
+            color: AppColors.inkSecondaryOf(Theme.of(context).brightness),
+          ),
         ),
         const SizedBox(height: AppSpacing.md),
         _VehicleModeSelector(
@@ -227,8 +248,8 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
           Text(
             'Comparing walk, jeepney, tricycle & taxi…',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.inkSecondaryOf(Theme.of(context).brightness),
-                ),
+              color: AppColors.inkSecondaryOf(Theme.of(context).brightness),
+            ),
           ),
           const SizedBox(height: AppSpacing.sm),
           const _RouteOptionsSkeleton(),
@@ -239,11 +260,18 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
             label: const Text('Compare routes'),
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(48),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
           ),
       ] else if (widget.isGenerating) ...[
-        Text('Route Summary', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+        Text(
+          'Route Summary',
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+        ),
         const SizedBox(height: AppSpacing.md),
         const _RouteOptionsSkeleton(),
         const SizedBox(height: AppSpacing.md),
@@ -252,7 +280,12 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
         Row(
           children: [
             Expanded(
-              child: Text('Route Summary', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+              child: Text(
+                'Route Summary',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              ),
             ),
             IconButton(
               tooltip: 'Export PDF',
@@ -299,15 +332,17 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
           Text(
             route.explanation!,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.inkSecondaryOf(Theme.of(context).brightness),
-                ),
+              color: AppColors.inkSecondaryOf(Theme.of(context).brightness),
+            ),
           ),
         ],
         const SizedBox(height: AppSpacing.md),
         if (route.summaryTitle != null)
           Text(
             route.summaryTitle!,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
           ),
         const SizedBox(height: AppSpacing.sm),
         // Stat row — premium pill chips
@@ -315,7 +350,12 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
         const SizedBox(height: AppSpacing.lg),
         Row(
           children: [
-            Text('Directions', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              'Directions',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            ),
             const Spacer(),
             Text(
               '${route.steps.length} steps',
@@ -327,14 +367,16 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
         ),
         const SizedBox(height: AppSpacing.sm),
         ...route.steps.asMap().entries.map(
-              (entry) => _StepTile(
-                index: entry.key + 1,
-                step: entry.value,
-                isLast: entry.key == route.steps.length - 1,
-                isHighlighted: widget.highlightedStepIndex == entry.key,
-                onTap: widget.onStepTap != null ? () => widget.onStepTap!(entry.key) : null,
-              ),
-            ),
+          (entry) => _StepTile(
+            index: entry.key + 1,
+            step: entry.value,
+            isLast: entry.key == route.steps.length - 1,
+            isHighlighted: widget.highlightedStepIndex == entry.key,
+            onTap: widget.onStepTap != null
+                ? () => widget.onStepTap!(entry.key)
+                : null,
+          ),
+        ),
       ],
     ];
   }
@@ -351,12 +393,14 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
       final dir = await getTemporaryDirectory();
       final file = File('${dir.path}/pinpoint-route.pdf');
       await file.writeAsBytes(bytes);
-      await Share.shareXFiles([XFile(file.path)], text: 'PINPOINT route summary');
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: 'PINPOINT route summary');
     } catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not export PDF: $error')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not export PDF: $error')));
       }
     }
   }
@@ -393,7 +437,9 @@ class _EndpointPlate extends StatelessWidget {
     final warning = locationWarning?.trim();
     final from = isLocating
         ? 'Finding your location…'
-        : (originLabel?.trim().isNotEmpty == true ? originLabel!.trim() : 'Current location');
+        : (originLabel?.trim().isNotEmpty == true
+              ? originLabel!.trim()
+              : 'Current location');
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -402,7 +448,9 @@ class _EndpointPlate extends StatelessWidget {
           color: AppColors.paperOf(brightness),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isDark ? AppColors.edgeDark.withValues(alpha: 0.7) : AppColors.edge.withValues(alpha: 0.15),
+            color: isDark
+                ? AppColors.edgeDark.withValues(alpha: 0.7)
+                : AppColors.edge.withValues(alpha: 0.15),
             width: 1.5,
           ),
           boxShadow: [
@@ -438,7 +486,11 @@ class _EndpointPlate extends StatelessWidget {
                           SizedBox(
                             width: 2,
                             height: 28,
-                            child: CustomPaint(painter: _DashedLinePainter(color: AppColors.hairlineOf(brightness))),
+                            child: CustomPaint(
+                              painter: _DashedLinePainter(
+                                color: AppColors.hairlineOf(brightness),
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -447,30 +499,56 @@ class _EndpointPlate extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('From', style: TextStyle(color: muted, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+                            Text(
+                              'From',
+                              style: TextStyle(
+                                color: muted,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
                             if (isLocating)
                               Row(
                                 children: [
                                   SizedBox(
                                     width: 14,
                                     height: 14,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: primary),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: primary,
+                                    ),
                                   ),
                                   const SizedBox(width: 8),
                                   Expanded(
-                                    child: Text(from, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: muted)),
+                                    child: Text(
+                                      from,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(color: muted),
+                                    ),
                                   ),
                                 ],
                               )
                             else
-                              Text(from, maxLines: 2, overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(color: ink, fontWeight: FontWeight.w700, fontSize: 14)),
+                              Text(
+                                from,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: ink,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
+                              ),
                             if (warning != null && warning.isNotEmpty) ...[
                               const SizedBox(height: 4),
                               Text(
                                 warning,
                                 style: TextStyle(
-                                  color: isDark ? AppColors.dangerTextDark : AppColors.dangerText,
+                                  color: isDark
+                                      ? AppColors.dangerTextDark
+                                      : AppColors.dangerText,
                                   fontSize: 12,
                                 ),
                               ),
@@ -479,15 +557,26 @@ class _EndpointPlate extends StatelessWidget {
                                   onTap: onOpenLocationSettings,
                                   child: Text(
                                     'Open settings',
-                                    style: TextStyle(color: primary, fontSize: 12, fontWeight: FontWeight.w700),
+                                    style: TextStyle(
+                                      color: primary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                 ),
-                            ] else if (!isLocating && (originLabel == null || originLabel!.trim().isEmpty) && onUseLocation != null)
+                            ] else if (!isLocating &&
+                                (originLabel == null ||
+                                    originLabel!.trim().isEmpty) &&
+                                onUseLocation != null)
                               GestureDetector(
                                 onTap: onUseLocation,
                                 child: Text(
                                   'Turn on location',
-                                  style: TextStyle(color: primary, fontSize: 12, fontWeight: FontWeight.w700),
+                                  style: TextStyle(
+                                    color: primary,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                               ),
                           ],
@@ -518,14 +607,26 @@ class _EndpointPlate extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('To', style: TextStyle(color: muted, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+                            Text(
+                              'To',
+                              style: TextStyle(
+                                color: muted,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
                             Text(
                               destinationLabel?.trim().isNotEmpty == true
                                   ? destinationLabel!.trim()
                                   : 'Choose a destination',
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(color: ink, fontWeight: FontWeight.w700, fontSize: 14),
+                              style: TextStyle(
+                                color: ink,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                              ),
                             ),
                           ],
                         ),
@@ -579,13 +680,18 @@ class _DashedLinePainter extends CustomPainter {
     const dashSpace = 3.0;
     double startY = 0;
     while (startY < size.height) {
-      canvas.drawLine(Offset(size.width / 2, startY), Offset(size.width / 2, startY + dashHeight), paint);
+      canvas.drawLine(
+        Offset(size.width / 2, startY),
+        Offset(size.width / 2, startY + dashHeight),
+        paint,
+      );
       startY += dashHeight + dashSpace;
     }
   }
 
   @override
-  bool shouldRepaint(_DashedLinePainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(_DashedLinePainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 // ── Preference & vehicle selectors ─────────────────────────────────────────
@@ -620,8 +726,20 @@ class _PreferenceSelector extends StatelessWidget {
             duration: const Duration(milliseconds: 180),
             curve: Curves.easeOut,
             child: FilterChip(
-              label: Text(label, style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500)),
-              avatar: Icon(icon, size: 14, color: isSelected ? Colors.white : AppColors.inkSecondaryOf(brightness)),
+              label: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+              avatar: Icon(
+                icon,
+                size: 14,
+                color: isSelected
+                    ? Colors.white
+                    : AppColors.inkSecondaryOf(brightness),
+              ),
               selected: isSelected,
               onSelected: (_) => onChanged(pref),
               visualDensity: VisualDensity.compact,
@@ -662,7 +780,13 @@ class _VehicleModeSelector extends StatelessWidget {
           final (mode, icon, label) = _modes[index];
           final isSelected = selected == mode;
           return ChoiceChip(
-            label: Text(label, style: TextStyle(fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, fontSize: 13)),
+            label: Text(
+              label,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                fontSize: 13,
+              ),
+            ),
             selected: isSelected,
             avatar: Icon(icon, size: 16),
             onSelected: (_) => onChanged(mode),
@@ -694,7 +818,54 @@ class _RouteOptionPicker extends StatelessWidget {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'All route options',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Ranked best to worst',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppColors.inkSecondaryOf(brightness),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryFillOf(
+                    brightness,
+                  ).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${options.length} ${options.length == 1 ? 'option' : 'options'}',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: AppColors.primaryFillOf(brightness),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         for (var index = 0; index < options.length; index++) ...[
           if (index > 0) const SizedBox(height: 10),
           Builder(
@@ -702,7 +873,7 @@ class _RouteOptionPicker extends StatelessWidget {
               final option = options[index];
               final isSelected = option.optionId == selected.optionId;
               final tag = _cardTitle(option, options);
-              final isBest = index == 0 || option.isRecommended;
+              final isBest = option.isRecommended;
               final modeColor = _primaryModeColor(option.primaryMode);
 
               return AnimatedContainer(
@@ -731,121 +902,179 @@ class _RouteOptionPicker extends StatelessWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(
-                          color: isSelected ? modeColor : AppColors.hairlineOf(brightness),
+                          color: isSelected
+                              ? modeColor
+                              : AppColors.hairlineOf(brightness),
                           width: isSelected ? 2 : 1.5,
                         ),
                       ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Colored left accent stripe
-                          Container(
-                            width: 5,
-                            decoration: BoxDecoration(
-                              color: modeColor,
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(16),
-                                bottomLeft: Radius.circular(16),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(14),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          option.durationLabel,
-                                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                            fontWeight: FontWeight.w800,
-                                            color: AppColors.inkOf(brightness),
-                                          ),
-                                        ),
-                                      ),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: isBest ? AppColors.signal : AppColors.sunkenOf(brightness),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Text(
-                                          tag,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 12,
-                                            color: isBest
-                                                ? AppColors.ink
-                                                : AppColors.inkSecondaryOf(brightness),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  // Mode icons with route codes
-                                  Wrap(
-                                    spacing: 6,
-                                    runSpacing: 4,
-                                    crossAxisAlignment: WrapCrossAlignment.center,
-                                    children: [
-                                      for (final step in option.steps) ...[
-                                        Icon(
-                                          _modeIcon(step.type == RouteStepType.walk ? VehicleMode.walk : option.primaryMode),
-                                          size: 16,
-                                          color: AppColors.inkSecondaryOf(brightness),
-                                        ),
-                                        if (step.routeCode != null && step.routeCode!.isNotEmpty)
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                            decoration: BoxDecoration(
-                                              color: modeColor.withValues(alpha: isDark ? 0.25 : 0.12),
-                                              borderRadius: BorderRadius.circular(5),
-                                            ),
-                                            child: Text(
-                                              step.routeCode!,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w800,
-                                                fontSize: 11,
-                                                color: modeColor,
-                                              ),
-                                            ),
-                                          ),
-                                      ],
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Fare ₱${option.estimatedFare.toStringAsFixed(0)}  ·  ${option.walkingDistanceMeters.round()} m walk',
-                                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                      color: AppColors.inkSecondaryOf(brightness),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          if (isSelected)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 12),
-                              child: Center(
-                                child: Container(
-                                  width: 22,
-                                  height: 22,
-                                  decoration: BoxDecoration(
-                                    color: modeColor,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(Icons.check_rounded, size: 14, color: Colors.white),
+                      child: IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Colored left accent stripe
+                            Container(
+                              width: 5,
+                              decoration: BoxDecoration(
+                                color: modeColor,
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(16),
+                                  bottomLeft: Radius.circular(16),
                                 ),
                               ),
                             ),
-                        ],
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(14),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            'OPTION ${index + 1}  ·  ${option.durationLabel}',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .headlineSmall
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w800,
+                                                  color: AppColors.inkOf(
+                                                    brightness,
+                                                  ),
+                                                ),
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 9,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: isBest
+                                                ? AppColors.signal
+                                                : AppColors.sunkenOf(
+                                                    brightness,
+                                                  ),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            tag,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 12,
+                                              color: isBest
+                                                  ? AppColors.ink
+                                                  : AppColors.inkSecondaryOf(
+                                                      brightness,
+                                                    ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    // Mode icons with route codes
+                                    Wrap(
+                                      spacing: 6,
+                                      runSpacing: 4,
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
+                                      children: [
+                                        for (final step in option.steps) ...[
+                                          Icon(
+                                            _modeIcon(_modeForStep(step.type)),
+                                            size: 16,
+                                            color: AppColors.inkSecondaryOf(
+                                              brightness,
+                                            ),
+                                          ),
+                                          if (step.routeCode != null &&
+                                              step.routeCode!.isNotEmpty)
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: modeColor.withValues(
+                                                  alpha: isDark ? 0.25 : 0.12,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
+                                              ),
+                                              child: Text(
+                                                step.routeCode!,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w800,
+                                                  fontSize: 11,
+                                                  color: modeColor,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ],
+                                    ),
+                                    ..._corridorNames(option).map(
+                                      (name) => Padding(
+                                        padding: const EdgeInsets.only(top: 5),
+                                        child: Text(
+                                          name,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall
+                                              ?.copyWith(
+                                                color: modeColor,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Fare ₱${option.estimatedFare.toStringAsFixed(0)}  ·  ${option.walkingDistanceMeters.round()} m walk',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelMedium
+                                          ?.copyWith(
+                                            color: AppColors.inkSecondaryOf(
+                                              brightness,
+                                            ),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            if (isSelected)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 12),
+                                child: Center(
+                                  child: Container(
+                                    width: 22,
+                                    height: 22,
+                                    decoration: BoxDecoration(
+                                      color: modeColor,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.check_rounded,
+                                      size: 14,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -859,16 +1088,48 @@ class _RouteOptionPicker extends StatelessWidget {
   }
 
   String _cardTitle(PlannedRoute option, List<PlannedRoute> options) {
-    if (option.isRecommended) return 'Best value';
-    final minFare = options.map((o) => o.estimatedFare).reduce((a, b) => a < b ? a : b);
-    final minTime = options.map((o) => o.totalDurationSeconds).reduce((a, b) => a < b ? a : b);
+    if (option.isRecommended) return 'Recommended';
+    final minFare = options
+        .map((o) => o.estimatedFare)
+        .reduce((a, b) => a < b ? a : b);
+    final minTime = options
+        .map((o) => o.totalDurationSeconds)
+        .reduce((a, b) => a < b ? a : b);
     if (option.estimatedFare <= minFare + 0.01) return 'Cheapest';
     if (option.totalDurationSeconds <= minTime) return 'Fastest';
     return _modeLabel(option.primaryMode);
   }
 
+  List<String> _corridorNames(PlannedRoute option) {
+    final names = <String>{};
+    for (final step in option.steps) {
+      if (!VehicleTypeMapping.isCorridorStep(step.type) ||
+          step.routeCode == null ||
+          step.routeName == null ||
+          step.routeName!.trim().isEmpty) {
+        continue;
+      }
+      names.add('${step.routeCode} · ${step.routeName}');
+    }
+    return names.toList();
+  }
+
+  VehicleMode _modeForStep(RouteStepType type) => switch (type) {
+    RouteStepType.walk => VehicleMode.walk,
+    RouteStepType.jeepney => VehicleMode.jeepney,
+    RouteStepType.modernJeepney => VehicleMode.modernJeepney,
+    RouteStepType.bus => VehicleMode.bus,
+    RouteStepType.van => VehicleMode.van,
+    RouteStepType.tricycle => VehicleMode.tricycle,
+    RouteStepType.taxi => VehicleMode.taxi,
+    RouteStepType.transfer => VehicleMode.auto,
+  };
+
   Color _primaryModeColor(VehicleMode mode) => switch (mode) {
-    VehicleMode.jeepney || VehicleMode.modernJeepney || VehicleMode.bus || VehicleMode.van => AppColors.primary,
+    VehicleMode.jeepney ||
+    VehicleMode.modernJeepney ||
+    VehicleMode.bus ||
+    VehicleMode.van => AppColors.primary,
     VehicleMode.tricycle => AppColors.warning,
     VehicleMode.taxi => const Color(0xFFC9650F),
     VehicleMode.walk => AppColors.accent,
@@ -876,7 +1137,10 @@ class _RouteOptionPicker extends StatelessWidget {
   };
 
   IconData _modeIcon(VehicleMode mode) => switch (mode) {
-    VehicleMode.jeepney || VehicleMode.modernJeepney || VehicleMode.bus || VehicleMode.van => Icons.directions_bus_rounded,
+    VehicleMode.jeepney ||
+    VehicleMode.modernJeepney ||
+    VehicleMode.bus ||
+    VehicleMode.van => Icons.directions_bus_rounded,
     VehicleMode.tricycle => Icons.moped_rounded,
     VehicleMode.taxi => Icons.local_taxi_rounded,
     VehicleMode.walk => Icons.directions_walk_rounded,
@@ -907,7 +1171,11 @@ class _StatRow extends StatelessWidget {
     final stats = [
       (Icons.schedule_rounded, route.durationLabel, AppColors.primary),
       (Icons.flag_rounded, route.arrivalLabel, AppColors.accent),
-      (Icons.payments_rounded, '₱${route.estimatedFare.toStringAsFixed(0)}', const Color(0xFFC9650F)),
+      (
+        Icons.payments_rounded,
+        '₱${route.estimatedFare.toStringAsFixed(0)}',
+        const Color(0xFFC9650F),
+      ),
     ];
     return Row(
       children: stats.asMap().entries.map((e) {
@@ -1002,10 +1270,16 @@ class _WarningBanner extends StatelessWidget {
               color: AppColors.warning.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 18),
+            child: const Icon(
+              Icons.warning_amber_rounded,
+              color: AppColors.warning,
+              size: 18,
+            ),
           ),
           const SizedBox(width: 10),
-          Expanded(child: Text(message, style: Theme.of(context).textTheme.bodySmall)),
+          Expanded(
+            child: Text(message, style: Theme.of(context).textTheme.bodySmall),
+          ),
         ],
       ),
     );
@@ -1031,7 +1305,10 @@ class _StepTile extends StatelessWidget {
 
   IconData get _icon => switch (step.type) {
     RouteStepType.walk => Icons.directions_walk_rounded,
-    RouteStepType.jeepney || RouteStepType.modernJeepney || RouteStepType.bus || RouteStepType.van => Icons.directions_bus_rounded,
+    RouteStepType.jeepney ||
+    RouteStepType.modernJeepney ||
+    RouteStepType.bus ||
+    RouteStepType.van => Icons.directions_bus_rounded,
     RouteStepType.tricycle => Icons.moped_rounded,
     RouteStepType.taxi => Icons.local_taxi_rounded,
     RouteStepType.transfer => Icons.swap_horiz_rounded,
@@ -1039,8 +1316,13 @@ class _StepTile extends StatelessWidget {
 
   Color get _color => switch (step.type) {
     RouteStepType.walk => TransportColors.walk,
-    RouteStepType.jeepney || RouteStepType.modernJeepney || RouteStepType.bus || RouteStepType.van =>
-      step.segmentColorHex != null ? colorFromHex(step.segmentColorHex!) : TransportColors.jeepney(step.routeCode),
+    RouteStepType.jeepney ||
+    RouteStepType.modernJeepney ||
+    RouteStepType.bus ||
+    RouteStepType.van =>
+      step.segmentColorHex != null
+          ? colorFromHex(step.segmentColorHex!)
+          : TransportColors.jeepney(step.routeCode),
     RouteStepType.tricycle => TransportColors.tricycle,
     RouteStepType.taxi => TransportColors.taxi,
     RouteStepType.transfer => TransportColors.transfer,
@@ -1067,10 +1349,16 @@ class _StepTile extends StatelessWidget {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: isHighlighted ? _color : _color.withValues(alpha: 0.12),
+                      color: isHighlighted
+                          ? _color
+                          : _color.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(_icon, size: 18, color: isHighlighted ? Colors.white : _color),
+                    child: Icon(
+                      _icon,
+                      size: 18,
+                      color: isHighlighted ? Colors.white : _color,
+                    ),
                   ),
                   if (!isLast)
                     Expanded(
@@ -1100,7 +1388,9 @@ class _StepTile extends StatelessWidget {
                     Text(
                       step.instruction,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: isHighlighted ? FontWeight.w700 : FontWeight.w500,
+                        fontWeight: isHighlighted
+                            ? FontWeight.w700
+                            : FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -1111,24 +1401,31 @@ class _StepTile extends StatelessWidget {
                             step.distanceMeters >= 1000
                                 ? '${(step.distanceMeters / 1000).toStringAsFixed(1)} km'
                                 : '${step.distanceMeters.round()} m',
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: AppColors.inkSecondaryOf(brightness),
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: AppColors.inkSecondaryOf(brightness),
+                                  fontWeight: FontWeight.w600,
+                                ),
                           ),
                           if (step.durationSeconds > 0)
                             Text(
                               '  ·  ${step.durationLabel}',
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: AppColors.inkSecondaryOf(brightness).withValues(alpha: 0.7),
-                              ),
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: AppColors.inkSecondaryOf(
+                                      brightness,
+                                    ).withValues(alpha: 0.7),
+                                  ),
                             ),
                         ] else if (step.durationSeconds > 0)
                           Text(
                             step.durationLabel,
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: AppColors.inkSecondaryOf(brightness).withValues(alpha: 0.7),
-                            ),
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: AppColors.inkSecondaryOf(
+                                    brightness,
+                                  ).withValues(alpha: 0.7),
+                                ),
                           ),
                       ],
                     ),
@@ -1139,7 +1436,11 @@ class _StepTile extends StatelessWidget {
             if (onTap != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Icon(Icons.chevron_right_rounded, size: 18, color: Colors.grey.shade400),
+                child: Icon(
+                  Icons.chevron_right_rounded,
+                  size: 18,
+                  color: Colors.grey.shade400,
+                ),
               ),
           ],
         ),
@@ -1159,7 +1460,11 @@ class _StepTile extends StatelessWidget {
 
 /// Bottom sheet for jeepney route details.
 class JeepneyRouteSheet extends StatelessWidget {
-  const JeepneyRouteSheet({super.key, required this.route, required this.onClose});
+  const JeepneyRouteSheet({
+    super.key,
+    required this.route,
+    required this.onClose,
+  });
 
   final JeepneyRoute route;
   final VoidCallback onClose;
@@ -1183,12 +1488,32 @@ class JeepneyRouteSheet extends StatelessWidget {
           ),
         ],
         border: Border(
-          top: BorderSide(color: isDark ? AppColors.edgeDark.withValues(alpha: 0.6) : color.withValues(alpha: 0.3), width: 2),
-          left: BorderSide(color: isDark ? AppColors.edgeDark.withValues(alpha: 0.4) : AppColors.hairline, width: 1.5),
-          right: BorderSide(color: isDark ? AppColors.edgeDark.withValues(alpha: 0.4) : AppColors.hairline, width: 1.5),
+          top: BorderSide(
+            color: isDark
+                ? AppColors.edgeDark.withValues(alpha: 0.6)
+                : color.withValues(alpha: 0.3),
+            width: 2,
+          ),
+          left: BorderSide(
+            color: isDark
+                ? AppColors.edgeDark.withValues(alpha: 0.4)
+                : AppColors.hairline,
+            width: 1.5,
+          ),
+          right: BorderSide(
+            color: isDark
+                ? AppColors.edgeDark.withValues(alpha: 0.4)
+                : AppColors.hairline,
+            width: 1.5,
+          ),
         ),
       ),
-      padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.lg + bottomInset),
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.lg + bottomInset,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1209,11 +1534,19 @@ class JeepneyRouteSheet extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(route.routeName, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    Text(
+                      route.routeName,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     if (route.operatingHours != null)
-                      Text(route.operatingHours!, style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.inkSecondaryOf(brightness),
-                      )),
+                      Text(
+                        route.operatingHours!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.inkSecondaryOf(brightness),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -1250,7 +1583,12 @@ class JeepneyRouteSheet extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          Text('Stops', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+          Text(
+            'Stops',
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: AppSpacing.sm),
           ...route.stops.map(
             (stop) => Padding(
@@ -1267,12 +1605,21 @@ class JeepneyRouteSheet extends StatelessWidget {
                     child: Center(
                       child: Text(
                         '${stop.order}',
-                        style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w700),
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Expanded(child: Text(stop.name, style: Theme.of(context).textTheme.bodyMedium)),
+                  Expanded(
+                    child: Text(
+                      stop.name,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -1284,7 +1631,11 @@ class JeepneyRouteSheet extends StatelessWidget {
 }
 
 class _InfoPill extends StatelessWidget {
-  const _InfoPill({required this.icon, required this.label, required this.color});
+  const _InfoPill({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
   final IconData icon;
   final String label;
   final Color color;
@@ -1303,7 +1654,14 @@ class _InfoPill extends StatelessWidget {
         children: [
           Icon(icon, size: 13, color: color),
           const SizedBox(width: 5),
-          Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
         ],
       ),
     );

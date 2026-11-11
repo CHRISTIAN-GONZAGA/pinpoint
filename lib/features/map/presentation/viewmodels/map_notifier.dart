@@ -80,7 +80,8 @@ class MapNotifier extends Notifier<MapState> {
   Future<void> refreshFeaturedDestinations({bool force = false}) async {
     if (!force &&
         _lastFeaturedSync != null &&
-        DateTime.now().difference(_lastFeaturedSync!) < const Duration(seconds: 15)) {
+        DateTime.now().difference(_lastFeaturedSync!) <
+            const Duration(seconds: 15)) {
       return;
     }
     await _loadFeaturedDestinations(force: true);
@@ -110,7 +111,9 @@ class MapNotifier extends Notifier<MapState> {
     final label = destination.label?.trim();
     if (label != null && label.isNotEmpty) {
       unawaited(
-        ref.read(historyNotifierProvider.notifier).addEntry(
+        ref
+            .read(historyNotifierProvider.notifier)
+            .addEntry(
               query: label,
               searchType: 'route',
               latitude: destination.latitude,
@@ -123,7 +126,10 @@ class MapNotifier extends Notifier<MapState> {
   Future<void> selectFeaturedAsOrigin(FeaturedDestination featured) async {
     final snapped = await _snapFast(featured.place.latLng);
     state = state.copyWith(
-      currentLocation: MapLocation.fromLatLng(snapped, label: featured.place.name),
+      currentLocation: MapLocation.fromLatLng(
+        snapped,
+        label: featured.place.name,
+      ),
       currentAddress: featured.place.name,
       clearLocationWarning: true,
     );
@@ -133,8 +139,16 @@ class MapNotifier extends Notifier<MapState> {
 
   Future<void> _loadTransportOverlays() async {
     try {
-      final highways = await _loadHighwayCorridors();
-      final transport = await ref.read(transportRepositoryProvider).loadAllTransportData();
+      final highwaysFuture = _loadHighwayCorridors();
+      final transportFuture = ref
+          .read(transportRepositoryProvider)
+          .loadAllTransportData();
+      await Future.wait<void>([
+        highwaysFuture.then<void>((_) {}),
+        transportFuture.then<void>((_) {}),
+      ]);
+      final highways = await highwaysFuture;
+      final transport = await transportFuture;
       state = state.copyWith(
         jeepneyRoutes: transport.routes,
         tricycleZones: transport.zones,
@@ -159,12 +173,17 @@ class MapNotifier extends Notifier<MapState> {
 
   Future<void> _syncTransportFromApi() async {
     try {
-      final transport =
-          await ref.read(transportRepositoryProvider).refreshFromRemote();
+      final transport = await ref
+          .read(transportRepositoryProvider)
+          .refreshFromRemote();
       if (transport.routes.isEmpty && transport.zones.isEmpty) return;
       state = state.copyWith(
-        jeepneyRoutes: transport.routes.isNotEmpty ? transport.routes : state.jeepneyRoutes,
-        tricycleZones: transport.zones.isNotEmpty ? transport.zones : state.tricycleZones,
+        jeepneyRoutes: transport.routes.isNotEmpty
+            ? transport.routes
+            : state.jeepneyRoutes,
+        tricycleZones: transport.zones.isNotEmpty
+            ? transport.zones
+            : state.tricycleZones,
         fares: transport.fares.isNotEmpty ? transport.fares : state.fares,
         clearTransportWarning: transport.routes.isNotEmpty,
       );
@@ -221,13 +240,21 @@ class MapNotifier extends Notifier<MapState> {
 
   Future<void> _loadRoadPolylinesForVisibleRoutes() async {
     final polylines = Map<int, List<LatLng>>.from(state.roadRoutePolylines);
-    var changed = false;
-    for (final route in state.filteredJeepneyRoutes) {
-      if (polylines.containsKey(route.routeId)) continue;
-      polylines[route.routeId] = await _jeepneyPaths.roadPolylineForRoute(route);
-      changed = true;
+    final pending = state.filteredJeepneyRoutes
+        .where((route) => !polylines.containsKey(route.routeId))
+        .toList();
+    final results = await Future.wait(
+      pending.map(
+        (route) async => MapEntry(
+          route.routeId,
+          await _jeepneyPaths.roadPolylineForRoute(route),
+        ),
+      ),
+    );
+    for (final result in results) {
+      polylines[result.key] = result.value;
     }
-    if (changed) {
+    if (results.isNotEmpty) {
       state = state.copyWith(roadRoutePolylines: Map.from(polylines));
     }
   }
@@ -235,14 +262,15 @@ class MapNotifier extends Notifier<MapState> {
   Future<List<List<LatLng>>> _loadHighwayCorridors() async {
     try {
       final data = await AssetLoader.loadJson(AssetPaths.nationalHighways);
-      return (data['corridors'] as List<dynamic>? ?? [])
-          .map((corridor) {
-            final ring = (corridor as Map<String, dynamic>)['polyline'] as List<dynamic>;
-            return ring
-                .map((c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
-                .toList();
-          })
-          .toList();
+      return (data['corridors'] as List<dynamic>? ?? []).map((corridor) {
+        final ring =
+            (corridor as Map<String, dynamic>)['polyline'] as List<dynamic>;
+        return ring
+            .map(
+              (c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()),
+            )
+            .toList();
+      }).toList();
     } catch (_) {
       return [];
     }
@@ -294,11 +322,14 @@ class MapNotifier extends Notifier<MapState> {
     final prev = state.mapZoom;
     if ((prev - zoom).abs() < 0.25) return;
     final linesFlip =
-        state.layers.showJeepneyLinesAtZoom(zoom) != state.layers.showJeepneyLinesAtZoom(prev);
+        state.layers.showJeepneyLinesAtZoom(zoom) !=
+        state.layers.showJeepneyLinesAtZoom(prev);
     final stopsFlip =
-        state.layers.showStopsAtZoom(zoom) != state.layers.showStopsAtZoom(prev);
+        state.layers.showStopsAtZoom(zoom) !=
+        state.layers.showStopsAtZoom(prev);
     final labelsFlip =
-        state.layers.showLabelsAtZoom(zoom) != state.layers.showLabelsAtZoom(prev);
+        state.layers.showLabelsAtZoom(zoom) !=
+        state.layers.showLabelsAtZoom(prev);
     if (!linesFlip && !stopsFlip && !labelsFlip && (prev - zoom).abs() < 1) {
       return;
     }
@@ -335,13 +366,15 @@ class MapNotifier extends Notifier<MapState> {
 
   /// Returns context data for the tap menu. Caller shows [MapContextSheet].
   Future<
-      ({
-        LatLng snapped,
-        String address,
-        String? nearestStop,
-        String? nearestRouteCode,
-        double? nearestM,
-      })> prepareMapContext(LatLng point) async {
+    ({
+      LatLng snapped,
+      String address,
+      String? nearestStop,
+      String? nearestRouteCode,
+      double? nearestM,
+    })
+  >
+  prepareMapContext(LatLng point) async {
     final snapped = await _snapFast(point);
     final address = await _addressFast(snapped);
     final nearest = _nearestVerifiedStop(snapped);
@@ -358,11 +391,15 @@ class MapNotifier extends Notifier<MapState> {
 
   Future<void> setOriginFromContext(LatLng point) => setOriginFromTap(point);
 
-  Future<void> setDestinationFromContext(LatLng point) => setDestinationFromTap(point);
+  Future<void> setDestinationFromContext(LatLng point) =>
+      setDestinationFromTap(point);
 
   Future<void> exploreNearbyAt(LatLng point) async {
     state = state.copyWith(
-      layers: state.layers.copyWith(showTouristLayer: true, showJeepneyStops: true),
+      layers: state.layers.copyWith(
+        showTouristLayer: true,
+        showJeepneyStops: true,
+      ),
     );
     MapCameraUtils.moveTo(state.mapController, point, zoom: 16);
     final address = await _geocoding.reverseGeocode(point);
@@ -378,11 +415,13 @@ class MapNotifier extends Notifier<MapState> {
     final stop = _nearestStop(point);
     if (stop != null) {
       final m = _distance.as(LengthUnit.Meter, point, stop.latLng).round();
-      items.add(MapNearbyItemData(
-        kind: 'stop',
-        label: stop.name,
-        subtitle: '$m m away',
-      ));
+      items.add(
+        MapNearbyItemData(
+          kind: 'stop',
+          label: stop.name,
+          subtitle: '$m m away',
+        ),
+      );
     }
 
     TricycleZone? zone;
@@ -393,21 +432,25 @@ class MapNotifier extends Notifier<MapState> {
       }
     }
     if (zone != null) {
-      items.add(MapNearbyItemData(
-        kind: 'tricycle',
-        label: zone.zoneName,
-        subtitle: 'Tricycle service area',
-      ));
+      items.add(
+        MapNearbyItemData(
+          kind: 'tricycle',
+          label: zone.zoneName,
+          subtitle: 'Tricycle service area',
+        ),
+      );
     }
 
     for (final place in state.poiPlaces.take(3)) {
       final m = _distance.as(LengthUnit.Meter, point, place.latLng).round();
       if (m <= 2000) {
-        items.add(MapNearbyItemData(
-          kind: place.category ?? place.placeType,
-          label: place.name,
-          subtitle: '$m m · ${place.category ?? place.placeType}',
-        ));
+        items.add(
+          MapNearbyItemData(
+            kind: place.category ?? place.placeType,
+            label: place.name,
+            subtitle: '$m m · ${place.category ?? place.placeType}',
+          ),
+        );
       }
     }
     return items;
@@ -434,7 +477,9 @@ class MapNotifier extends Notifier<MapState> {
   bool isTransferStop(RouteStop stop) {
     var routes = 0;
     for (final route in state.jeepneyRoutes) {
-      if (route.stops.any((s) => s.stopId == stop.stopId || s.name == stop.name)) {
+      if (route.stops.any(
+        (s) => s.stopId == stop.stopId || s.name == stop.name,
+      )) {
         routes++;
       }
     }
@@ -446,7 +491,10 @@ class MapNotifier extends Notifier<MapState> {
 
   Future<void> updateOriginDrag(LatLng point) async {
     state = state.copyWith(
-      currentLocation: MapLocation.fromLatLng(point, label: state.currentAddress),
+      currentLocation: MapLocation.fromLatLng(
+        point,
+        label: state.currentAddress,
+      ),
     );
   }
 
@@ -457,7 +505,10 @@ class MapNotifier extends Notifier<MapState> {
 
   Future<void> updateDestinationDrag(LatLng point) async {
     state = state.copyWith(
-      destination: MapLocation.fromLatLng(point, label: state.destinationAddress),
+      destination: MapLocation.fromLatLng(
+        point,
+        label: state.destinationAddress,
+      ),
     );
   }
 
@@ -494,7 +545,8 @@ class MapNotifier extends Notifier<MapState> {
       final yi = polygon[i].latitude;
       final xj = polygon[j].longitude;
       final yj = polygon[j].latitude;
-      final intersect = ((yi > point.latitude) != (yj > point.latitude)) &&
+      final intersect =
+          ((yi > point.latitude) != (yj > point.latitude)) &&
           (point.longitude <
               (xj - xi) * (point.latitude - yi) / (yj - yi + 0.0000001) + xi);
       if (intersect) inside = !inside;
@@ -516,7 +568,10 @@ class MapNotifier extends Notifier<MapState> {
     try {
       return await _geocoding
           .reverseGeocode(point)
-          .timeout(const Duration(seconds: 3), onTimeout: () => fallback ?? 'Selected point');
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => fallback ?? 'Selected point',
+          );
     } catch (_) {
       return fallback ?? 'Selected point';
     }
@@ -544,7 +599,9 @@ class MapNotifier extends Notifier<MapState> {
         state.tricycleZones.isNotEmpty) {
       return;
     }
-    final transport = await ref.read(transportRepositoryProvider).loadAllTransportData();
+    final transport = await ref
+        .read(transportRepositoryProvider)
+        .loadAllTransportData();
     state = state.copyWith(
       jeepneyRoutes: transport.routes,
       tricycleZones: transport.zones,
@@ -576,7 +633,8 @@ class MapNotifier extends Notifier<MapState> {
 
   Future<void> selectDestination(MapLocation location) async {
     final snapped = await _snapFast(location.latLng);
-    final address = location.label ?? await _addressFast(snapped, fallback: location.label);
+    final address =
+        location.label ?? await _addressFast(snapped, fallback: location.label);
     state = state.copyWith(
       destination: MapLocation.fromLatLng(snapped, label: address),
       destinationAddress: address,
@@ -621,12 +679,20 @@ class MapNotifier extends Notifier<MapState> {
   }
 
   void setRoutePreference(RoutePreference preference) {
-    state = state.copyWith(routePreference: preference, clearRoute: true, clearRouteOptions: true);
+    state = state.copyWith(
+      routePreference: preference,
+      clearRoute: true,
+      clearRouteOptions: true,
+    );
     if (state.canGenerateRoute) generateRoute();
   }
 
   void setVehicleMode(VehicleMode mode) {
-    state = state.copyWith(selectedVehicleMode: mode, clearRoute: true, clearRouteOptions: true);
+    state = state.copyWith(
+      selectedVehicleMode: mode,
+      clearRoute: true,
+      clearRouteOptions: true,
+    );
     if (state.canGenerateRoute) {
       generateRoute();
     }
@@ -702,26 +768,33 @@ class MapNotifier extends Notifier<MapState> {
         plannedRoute: selected,
         routeOptions: options,
       );
-      await ref.read(routeCacheServiceProvider).saveRoute(
+      await ref
+          .read(routeCacheServiceProvider)
+          .saveRoute(
             route: selected,
             originLabel: state.currentAddress ?? 'Start',
             destinationLabel: state.destinationAddress ?? 'Destination',
           );
       if (generation != _routeGeneration) return;
 
-      ref.read(analyticsServiceProvider).track(
-        'route_generated',
-        metadata: {
-          'mode': selected.primaryMode.name,
-          'distance_m': selected.totalDistanceMeters.round(),
-          'fare': selected.estimatedFare,
-          'transfers': selected.transferCount,
-        },
-      );
+      ref
+          .read(analyticsServiceProvider)
+          .track(
+            'route_generated',
+            metadata: {
+              'mode': selected.primaryMode.name,
+              'distance_m': selected.totalDistanceMeters.round(),
+              'fare': selected.estimatedFare,
+              'transfers': selected.transferCount,
+            },
+          );
       _fitRoute(selected);
     } catch (e) {
       if (generation != _routeGeneration) return;
-      state = state.copyWith(isGeneratingRoute: false, errorMessage: _message(e));
+      state = state.copyWith(
+        isGeneratingRoute: false,
+        errorMessage: _message(e),
+      );
     }
   }
 
@@ -750,7 +823,11 @@ class MapNotifier extends Notifier<MapState> {
   }
 
   void clearDestination() {
-    state = state.copyWith(clearDestination: true, clearRoute: true, clearRouteOptions: true);
+    state = state.copyWith(
+      clearDestination: true,
+      clearRoute: true,
+      clearRouteOptions: true,
+    );
   }
 
   Future<void> _loadPoiData() async {
@@ -799,7 +876,9 @@ extension on MapLocation {
   }
 }
 
-final mapNotifierProvider = NotifierProvider<MapNotifier, MapState>(MapNotifier.new);
+final mapNotifierProvider = NotifierProvider<MapNotifier, MapState>(
+  MapNotifier.new,
+);
 
 /// Exposes current location for the home dashboard.
 final currentLocationProvider = Provider<MapLocation?>((ref) {

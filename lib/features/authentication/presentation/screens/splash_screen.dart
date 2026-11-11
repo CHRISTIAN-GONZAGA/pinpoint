@@ -29,25 +29,23 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   }
 
   Future<void> _navigateNext() async {
+    final startupTasks = <Future<void>>[];
     if (AppConstants.offlineFirstMode) {
-      setState(() => _progress = 0.25);
-      await ref.read(localSeedServiceProvider).seedIfNeeded();
+      startupTasks.add(ref.read(localSeedServiceProvider).seedIfNeeded());
     }
 
     setState(() => _progress = 0.55);
-    await Future<void>.delayed(AppConstants.splashDuration);
-    if (!mounted) return;
-
-    setState(() => _progress = 0.85);
     final auth = ref.read(authNotifierProvider);
     if (!auth.isInitialized) {
-      await ref.read(authNotifierProvider.notifier).initialize();
+      startupTasks.add(ref.read(authNotifierProvider.notifier).initialize());
     }
+    await Future.wait<void>([
+      Future.wait(startupTasks),
+      Future<void>.delayed(AppConstants.splashDuration),
+    ]);
 
     if (!mounted) return;
     setState(() => _progress = 1);
-    await Future<void>.delayed(const Duration(milliseconds: 200));
-    if (!mounted) return;
 
     final updated = ref.read(authNotifierProvider);
 
@@ -59,8 +57,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       return;
     }
 
-    final onboardingComplete =
-        await ref.read(authNotifierProvider.notifier).isOnboardingComplete();
+    final onboardingComplete = await ref
+        .read(authNotifierProvider.notifier)
+        .isOnboardingComplete();
     if (!mounted) return;
 
     if (AppConstants.offlineFirstMode) {
@@ -82,7 +81,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          const DecoratedBox(decoration: BoxDecoration(gradient: AppColors.nightGradient)),
+          const DecoratedBox(
+            decoration: BoxDecoration(gradient: AppColors.nightGradient),
+          ),
           ...List.generate(4, (index) {
             return Positioned(
               left: -40.0 + index * 90,
@@ -93,25 +94,28 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           ...List.generate(3, (index) {
             final size = 180.0 + index * 60;
             return Center(
-              child: Container(
-                width: size,
-                height: size,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.secondary.withValues(alpha: 0.08 - index * 0.02),
-                    width: 1.5,
-                  ),
-                ),
-              )
-                  .animate(onPlay: (c) => c.repeat())
-                  .scale(
-                    begin: const Offset(0.92, 0.92),
-                    end: const Offset(1.08, 1.08),
-                    duration: (2200 + index * 400).ms,
-                    curve: Curves.easeInOut,
-                  )
-                  .fadeIn(duration: 600.ms),
+              child:
+                  Container(
+                        width: size,
+                        height: size,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.secondary.withValues(
+                              alpha: 0.08 - index * 0.02,
+                            ),
+                            width: 1.5,
+                          ),
+                        ),
+                      )
+                      .animate(onPlay: (c) => c.repeat())
+                      .scale(
+                        begin: const Offset(0.92, 0.92),
+                        end: const Offset(1.08, 1.08),
+                        duration: (2200 + index * 400).ms,
+                        curve: Curves.easeInOut,
+                      )
+                      .fadeIn(duration: 600.ms),
             );
           }),
           Center(
@@ -121,27 +125,30 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                 PinpointLogo(size: 120, pulsing: true, showTitle: true)
                     .animate()
                     .fadeIn(duration: 600.ms)
-                    .scale(begin: const Offset(0.6, 0.6), curve: Curves.easeOutBack),
+                    .scale(
+                      begin: const Offset(0.6, 0.6),
+                      curve: Curves.easeOutBack,
+                    ),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
-                  AppConstants.appTagline,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      AppConstants.appTagline,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Colors.white.withValues(alpha: 0.9),
                         fontWeight: FontWeight.w500,
                       ),
-                  textAlign: TextAlign.center,
-                )
+                      textAlign: TextAlign.center,
+                    )
                     .animate(delay: 500.ms)
                     .fadeIn(duration: 500.ms)
                     .slideY(begin: 0.25, end: 0, curve: Curves.easeOutCubic),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  AppConstants.cityName,
+                  '${AppConstants.cityName.toUpperCase()}  ·  LOCAL TRANSIT',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: AppColors.secondary,
-                        letterSpacing: 1.4,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: AppColors.secondary,
+                    letterSpacing: 1.8,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ).animate(delay: 700.ms).fadeIn(duration: 450.ms),
               ],
             ),
@@ -166,8 +173,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                 Text(
                   'Loading your city guide…',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.55),
-                      ),
+                    color: Colors.white.withValues(alpha: 0.55),
+                  ),
                 ).animate(delay: 400.ms).fadeIn(),
               ],
             ),
@@ -186,11 +193,11 @@ class _RouteLinePulse extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      size: const Size(140, 80),
-      painter: _RouteArcPainter(
-        color: AppColors.secondary.withValues(alpha: 0.35),
-      ),
-    )
+          size: const Size(140, 80),
+          painter: _RouteArcPainter(
+            color: AppColors.secondary.withValues(alpha: 0.35),
+          ),
+        )
         .animate(delay: (200 + index * 150).ms)
         .fadeIn(duration: 700.ms)
         .slideX(begin: -0.2, end: 0, curve: Curves.easeOutCubic);

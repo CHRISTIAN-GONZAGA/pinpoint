@@ -32,11 +32,17 @@ class MapRouteLegend extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.route_rounded, size: 16, color: theme.colorScheme.primary),
+                Icon(
+                  Icons.route_rounded,
+                  size: 16,
+                  color: theme.colorScheme.primary,
+                ),
                 const SizedBox(width: 6),
                 Text(
                   'Your route',
-                  style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const Spacer(),
                 Text(
@@ -56,12 +62,25 @@ class MapRouteLegend extends StatelessWidget {
                   _LegendRow(index: entry.key + 1, item: entry.value),
                   if (!isLast)
                     Padding(
-                      padding: const EdgeInsets.only(left: 9, top: 2, bottom: 2),
+                      padding: const EdgeInsets.only(
+                        left: 9,
+                        top: 2,
+                        bottom: 2,
+                      ),
                       child: Row(
                         children: [
-                          Container(width: 2, height: 10, color: Colors.grey.withValues(alpha: 0.35)),
+                          Container(
+                            width: 2,
+                            height: 10,
+                            color: Colors.grey.withValues(alpha: 0.35),
+                          ),
                           const SizedBox(width: 8),
-                          Text('then', style: theme.textTheme.labelSmall?.copyWith(color: Colors.grey)),
+                          Text(
+                            'then',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: Colors.grey,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -80,36 +99,45 @@ class MapRouteLegend extends StatelessWidget {
 
     for (final step in route.steps) {
       if (step.distanceMeters <= 0) continue;
-      if (step.type == RouteStepType.walk && step.instruction.contains('arrived')) {
+      if (step.type == RouteStepType.walk &&
+          step.instruction.contains('arrived')) {
         continue;
       }
 
-      final key = step.type == RouteStepType.jeepney
-          ? 'jeep-${step.routeCode}'
+      final key = VehicleTypeMapping.isCorridorStep(step.type)
+          ? '${step.type.name}-${step.routeCode}'
           : step.type.name;
       if (!seen.add(key)) continue;
 
-      items.add(_LegendItem(
-        type: step.type,
-        label: _labelFor(step),
-        color: _colorFor(step),
-        distanceMeters: step.distanceMeters,
-        durationLabel: step.durationLabel,
-      ));
+      items.add(
+        _LegendItem(
+          type: step.type,
+          label: _labelFor(step),
+          color: _colorFor(step),
+          distanceMeters: step.distanceMeters,
+          durationLabel: step.durationLabel,
+        ),
+      );
     }
     return items;
   }
 
   String _labelFor(RouteStep step) => switch (step.type) {
-        RouteStepType.walk => 'Walk',
-        RouteStepType.jeepney => step.routeCode ?? 'Jeepney',
-        RouteStepType.modernJeepney => step.routeCode ?? 'Modern Jeepney',
-        RouteStepType.bus => step.routeCode ?? 'Bus',
-        RouteStepType.van => step.routeCode ?? 'Van',
-        RouteStepType.tricycle => 'Tricycle',
-        RouteStepType.taxi => 'Taxi',
-        RouteStepType.transfer => 'Transfer',
-      };
+    RouteStepType.walk => 'Walk',
+    RouteStepType.jeepney => _corridorLabel(step, 'Jeepney'),
+    RouteStepType.modernJeepney => _corridorLabel(step, 'Modern Jeepney'),
+    RouteStepType.bus => _corridorLabel(step, 'Bus'),
+    RouteStepType.van => _corridorLabel(step, 'Van'),
+    RouteStepType.tricycle => 'Tricycle',
+    RouteStepType.taxi => 'Taxi',
+    RouteStepType.transfer => 'Transfer',
+  };
+
+  String _corridorLabel(RouteStep step, String fallback) {
+    final code = step.routeCode ?? fallback;
+    final name = step.routeName?.trim();
+    return name == null || name.isEmpty ? code : '$code · $name';
+  }
 
   Color _colorFor(RouteStep step) {
     if (step.segmentColorHex != null) {
@@ -123,8 +151,7 @@ class MapRouteLegend extends StatelessWidget {
       RouteStepType.jeepney ||
       RouteStepType.modernJeepney ||
       RouteStepType.bus ||
-      RouteStepType.van =>
-        TransportColors.jeepney(step.routeCode),
+      RouteStepType.van => TransportColors.jeepney(step.routeCode),
     };
   }
 }
@@ -171,7 +198,11 @@ class _LegendRow extends StatelessWidget {
           ),
           child: Text(
             '$index',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: item.color),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              color: item.color,
+            ),
           ),
         ),
         const SizedBox(width: 8),
@@ -183,15 +214,17 @@ class _LegendRow extends StatelessWidget {
             children: [
               Text(
                 item.label,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
               Text(
                 '$dist · ${item.durationLabel}',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
               ),
             ],
           ),
@@ -202,16 +235,15 @@ class _LegendRow extends StatelessWidget {
   }
 
   IconData _iconFor(RouteStepType type) => switch (type) {
-        RouteStepType.walk => Icons.directions_walk_rounded,
-        RouteStepType.jeepney ||
-        RouteStepType.modernJeepney ||
-        RouteStepType.bus ||
-        RouteStepType.van =>
-          Icons.directions_bus_filled_rounded,
-        RouteStepType.tricycle => Icons.moped_rounded,
-        RouteStepType.taxi => Icons.local_taxi_rounded,
-        RouteStepType.transfer => Icons.swap_horiz_rounded,
-      };
+    RouteStepType.walk => Icons.directions_walk_rounded,
+    RouteStepType.jeepney ||
+    RouteStepType.modernJeepney ||
+    RouteStepType.bus ||
+    RouteStepType.van => Icons.directions_bus_filled_rounded,
+    RouteStepType.tricycle => Icons.moped_rounded,
+    RouteStepType.taxi => Icons.local_taxi_rounded,
+    RouteStepType.transfer => Icons.swap_horiz_rounded,
+  };
 }
 
 class _LineSwatch extends StatelessWidget {
@@ -244,7 +276,11 @@ class _LineSwatch extends StatelessWidget {
         color: color,
         borderRadius: BorderRadius.circular(3),
         boxShadow: [
-          BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 4, offset: const Offset(0, 1)),
+          BoxShadow(
+            color: color.withValues(alpha: 0.4),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
         ],
       ),
     );

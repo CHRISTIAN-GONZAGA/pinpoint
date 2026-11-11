@@ -12,7 +12,11 @@ class MapLocation extends Equatable {
     this.accuracyMeters,
   });
 
-  factory MapLocation.fromLatLng(LatLng point, {String? label, double? accuracy}) {
+  factory MapLocation.fromLatLng(
+    LatLng point, {
+    String? label,
+    double? accuracy,
+  }) {
     return MapLocation(
       latitude: point.latitude,
       longitude: point.longitude,
@@ -47,7 +51,11 @@ class RouteStop extends Equatable {
     this.description,
   });
 
-  factory RouteStop.fromJson(Map<String, dynamic> json, {int? routeId, int? order}) {
+  factory RouteStop.fromJson(
+    Map<String, dynamic> json, {
+    int? routeId,
+    int? order,
+  }) {
     final lat = json['lat'] ?? json['latitude'];
     final lng = json['lng'] ?? json['longitude'];
     return RouteStop(
@@ -80,19 +88,19 @@ class RouteStop extends Equatable {
   bool get hasCoordinates => latitude != 0 || longitude != 0;
 
   Map<String, dynamic> toJson() => {
-        'stop_id': stopId,
-        'route_id': routeId,
-        'name': name,
-        'stop_name': name,
-        'lat': latitude,
-        'lng': longitude,
-        'latitude': latitude,
-        'longitude': longitude,
-        'stop_order': order,
-        'verified': verified,
-        if (stopKey != null) 'id': stopKey,
-        if (description != null) 'description': description,
-      };
+    'stop_id': stopId,
+    'route_id': routeId,
+    'name': name,
+    'stop_name': name,
+    'lat': latitude,
+    'lng': longitude,
+    'latitude': latitude,
+    'longitude': longitude,
+    'stop_order': order,
+    'verified': verified,
+    if (stopKey != null) 'id': stopKey,
+    if (description != null) 'description': description,
+  };
 
   @override
   List<Object?> get props => [stopId, routeId, name, stopKey];
@@ -131,19 +139,26 @@ class JeepneyRoute extends Equatable {
             : json['corridor_geojson'] as Map,
       );
       final coordinates = (geom['coordinates'] as List)
-          .map((c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
+          .map(
+            (c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()),
+          )
           .toList();
       polyline = coordinates;
     } else {
       final geojson = _readGeoJsonMap(json['geojson']);
       final geometry = geojson['geometry'] as Map<String, dynamic>;
       final coordinates = (geometry['coordinates'] as List)
-          .map((c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
+          .map(
+            (c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()),
+          )
           .toList();
       polyline = coordinates;
     }
 
-    final rawStops = json['ordered_stops'] as List<dynamic>? ?? json['stops'] as List<dynamic>? ?? [];
+    final rawStops =
+        json['ordered_stops'] as List<dynamic>? ??
+        json['stops'] as List<dynamic>? ??
+        [];
     final stops = <RouteStop>[];
     for (var i = 0; i < rawStops.length; i++) {
       final stopJson = Map<String, dynamic>.from(rawStops[i] as Map);
@@ -163,7 +178,8 @@ class JeepneyRoute extends Equatable {
       streetSegments: (json['street_segments'] as List<dynamic>? ?? [])
           .map((s) => s as String)
           .toList(),
-      vehicleType: (json['vehicle_type'] as String?)?.toLowerCase() ?? 'jeepney',
+      vehicleType:
+          (json['vehicle_type'] as String?)?.toLowerCase() ?? 'jeepney',
       baseFare: (json['base_fare'] as num?)?.toDouble(),
       additionalFare: (json['additional_fare'] as num?)?.toDouble(),
       activeStatus: json['active_status'] as bool? ?? true,
@@ -189,16 +205,17 @@ class JeepneyRoute extends Equatable {
   List<RouteStop> get verifiedStops =>
       stops.where((s) => s.verified && s.hasCoordinates).toList();
 
-  bool get isRoutable => activeStatus && verifiedStops.length >= 2 && polyline.length >= 2;
+  bool get isRoutable =>
+      activeStatus && verifiedStops.length >= 2 && polyline.length >= 2;
 
   bool get isCorridorVehicle => const {
-        'jeepney',
-        'modern_jeepney',
-        'bus',
-        'van',
-        'tricycle',
-        'taxi',
-      }.contains(vehicleType);
+    'jeepney',
+    'modern_jeepney',
+    'bus',
+    'van',
+    'tricycle',
+    'taxi',
+  }.contains(vehicleType);
 
   bool get isOnDemandTaxi => vehicleType == 'taxi';
 
@@ -334,31 +351,31 @@ enum VehicleMode {
 /// Maps persisted vehicle_type strings to step / mode enums.
 abstract final class VehicleTypeMapping {
   static RouteStepType stepType(String vehicleType) => switch (vehicleType) {
-        'modern_jeepney' => RouteStepType.modernJeepney,
-        'bus' => RouteStepType.bus,
-        'van' => RouteStepType.van,
-        'tricycle' => RouteStepType.tricycle,
-        'taxi' => RouteStepType.taxi,
-        _ => RouteStepType.jeepney,
-      };
+    'modern_jeepney' => RouteStepType.modernJeepney,
+    'bus' => RouteStepType.bus,
+    'van' => RouteStepType.van,
+    'tricycle' => RouteStepType.tricycle,
+    'taxi' => RouteStepType.taxi,
+    _ => RouteStepType.jeepney,
+  };
 
   static VehicleMode vehicleMode(String vehicleType) => switch (vehicleType) {
-        'modern_jeepney' => VehicleMode.modernJeepney,
-        'bus' => VehicleMode.bus,
-        'van' => VehicleMode.van,
-        'tricycle' => VehicleMode.tricycle,
-        'taxi' => VehicleMode.taxi,
-        _ => VehicleMode.jeepney,
-      };
+    'modern_jeepney' => VehicleMode.modernJeepney,
+    'bus' => VehicleMode.bus,
+    'van' => VehicleMode.van,
+    'tricycle' => VehicleMode.tricycle,
+    'taxi' => VehicleMode.taxi,
+    _ => VehicleMode.jeepney,
+  };
 
   static String displayName(String vehicleType) => switch (vehicleType) {
-        'modern_jeepney' => 'Modern Jeepney',
-        'bus' => 'Bus',
-        'van' => 'Van',
-        'tricycle' => 'Tricycle',
-        'taxi' => 'Taxi',
-        _ => 'Jeepney',
-      };
+    'modern_jeepney' => 'Modern Jeepney',
+    'bus' => 'Bus',
+    'van' => 'Van',
+    'tricycle' => 'Tricycle',
+    'taxi' => 'Taxi',
+    _ => 'Jeepney',
+  };
 
   static bool isCorridorStep(RouteStepType type) =>
       type == RouteStepType.jeepney ||
@@ -380,6 +397,7 @@ class RouteStep extends Equatable {
     required this.distanceMeters,
     required this.durationSeconds,
     this.routeCode,
+    this.routeName,
     this.polyline = const [],
     this.segmentColorHex,
   });
@@ -389,6 +407,7 @@ class RouteStep extends Equatable {
   final double distanceMeters;
   final int durationSeconds;
   final String? routeCode;
+  final String? routeName;
   final List<LatLng> polyline;
   final String? segmentColorHex;
 
@@ -398,7 +417,7 @@ class RouteStep extends Equatable {
   }
 
   @override
-  List<Object?> get props => [type, instruction, routeCode];
+  List<Object?> get props => [type, instruction, routeCode, routeName];
 }
 
 /// Complete generated multi-modal route.
@@ -453,7 +472,9 @@ class PlannedRoute extends Equatable {
 
   String get arrivalLabel {
     final arrival = DateTime.now().add(Duration(seconds: totalDurationSeconds));
-    final hour = arrival.hour > 12 ? arrival.hour - 12 : (arrival.hour == 0 ? 12 : arrival.hour);
+    final hour = arrival.hour > 12
+        ? arrival.hour - 12
+        : (arrival.hour == 0 ? 12 : arrival.hour);
     final amPm = arrival.hour >= 12 ? 'PM' : 'AM';
     final min = arrival.minute.toString().padLeft(2, '0');
     return '$hour:$min $amPm';
@@ -486,8 +507,14 @@ class PlannedRoute extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [optionId, steps, estimatedFare, totalDurationSeconds, primaryMode, isRecommended];
+  List<Object?> get props => [
+    optionId,
+    steps,
+    estimatedFare,
+    totalDurationSeconds,
+    primaryMode,
+    isRecommended,
+  ];
 }
 
 /// A map polyline segment with its transport color.

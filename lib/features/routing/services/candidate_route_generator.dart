@@ -4,7 +4,6 @@ import 'package:pinpoint/features/routing/domain/route_planning_models.dart';
 import 'package:pinpoint/features/routing/services/jeepney_plan_builder.dart';
 import 'package:pinpoint/features/routing/services/route_assembler.dart';
 import 'package:pinpoint/features/routing/services/route_ranker.dart';
-import 'package:pinpoint/features/routing/services/route_scorer.dart';
 import 'package:pinpoint/features/routing/services/tricycle_connector.dart';
 
 /// Generates every feasible multimodal itinerary before ranking.
@@ -14,10 +13,10 @@ class CandidateRouteGenerator {
     required RouteAssembler assembler,
     required TricycleConnector tricycleConnector,
     required RouteRanker ranker,
-  })  : _jeepneyPlans = jeepneyPlans,
-        _assembler = assembler,
-        _tricycle = tricycleConnector,
-        _ranker = ranker;
+  }) : _jeepneyPlans = jeepneyPlans,
+       _assembler = assembler,
+       _tricycle = tricycleConnector,
+       _ranker = ranker;
 
   final JeepneyPlanBuilder _jeepneyPlans;
   final RouteAssembler _assembler;
@@ -40,10 +39,14 @@ class CandidateRouteGenerator {
         .where((r) => r.activeStatus && r.isRoutable && r.isCorridorVehicle)
         .toList();
     final hasTaxiRoutes = jeepneyRoutes.any((r) => r.vehicleType == 'taxi');
-    final hasActiveTaxiService = !hasTaxiRoutes ||
+    final hasActiveTaxiService =
+        !hasTaxiRoutes ||
         jeepneyRoutes.any((r) => r.activeStatus && r.vehicleType == 'taxi');
 
-    final walkFuture = _assembler.buildWalkRoute(origin: origin, destination: destination);
+    final walkFuture = _assembler.buildWalkRoute(
+      origin: origin,
+      destination: destination,
+    );
     final jeepneyPlansFuture = _jeepneyPlans.findAllPlans(
       origin: origin.latLng,
       destination: destination.latLng,
@@ -119,10 +122,11 @@ class CandidateRouteGenerator {
 
     _addCandidate(candidates, await taxiFuture);
 
-    _pruneInferiorJeepneyOptions(candidates, triDrive);
-
     if (candidates.isEmpty) {
-      final walk = await _assembler.buildWalkRoute(origin: origin, destination: destination);
+      final walk = await _assembler.buildWalkRoute(
+        origin: origin,
+        destination: destination,
+      );
       if (walk != null) {
         return [
           walk.copyWith(
@@ -146,9 +150,12 @@ class CandidateRouteGenerator {
     });
 
     final hasCorridor = ranked.any(
-      (r) => r.steps.any((s) => VehicleTypeMapping.isCorridorStep(s.type) &&
-          s.type != RouteStepType.taxi &&
-          s.type != RouteStepType.tricycle),
+      (r) => r.steps.any(
+        (s) =>
+            VehicleTypeMapping.isCorridorStep(s.type) &&
+            s.type != RouteStepType.taxi &&
+            s.type != RouteStepType.tricycle,
+      ),
     );
     // Also count jeepney-like including bus/van/modern.
     final hasPublicCorridor = ranked.any(
@@ -183,45 +190,5 @@ class CandidateRouteGenerator {
       return;
     }
     list.add(route);
-  }
-
-  /// Drops jeepney-only options that cost more and take longer than direct tricycle
-  /// on short city trips only.
-  void _pruneInferiorJeepneyOptions(List<PlannedRoute> candidates, PlannedRoute? tricycle) {
-    if (tricycle == null) return;
-    if (tricycle.totalDistanceMeters > RouteScorer.shortTricycleBoostMeters) return;
-
-    candidates.removeWhere((route) {
-      if (!_hasPublicCorridorStep(route)) return false;
-
-      final hasOriginFeeder = _hasOriginFeeder(route);
-      if (hasOriginFeeder) return false;
-
-      final worseFare = route.estimatedFare > tricycle.estimatedFare + 3;
-      final worseTime = route.totalDurationSeconds > tricycle.totalDurationSeconds + 120;
-      final longWalk = route.walkingDistanceMeters > TricycleConnector.feederMinWalkMeters;
-
-      return worseFare && (worseTime || longWalk);
-    });
-  }
-
-  bool _hasPublicCorridorStep(PlannedRoute route) => route.steps.any(
-        (s) =>
-            s.type == RouteStepType.jeepney ||
-            s.type == RouteStepType.modernJeepney ||
-            s.type == RouteStepType.bus ||
-            s.type == RouteStepType.van,
-      );
-
-  bool _hasOriginFeeder(PlannedRoute route) {
-    final triIdx = route.steps.indexWhere((s) => s.type == RouteStepType.tricycle);
-    final jeepIdx = route.steps.indexWhere(
-      (s) =>
-          s.type == RouteStepType.jeepney ||
-          s.type == RouteStepType.modernJeepney ||
-          s.type == RouteStepType.bus ||
-          s.type == RouteStepType.van,
-    );
-    return triIdx >= 0 && jeepIdx > triIdx;
   }
 }

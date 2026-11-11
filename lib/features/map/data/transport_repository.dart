@@ -12,9 +12,9 @@ class TransportRepository {
     required TransportRemoteDataSource remoteDataSource,
     required TransportLocalDataSource localDataSource,
     required TransportAssetDataSource assetDataSource,
-  })  : _remote = remoteDataSource,
-        _local = localDataSource,
-        _assets = assetDataSource;
+  }) : _remote = remoteDataSource,
+       _local = localDataSource,
+       _assets = assetDataSource;
 
   final TransportRemoteDataSource _remote;
   final TransportLocalDataSource _local;
@@ -26,13 +26,17 @@ class TransportRepository {
 
   static const _apiTimeout = Duration(seconds: 8);
 
-  Future<List<JeepneyRoute>> getJeepneyRoutes({bool forceRefresh = false}) async {
+  Future<List<JeepneyRoute>> getJeepneyRoutes({
+    bool forceRefresh = false,
+  }) async {
     if (_cachedRoutes != null && !forceRefresh) return _cachedRoutes!;
     final data = await loadAllTransportData();
     return data.routes;
   }
 
-  Future<List<TricycleZone>> getTricycleZones({bool forceRefresh = false}) async {
+  Future<List<TricycleZone>> getTricycleZones({
+    bool forceRefresh = false,
+  }) async {
     if (_cachedZones != null && !forceRefresh) return _cachedZones!;
     final data = await loadAllTransportData();
     return data.zones;
@@ -45,8 +49,14 @@ class TransportRepository {
   }
 
   /// Loads bundled/local transport data immediately — no network wait.
-  Future<({List<JeepneyRoute> routes, List<TricycleZone> zones, List<FareConfig> fares})>
-      loadAllTransportData() async {
+  Future<
+    ({
+      List<JeepneyRoute> routes,
+      List<TricycleZone> zones,
+      List<FareConfig> fares,
+    })
+  >
+  loadAllTransportData() async {
     if (_hasParsedData) return _snapshot();
 
     await _loadFromBundledAssets();
@@ -63,8 +73,14 @@ class TransportRepository {
   }
 
   /// Fetches fresh data from the API when online (call in background).
-  Future<({List<JeepneyRoute> routes, List<TricycleZone> zones, List<FareConfig> fares})>
-      refreshFromRemote() async {
+  Future<
+    ({
+      List<JeepneyRoute> routes,
+      List<TricycleZone> zones,
+      List<FareConfig> fares,
+    })
+  >
+  refreshFromRemote() async {
     if (AppConstants.offlineFirstMode) return _snapshot();
 
     final bundledBefore = _cachedRoutes ?? [];
@@ -90,9 +106,7 @@ class TransportRepository {
 
       if (_hasParsedData) {
         await _local.saveTransportBundle(
-          routes: (_cachedRoutes ?? [])
-              .map((r) => _routeToJson(r))
-              .toList(),
+          routes: (_cachedRoutes ?? []).map((r) => _routeToJson(r)).toList(),
           zones: results[1],
           fares: results[2],
         );
@@ -158,9 +172,14 @@ class TransportRepository {
       (_cachedFares?.isNotEmpty ?? false);
 
   Future<void> _loadFromBundledAssets() async {
-    final routesRaw = await _assets.fetchJeepneyRoutesRaw();
-    final zonesRaw = await _assets.fetchTricycleZonesRaw();
-    final faresRaw = await _assets.fetchFaresRaw();
+    final data = await Future.wait([
+      _assets.fetchJeepneyRoutesRaw(),
+      _assets.fetchTricycleZonesRaw(),
+      _assets.fetchFaresRaw(),
+    ]);
+    final routesRaw = data[0];
+    final zonesRaw = data[1];
+    final faresRaw = data[2];
 
     _cachedRoutes = _parseRoutes(routesRaw);
     _cachedZones = _parseZones(zonesRaw);
@@ -205,10 +224,14 @@ class TransportRepository {
     return fares;
   }
 
-  ({List<JeepneyRoute> routes, List<TricycleZone> zones, List<FareConfig> fares})
-      _snapshot() => (
-        routes: _cachedRoutes ?? [],
-        zones: _cachedZones ?? [],
-        fares: _cachedFares ?? [],
-      );
+  ({
+    List<JeepneyRoute> routes,
+    List<TricycleZone> zones,
+    List<FareConfig> fares,
+  })
+  _snapshot() => (
+    routes: _cachedRoutes ?? [],
+    zones: _cachedZones ?? [],
+    fares: _cachedFares ?? [],
+  );
 }

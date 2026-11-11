@@ -43,9 +43,21 @@ void main() {
       assembler: RouteAssembler(
         geometry: geometry,
         fares: FareCalculator.fromConfigs(const [
-          FareConfig(transportType: 'jeepney', minimumFare: 13, succeedingRate: 1.8),
-          FareConfig(transportType: 'tricycle', minimumFare: 15, succeedingRate: 2),
-          FareConfig(transportType: 'taxi', minimumFare: 40, succeedingRate: 13.5),
+          FareConfig(
+            transportType: 'jeepney',
+            minimumFare: 13,
+            succeedingRate: 1.8,
+          ),
+          FareConfig(
+            transportType: 'tricycle',
+            minimumFare: 15,
+            succeedingRate: 2,
+          ),
+          FareConfig(
+            transportType: 'taxi',
+            minimumFare: 40,
+            succeedingRate: 13.5,
+          ),
         ]),
         tricycleConnector: TricycleConnector(geometry),
       ),
@@ -60,7 +72,11 @@ void main() {
     required LatLng destination,
   }) async {
     final options = await generator.generate(
-      origin: MapLocation(latitude: origin.latitude, longitude: origin.longitude, label: 'Origin'),
+      origin: MapLocation(
+        latitude: origin.latitude,
+        longitude: origin.longitude,
+        label: 'Origin',
+      ),
       destination: MapLocation(
         latitude: destination.latitude,
         longitude: destination.longitude,
@@ -81,7 +97,8 @@ void main() {
     expect(
       recommended.primaryMode,
       anyOf(VehicleMode.jeepney, VehicleMode.walk),
-      reason: '$label: recommended ${recommended.primaryMode} instead of jeepney/walk',
+      reason:
+          '$label: recommended ${recommended.primaryMode} instead of jeepney/walk',
     );
     expect(
       recommended.primaryMode,
@@ -120,8 +137,50 @@ void main() {
   });
 
   test('new LPTRP routes match official names', () {
-    expect(routes.firstWhere((r) => r.routeCode == 'R1').routeName, 'West and East Loop');
-    expect(routes.firstWhere((r) => r.routeCode == 'R2').routeName, 'City Loop via Airport');
-    expect(routes.firstWhere((r) => r.routeCode == 'R3').routeName, 'Ampayon to Libertad');
+    expect(
+      routes.firstWhere((r) => r.routeCode == 'R1').routeName,
+      'West and East Loop',
+    );
+    expect(
+      routes.firstWhere((r) => r.routeCode == 'R2').routeName,
+      'City Loop via Airport',
+    );
+    expect(
+      routes.firstWhere((r) => r.routeCode == 'R3').routeName,
+      'Ampayon to Libertad',
+    );
   });
+
+  test(
+    'keeps jeepney and direct tricycle alternatives for short trips',
+    () async {
+      final options = await generator.generate(
+        origin: const MapLocation(
+          latitude: 8.9517455,
+          longitude: 125.46643,
+          label: 'Dumalagan Terminal',
+        ),
+        destination: const MapLocation(
+          latitude: 8.9515,
+          longitude: 125.4788,
+          label: 'Bancasi Airport',
+        ),
+        jeepneyRoutes: routes,
+        tricycleZones: const [],
+        highway: HighwayRestrictionService(),
+      );
+
+      expect(
+        options.any(
+          (route) =>
+              route.steps.any((step) => step.type == RouteStepType.jeepney),
+        ),
+        isTrue,
+      );
+      expect(
+        options.any((route) => route.primaryMode == VehicleMode.tricycle),
+        isTrue,
+      );
+    },
+  );
 }

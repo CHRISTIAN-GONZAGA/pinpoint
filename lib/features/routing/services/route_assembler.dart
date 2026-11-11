@@ -13,9 +13,9 @@ class RouteAssembler {
     required RoutingGeometry geometry,
     required FareCalculator fares,
     required TricycleConnector tricycleConnector,
-  })  : _geometry = geometry,
-        _fares = fares,
-        _tricycle = tricycleConnector;
+  }) : _geometry = geometry,
+       _fares = fares,
+       _tricycle = tricycleConnector;
 
   final RoutingGeometry _geometry;
   final FareCalculator _fares;
@@ -31,7 +31,10 @@ class RouteAssembler {
     required MapLocation origin,
     required MapLocation destination,
   }) async {
-    final walk = await _geometry.safeWalkingRoute(origin.latLng, destination.latLng);
+    final walk = await _geometry.safeWalkingRoute(
+      origin.latLng,
+      destination.latLng,
+    );
     if (walk.distanceMeters > walkOnlyMaxMeters) return null;
 
     return _finalize(
@@ -71,8 +74,9 @@ class RouteAssembler {
       destination.latLng,
       speedMps: taxiSpeedMps,
     );
-    final polyline =
-        drive.polyline.isNotEmpty ? drive.polyline : [origin.latLng, destination.latLng];
+    final polyline = drive.polyline.isNotEmpty
+        ? drive.polyline
+        : [origin.latLng, destination.latLng];
     final fare = _fares.taxiFare(drive.distanceMeters);
 
     return _finalize(
@@ -82,7 +86,8 @@ class RouteAssembler {
       steps: [
         RouteStep(
           type: RouteStepType.taxi,
-          instruction: 'Take taxi door-to-door to ${destination.label ?? "destination"}',
+          instruction:
+              'Take taxi door-to-door to ${destination.label ?? "destination"}',
           distanceMeters: drive.distanceMeters,
           durationSeconds: drive.durationSeconds > 0
               ? drive.durationSeconds
@@ -114,8 +119,9 @@ class RouteAssembler {
       destination.latLng,
       speedMps: tricycleSpeedMps,
     );
-    final polyline =
-        drive.polyline.isNotEmpty ? drive.polyline : [origin.latLng, destination.latLng];
+    final polyline = drive.polyline.isNotEmpty
+        ? drive.polyline
+        : [origin.latLng, destination.latLng];
     final fare = _fares.tricycleFare(drive.distanceMeters);
 
     return _finalize(
@@ -214,16 +220,22 @@ class RouteAssembler {
       );
       fare += _fares.corridorFare(plan.boardRoute, plan.firstLegDistanceMeters);
 
-      steps.add(RouteStep(
-        type: RouteStepType.transfer,
-        instruction:
-            'Transfer at ${plan.transferOriginStop!.name} → board ${plan.transferRoute!.routeCode}',
-        distanceMeters: plan.transferWalkMeters,
-        durationSeconds: math.max(120, (plan.transferWalkMeters / 1.2).round()),
-        segmentColorHex: '#8338EC',
-      ));
+      steps.add(
+        RouteStep(
+          type: RouteStepType.transfer,
+          instruction:
+              'Transfer at ${plan.transferOriginStop!.name} → board ${plan.transferRoute!.routeCode}',
+          distanceMeters: plan.transferWalkMeters,
+          durationSeconds: math.max(
+            120,
+            (plan.transferWalkMeters / 1.2).round(),
+          ),
+          segmentColorHex: '#8338EC',
+        ),
+      );
 
-      if (plan.transferWalk != null && plan.transferWalk!.distanceMeters > walkMinMeters) {
+      if (plan.transferWalk != null &&
+          plan.transferWalk!.distanceMeters > walkMinMeters) {
         _addWalk(steps, plan.transferWalk!, 'Walk between stops');
         walkingDistance += plan.transferWalk!.distanceMeters;
       }
@@ -231,12 +243,16 @@ class RouteAssembler {
       _addCorridorRide(
         steps,
         route: plan.transferRoute!,
-        instruction: 'Ride ${plan.transferRoute!.routeCode} to ${plan.alightStop.name}',
+        instruction:
+            'Ride ${plan.transferRoute!.routeCode} to ${plan.alightStop.name}',
         distanceMeters: plan.secondLegDistanceMeters,
         durationSeconds: plan.secondLegDurationSeconds,
         polyline: plan.secondLegPolyline,
       );
-      fare += _fares.corridorFare(plan.transferRoute!, plan.secondLegDistanceMeters);
+      fare += _fares.corridorFare(
+        plan.transferRoute!,
+        plan.secondLegDistanceMeters,
+      );
     }
 
     FeederLeg? destFeeder;
@@ -250,7 +266,11 @@ class RouteAssembler {
     }
 
     if (destFeeder != null) {
-      _addTricycle(steps, destFeeder, 'Take tricycle in ${destFeeder.zone.zoneName}');
+      _addTricycle(
+        steps,
+        destFeeder,
+        'Take tricycle in ${destFeeder.zone.zoneName}',
+      );
       fare += _fares.tricycleFare(
         destFeeder.route.distanceMeters,
         zoneBaseFare: destFeeder.zone.baseFare,
@@ -260,14 +280,18 @@ class RouteAssembler {
       walkingDistance += plan.walkFromAlight.distanceMeters;
     }
 
-    steps.add(const RouteStep(
-      type: RouteStepType.walk,
-      instruction: 'You have arrived',
-      distanceMeters: 0,
-      durationSeconds: 0,
-    ));
+    steps.add(
+      const RouteStep(
+        type: RouteStepType.walk,
+        instruction: 'You have arrived',
+        distanceMeters: 0,
+        durationSeconds: 0,
+      ),
+    );
 
-    final optionId = originFeeder != null ? 'feeder-${plan.planId}' : plan.planId;
+    final optionId = originFeeder != null
+        ? 'feeder-${plan.planId}'
+        : plan.planId;
     final summary = _buildSummary(steps, plan);
 
     return _finalize(
@@ -287,14 +311,16 @@ class RouteAssembler {
     ({List<LatLng> polyline, double distanceMeters, int durationSeconds}) route,
     String label,
   ) {
-    steps.add(RouteStep(
-      type: RouteStepType.walk,
-      instruction: '$label (${route.distanceMeters.round()} m)',
-      distanceMeters: route.distanceMeters,
-      durationSeconds: route.durationSeconds,
-      polyline: route.polyline,
-      segmentColorHex: '#94A3B8',
-    ));
+    steps.add(
+      RouteStep(
+        type: RouteStepType.walk,
+        instruction: '$label (${route.distanceMeters.round()} m)',
+        distanceMeters: route.distanceMeters,
+        durationSeconds: route.durationSeconds,
+        polyline: route.polyline,
+        segmentColorHex: '#94A3B8',
+      ),
+    );
   }
 
   void _addCorridorRide(
@@ -305,30 +331,39 @@ class RouteAssembler {
     required int durationSeconds,
     required List<LatLng> polyline,
   }) {
-    steps.add(RouteStep(
-      type: VehicleTypeMapping.stepType(route.vehicleType),
-      instruction: instruction,
-      distanceMeters: distanceMeters,
-      durationSeconds: durationSeconds,
-      routeCode: route.routeCode,
-      polyline: polyline,
-      segmentColorHex: route.colorHex,
-    ));
+    steps.add(
+      RouteStep(
+        type: VehicleTypeMapping.stepType(route.vehicleType),
+        instruction: instruction,
+        distanceMeters: distanceMeters,
+        durationSeconds: durationSeconds,
+        routeCode: route.routeCode,
+        routeName: route.routeName,
+        polyline: polyline,
+        segmentColorHex: route.colorHex,
+      ),
+    );
   }
 
-  void _addTricycle(List<RouteStep> steps, FeederLeg feeder, String instruction) {
-    steps.add(RouteStep(
-      type: RouteStepType.tricycle,
-      instruction: instruction,
-      distanceMeters: feeder.route.distanceMeters,
-      durationSeconds: feeder.route.durationSeconds > 0
-          ? feeder.route.durationSeconds
-          : (feeder.route.distanceMeters / tricycleSpeedMps).round(),
-      polyline: feeder.route.polyline.isNotEmpty
-          ? feeder.route.polyline
-          : [feeder.from, feeder.to],
-      segmentColorHex: '#0EA5E9',
-    ));
+  void _addTricycle(
+    List<RouteStep> steps,
+    FeederLeg feeder,
+    String instruction,
+  ) {
+    steps.add(
+      RouteStep(
+        type: RouteStepType.tricycle,
+        instruction: instruction,
+        distanceMeters: feeder.route.distanceMeters,
+        durationSeconds: feeder.route.durationSeconds > 0
+            ? feeder.route.durationSeconds
+            : (feeder.route.distanceMeters / tricycleSpeedMps).round(),
+        polyline: feeder.route.polyline.isNotEmpty
+            ? feeder.route.polyline
+            : [feeder.from, feeder.to],
+        segmentColorHex: '#0EA5E9',
+      ),
+    );
   }
 
   String _buildSummary(List<RouteStep> steps, JeepneyPlan plan) {
@@ -371,12 +406,14 @@ class RouteAssembler {
       if (step.polyline.isNotEmpty) {
         fullPolyline.addAll(step.polyline);
         if (step.type != RouteStepType.transfer) {
-          segments.add(ColoredRouteSegment(
-            type: step.type,
-            polyline: step.polyline,
-            colorHex: step.segmentColorHex ?? '#64748B',
-            routeCode: step.routeCode,
-          ));
+          segments.add(
+            ColoredRouteSegment(
+              type: step.type,
+              polyline: step.polyline,
+              colorHex: step.segmentColorHex ?? '#64748B',
+              routeCode: step.routeCode,
+            ),
+          );
         }
       }
     }

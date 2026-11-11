@@ -62,15 +62,15 @@ class MapLayerVisibility extends Equatable {
 
   @override
   List<Object?> get props => [
-        showJeepneyRoutes,
-        showTricycleZones,
-        showJeepneyStops,
-        showStopLabels,
-        showTransferPoints,
-        showTouristLayer,
-        showEmergency,
-        showHighwayCorridors,
-      ];
+    showJeepneyRoutes,
+    showTricycleZones,
+    showJeepneyStops,
+    showStopLabels,
+    showTransferPoints,
+    showTouristLayer,
+    showEmergency,
+    showHighwayCorridors,
+  ];
 }
 
 /// Complete map screen state.
@@ -211,27 +211,37 @@ class MapState extends Equatable {
       isLocating: isLocating ?? this.isLocating,
       isGeneratingRoute: isGeneratingRoute ?? this.isGeneratingRoute,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-      locationWarning:
-          clearLocationWarning ? null : (locationWarning ?? this.locationWarning),
-      transportWarning:
-          clearTransportWarning ? null : (transportWarning ?? this.transportWarning),
+      locationWarning: clearLocationWarning
+          ? null
+          : (locationWarning ?? this.locationWarning),
+      transportWarning: clearTransportWarning
+          ? null
+          : (transportWarning ?? this.transportWarning),
       tilesUnavailable: tilesUnavailable ?? this.tilesUnavailable,
-      currentLocation: clearOrigin ? null : (currentLocation ?? this.currentLocation),
-      currentAddress: clearOrigin ? null : (currentAddress ?? this.currentAddress),
+      currentLocation: clearOrigin
+          ? null
+          : (currentLocation ?? this.currentLocation),
+      currentAddress: clearOrigin
+          ? null
+          : (currentAddress ?? this.currentAddress),
       destination: clearDestination ? null : (destination ?? this.destination),
-      destinationAddress:
-          clearDestination ? null : (destinationAddress ?? this.destinationAddress),
+      destinationAddress: clearDestination
+          ? null
+          : (destinationAddress ?? this.destinationAddress),
       jeepneyRoutes: jeepneyRoutes ?? this.jeepneyRoutes,
       tricycleZones: tricycleZones ?? this.tricycleZones,
       fares: fares ?? this.fares,
       plannedRoute: clearRoute ? null : (plannedRoute ?? this.plannedRoute),
-      routeOptions: clearRouteOptions ? const [] : (routeOptions ?? this.routeOptions),
+      routeOptions: clearRouteOptions
+          ? const []
+          : (routeOptions ?? this.routeOptions),
       selectedVehicleMode: selectedVehicleMode ?? this.selectedVehicleMode,
       routePreference: routePreference ?? this.routePreference,
       pinMode: pinMode ?? this.pinMode,
       layers: layers ?? this.layers,
-      selectedRoute:
-          clearSelectedRoute ? null : (selectedRoute ?? this.selectedRoute),
+      selectedRoute: clearSelectedRoute
+          ? null
+          : (selectedRoute ?? this.selectedRoute),
       searchResults: searchResults ?? this.searchResults,
       isSearching: isSearching ?? this.isSearching,
       mapController: mapController ?? this.mapController,
@@ -242,31 +252,33 @@ class MapState extends Equatable {
       visibleRouteCodes: visibleRouteCodes ?? this.visibleRouteCodes,
       roadRoutePolylines: roadRoutePolylines ?? this.roadRoutePolylines,
       mapZoom: mapZoom ?? this.mapZoom,
-      previewOptionId:
-          clearPreviewOption ? null : (previewOptionId ?? this.previewOptionId),
-      highlightedStepIndex:
-          clearHighlightedStep ? null : (highlightedStepIndex ?? this.highlightedStepIndex),
+      previewOptionId: clearPreviewOption
+          ? null
+          : (previewOptionId ?? this.previewOptionId),
+      highlightedStepIndex: clearHighlightedStep
+          ? null
+          : (highlightedStepIndex ?? this.highlightedStepIndex),
       isNavigating: isNavigating ?? this.isNavigating,
     );
   }
 
   @override
   List<Object?> get props => [
-        isLoading,
-        currentLocation,
-        destination,
-        plannedRoute,
-        routeOptions.length,
-        selectedVehicleMode,
-        routePreference,
-        pinMode,
-        layers,
-        jeepneyRoutes.length,
-        errorMessage,
-        locationWarning,
-        transportWarning,
-        tilesUnavailable,
-        visibleRouteCodes,
-        roadRoutePolylines.length,
-      ];
+    isLoading,
+    currentLocation,
+    destination,
+    plannedRoute,
+    routeOptions,
+    selectedVehicleMode,
+    routePreference,
+    pinMode,
+    layers,
+    jeepneyRoutes,
+    errorMessage,
+    locationWarning,
+    transportWarning,
+    tilesUnavailable,
+    visibleRouteCodes,
+    roadRoutePolylines.length,
+  ];
 }

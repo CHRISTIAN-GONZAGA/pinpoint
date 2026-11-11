@@ -13,10 +13,10 @@ class JeepneyPlanBuilder {
     required JeepneyPathService jeepneyPaths,
     StopMatcher? stopMatcher,
     TransferOptimizer? transferOptimizer,
-  })  : _geometry = geometry,
-        _jeepneyPaths = jeepneyPaths,
-        _stops = stopMatcher ?? StopMatcher(geometry),
-        _transfers = transferOptimizer ?? TransferOptimizer(geometry);
+  }) : _geometry = geometry,
+       _jeepneyPaths = jeepneyPaths,
+       _stops = stopMatcher ?? StopMatcher(geometry),
+       _transfers = transferOptimizer ?? TransferOptimizer(geometry);
 
   final RoutingGeometry _geometry;
   final JeepneyPathService _jeepneyPaths;
@@ -26,7 +26,6 @@ class JeepneyPlanBuilder {
   static const walkOnlyMaxMeters = 1400.0;
   static const maxDetourRatio = 4.0;
   static const jeepneySpeedMps = 200 / 60;
-  static const maxPlans = 7;
   static const minJeepneyLegMeters = 250.0;
   static const maxAlightToDestMeters = 1200.0;
 
@@ -54,22 +53,29 @@ class JeepneyPlanBuilder {
       for (final route in routable) {
         if (activeRoutes.any((r) => r.routeId == route.routeId)) continue;
         final nearOrigin =
-            _geometry.distancePointToPolylineMeters(origin, route.polyline) <= 1500;
+            _geometry.distancePointToPolylineMeters(origin, route.polyline) <=
+            1500;
         final nearDest =
-            _geometry.distancePointToPolylineMeters(destination, route.polyline) <= 1500;
+            _geometry.distancePointToPolylineMeters(
+              destination,
+              route.polyline,
+            ) <=
+            1500;
         if (nearOrigin || nearDest) activeRoutes.add(route);
       }
     }
 
-    for (final route in activeRoutes) {
-      final plan = await _tryOptimalSameRoute(
-        route: route,
-        origin: origin,
-        destination: destination,
-        directMeters: directMeters,
-      );
-      if (plan != null) scored.add(plan);
-    }
+    final directPlans = await Future.wait(
+      activeRoutes.map(
+        (route) => _tryOptimalSameRoute(
+          route: route,
+          origin: origin,
+          destination: destination,
+          directMeters: directMeters,
+        ),
+      ),
+    );
+    scored.addAll(directPlans.whereType<({double score, JeepneyPlan plan})>());
 
     // Only suggest PUJ-to-PUJ transfers when no single route serves the trip.
     if (scored.isEmpty) {
@@ -89,23 +95,23 @@ class JeepneyPlanBuilder {
     }
 
     if (scored.isEmpty) {
-      scored.addAll(await _fallbackPlans(
-        origin: origin,
-        destination: destination,
-        jeepneyRoutes: routable,
-        directMeters: directMeters,
-      ));
+      scored.addAll(
+        await _fallbackPlans(
+          origin: origin,
+          destination: destination,
+          jeepneyRoutes: routable,
+          directMeters: directMeters,
+        ),
+      );
     }
 
     scored.sort((a, b) => a.score.compareTo(b.score));
 
     final seen = <String>{};
-    final plans = <JeepneyPlan>[];
-    for (final entry in scored) {
-      if (seen.add(entry.plan.planId)) plans.add(entry.plan);
-      if (plans.length >= maxPlans) break;
-    }
-    return plans;
+    return scored
+        .map((entry) => entry.plan)
+        .where((plan) => seen.add(plan.planId))
+        .toList();
   }
 
   /// One optimal same-route plan using corridor projection (no overshoot alight).
@@ -152,7 +158,11 @@ class JeepneyPlanBuilder {
     final walkFromAlightDist = alightToDest;
     if (walkToBoardDist > StopMatcher.maxWalkToStopMeters + 400) return null;
 
-    final segment = _geometry.sliceBetweenPoints(polyline, boardPoint, alightPoint);
+    final segment = _geometry.sliceBetweenPoints(
+      polyline,
+      boardPoint,
+      alightPoint,
+    );
     final jeepDist = _geometry.polylineLengthMeters(segment);
     if (jeepDist < minJeepneyLegMeters) return null;
 
@@ -163,17 +173,25 @@ class JeepneyPlanBuilder {
     // corridor projection should always be closer.
     final naiveAlight = _nearestStop(route, destination);
     if (naiveAlight != null) {
-      final naiveDist = _geometry.distanceMeters(naiveAlight.latLng, destination);
+      final naiveDist = _geometry.distanceMeters(
+        naiveAlight.latLng,
+        destination,
+      );
       if (naiveDist > alightToDest + 80) {
         // Corridor projection is strictly better — good plan.
       }
     }
 
-    final walkTo = await _geometry.safeWalkingRoute(origin, boardPoint);
-    final walkFrom = await _geometry.safeWalkingRoute(alightPoint, destination);
+    final walks = await Future.wait([
+      _geometry.safeWalkingRoute(origin, boardPoint),
+      _geometry.safeWalkingRoute(alightPoint, destination),
+    ]);
+    final walkTo = walks[0];
+    final walkFrom = walks[1];
     final jeepDuration = (jeepDist / jeepneySpeedMps).round();
 
-    final travelFwd = boardProj.distanceFromStart < alightProj.distanceFromStart;
+    final travelFwd =
+        boardProj.distanceFromStart < alightProj.distanceFromStart;
     final suffix = travelFwd ? 'fwd' : 'rev';
     final plan = JeepneyPlan(
       planId: 'jeep-${route.routeCode}-corridor-$suffix',
@@ -251,7 +269,8 @@ class JeepneyPlanBuilder {
         best = stop;
       }
     }
-    if (best == null || bestDist > StopMatcher.maxWalkToStopMeters + 800) return null;
+    if (best == null || bestDist > StopMatcher.maxWalkToStopMeters + 800)
+      return null;
     return best;
   }
 
@@ -297,14 +316,17 @@ class JeepneyPlanBuilder {
     }
 
     final walkTo = await _geometry.safeWalkingRoute(origin, boardProj.point);
-    final walkFrom =
-        await _geometry.safeWalkingRoute(alightProj.point, destination);
+    final walkFrom = await _geometry.safeWalkingRoute(
+      alightProj.point,
+      destination,
+    );
     final transferWalk = await _geometry.safeWalkingRoute(
       transfer.originStop.latLng,
       transfer.destStop.latLng,
     );
 
-    final total = walkTo.distanceMeters +
+    final total =
+        walkTo.distanceMeters +
         firstDist +
         transfer.walkMeters +
         secondDist +
@@ -312,8 +334,7 @@ class JeepneyPlanBuilder {
     if (!_passesDetourCheck(total, directMeters)) return null;
 
     final plan = JeepneyPlan(
-      planId:
-          'xfer-${originRoute.routeCode}-${destRoute.routeCode}-corridor',
+      planId: 'xfer-${originRoute.routeCode}-${destRoute.routeCode}-corridor',
       boardRoute: originRoute,
       boardStop: boardStop,
       alightStop: alightStop,

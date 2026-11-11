@@ -1,12 +1,22 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
+Object? _decodeJson(String raw) => jsonDecode(raw);
 
 /// Loads bundled JSON assets shipped with the app.
 abstract final class AssetLoader {
   static Future<Map<String, dynamic>> loadJson(String assetPath) async {
     final raw = await rootBundle.loadString(assetPath);
-    return jsonDecode(raw) as Map<String, dynamic>;
+    final decoded = raw.length >= 64 * 1024
+        ? await compute<String, Object?>(
+            _decodeJson,
+            raw,
+            debugLabel: 'decode-json:$assetPath',
+          )
+        : jsonDecode(raw);
+    return Map<String, dynamic>.from(decoded as Map);
   }
 
   static Future<List<Map<String, dynamic>>> loadJsonList(
@@ -29,5 +39,6 @@ abstract final class AssetPaths {
   static const emergency = 'assets/data/emergency/emergency.json';
   static const knowledge = 'assets/data/knowledge/knowledge_base.json';
   static const announcements = 'assets/data/system/announcements.json';
-  static const nationalHighways = 'assets/data/transport/national_highways.json';
+  static const nationalHighways =
+      'assets/data/transport/national_highways.json';
 }
