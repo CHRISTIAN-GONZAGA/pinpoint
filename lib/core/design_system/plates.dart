@@ -36,7 +36,10 @@ class RouteCode extends StatelessWidget {
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: AppColors.edgeOf(Theme.of(context).brightness), width: 2),
+        border: Border.all(
+          color: AppColors.edgeOf(Theme.of(context).brightness),
+          width: 2,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(3),
@@ -60,7 +63,7 @@ class RouteCode extends StatelessWidget {
 
 enum RouteCodeSize { sm, md, lg }
 
-/// Paper card with a 2px edge and a 1px inner pinstripe.
+/// Paper card with a subtle outline and inset detail.
 class PlateCard extends StatelessWidget {
   const PlateCard({
     super.key,
@@ -80,27 +83,24 @@ class PlateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
-    final edge = borderColor ?? AppColors.edgeOf(brightness);
+    final edge = borderColor ?? AppColors.hairlineOf(brightness);
     return Material(
       color: color ?? AppColors.paperOf(brightness),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(18),
+      elevation: 1,
+      shadowColor: Colors.black.withValues(
+        alpha: brightness == Brightness.light ? 0.06 : 0.18,
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(18),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: edge, width: 2),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: edge, width: 1),
           ),
-          child: Container(
-            margin: const EdgeInsets.all(2),
-            padding: padding,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: edge.withValues(alpha: 0.18)),
-            ),
-            child: child,
-          ),
+          padding: padding,
+          child: child,
         ),
       ),
     );
@@ -117,10 +117,7 @@ class ZigzagEdge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        ColoredBox(
-          color: AppColors.signal,
-          child: child,
-        ),
+        ColoredBox(color: AppColors.signal, child: child),
         CustomPaint(
           painter: _ZigzagPainter(
             color: AppColors.signal,

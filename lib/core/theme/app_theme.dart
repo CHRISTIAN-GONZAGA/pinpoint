@@ -5,7 +5,7 @@ import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
 import 'package:pinpoint/core/theme/premium_tokens.dart';
 
-/// Centralized Material 3 theme — refined, Apple-inspired clarity.
+/// Centralized Material 3 theme for the PINPOINT route-signboard system.
 abstract final class AppTheme {
   static ThemeData light() => _build(Brightness.light);
   static ThemeData dark() => _build(Brightness.dark);
@@ -15,7 +15,7 @@ abstract final class AppTheme {
     final textTheme = _textTheme(brightness);
     final surfaceElevated = AppColors.paperOf(brightness);
     final borderColor = AppColors.hairlineOf(brightness);
-    final edge = AppColors.edgeOf(brightness);
+    final edge = AppColors.hairlineOf(brightness);
     final primaryFill = AppColors.primaryFillOf(brightness);
 
     final scheme = ColorScheme(
@@ -52,16 +52,19 @@ abstract final class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        systemOverlayStyle: isLight ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
+        systemOverlayStyle: isLight
+            ? SystemUiOverlayStyle.dark
+            : SystemUiOverlayStyle.light,
         backgroundColor: AppColors.stageOf(brightness),
         foregroundColor: AppColors.inkOf(brightness),
         titleTextStyle: textTheme.titleLarge?.copyWith(letterSpacing: -0.3),
       ),
       cardTheme: CardThemeData(
-        elevation: 0,
+        elevation: 1,
+        shadowColor: Colors.black.withValues(alpha: isLight ? 0.06 : 0.18),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: edge, width: 2),
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(color: edge, width: 1),
         ),
         color: surfaceElevated,
         margin: EdgeInsets.zero,
@@ -108,7 +111,24 @@ abstract final class AppTheme {
             horizontal: AppSpacing.buttonPaddingH,
             vertical: 14,
           ),
-          side: BorderSide(color: edge, width: 2),
+          side: BorderSide(color: edge, width: 1),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: textTheme.labelLarge,
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          minimumSize: const Size(48, 48),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
@@ -118,35 +138,48 @@ abstract final class AppTheme {
         filled: true,
         fillColor: surfaceElevated,
         hintStyle: TextStyle(
-          color: isLight ? AppColors.textSecondaryLight : AppColors.textSecondaryDark,
+          color: isLight
+              ? AppColors.textSecondaryLight
+              : AppColors.textSecondaryDark,
           fontWeight: FontWeight.w400,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: edge, width: 2),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: edge, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: edge, width: 2),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: edge, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: primaryFill, width: 3),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: primaryFill, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.dangerOf(brightness), width: 2),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: AppColors.dangerOf(brightness),
+            width: 1,
+          ),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.dangerOf(brightness), width: 2),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: AppColors.dangerOf(brightness),
+            width: 2,
+          ),
         ),
         errorStyle: TextStyle(
-          color: brightness == Brightness.dark ? AppColors.dangerTextDark : AppColors.dangerText,
+          color: brightness == Brightness.dark
+              ? AppColors.dangerTextDark
+              : AppColors.dangerText,
           fontSize: 13,
           height: 1.3,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         elevation: 0,
@@ -173,6 +206,22 @@ abstract final class AppTheme {
           );
         }),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      ),
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: surfaceElevated,
+        indicatorColor: primaryFill.withValues(alpha: isLight ? 0.10 : 0.20),
+        selectedIconTheme: IconThemeData(color: primaryFill, size: 23),
+        unselectedIconTheme: IconThemeData(
+          color: AppColors.inkSecondaryOf(brightness),
+          size: 22,
+        ),
+        selectedLabelTextStyle: textTheme.labelMedium?.copyWith(
+          color: primaryFill,
+          fontWeight: FontWeight.w700,
+        ),
+        unselectedLabelTextStyle: textTheme.labelMedium,
+        groupAlignment: 0,
+        labelType: NavigationRailLabelType.all,
       ),
       dividerTheme: DividerThemeData(color: borderColor, thickness: 0.5),
       chipTheme: ChipThemeData(
@@ -214,12 +263,12 @@ abstract final class AppTheme {
     final body = GoogleFonts.atkinsonHyperlegibleTextTheme(base);
 
     TextStyle display(double size) => GoogleFonts.archivoNarrow(
-          fontSize: size,
-          fontWeight: FontWeight.w800,
-          height: 0.95,
-          letterSpacing: -0.6,
-          color: ink,
-        );
+      fontSize: size,
+      fontWeight: FontWeight.w800,
+      height: 0.95,
+      letterSpacing: -0.6,
+      color: ink,
+    );
 
     return body.copyWith(
       displayLarge: display(44),
@@ -256,7 +305,7 @@ abstract final class AppTheme {
         color: ink,
       ),
       bodySmall: GoogleFonts.atkinsonHyperlegible(
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: FontWeight.w400,
         height: 1.35,
         color: muted,
@@ -272,7 +321,7 @@ abstract final class AppTheme {
         color: muted,
       ),
       labelSmall: GoogleFonts.atkinsonHyperlegible(
-        fontSize: 12,
+        fontSize: 13,
         fontWeight: FontWeight.w700,
         color: muted,
       ),

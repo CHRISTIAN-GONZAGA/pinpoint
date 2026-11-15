@@ -22,13 +22,24 @@ class EmptyStateWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: AppSpacing.screenMargin),
+      padding: const EdgeInsets.symmetric(
+        vertical: 32,
+        horizontal: AppSpacing.screenMargin,
+      ),
       child: Column(
         children: [
-          Icon(
-            icon,
-            size: 48,
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
+          Container(
+            width: 76,
+            height: 76,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Icon(
+              icon,
+              size: 36,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 16),
           Text(

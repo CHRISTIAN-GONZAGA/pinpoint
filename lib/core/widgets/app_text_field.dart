@@ -39,22 +39,28 @@ class AppTextField extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
-              ),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.8),
+          ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        TextFormField(
-          controller: controller,
-          obscureText: obscureText,
-          keyboardType: keyboardType,
-          textInputAction: textInputAction,
-          validator: validator,
-          onChanged: onChanged,
-          autocorrect: autocorrect,
-          decoration: InputDecoration(
-            hintText: hint,
-            prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
-            suffixIcon: suffixIcon,
+        Semantics(
+          label: label,
+          textField: true,
+          child: TextFormField(
+            controller: controller,
+            obscureText: obscureText,
+            keyboardType: keyboardType,
+            textInputAction: textInputAction,
+            validator: validator,
+            onChanged: onChanged,
+            autocorrect: autocorrect,
+            decoration: InputDecoration(
+              hintText: hint,
+              prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
+              suffixIcon: suffixIcon,
+            ),
           ),
         ),
       ],
@@ -115,7 +121,9 @@ class PasswordStrengthIndicator extends StatelessWidget {
         const SizedBox(height: AppSpacing.xs),
         Text(
           _label,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(color: _color),
+          style: Theme.of(
+            context,
+          ).textTheme.labelMedium?.copyWith(color: _color),
         ),
       ],
     );

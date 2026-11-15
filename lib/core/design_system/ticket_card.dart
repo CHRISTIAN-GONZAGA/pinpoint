@@ -24,12 +24,15 @@ class TicketCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
-    final edge = AppColors.edgeOf(brightness);
     final ink = AppColors.inkOf(brightness);
     final muted = AppColors.inkSecondaryOf(brightness);
     final code = routeCode?.trim();
     final hasCode = code != null && code.isNotEmpty;
-    final stub = routeColor ?? (hasCode ? AppColors.primaryFillOf(brightness) : AppColors.sunkenOf(brightness));
+    final stub =
+        routeColor ??
+        (hasCode
+            ? AppColors.primaryFillOf(brightness)
+            : AppColors.sunkenOf(brightness));
     final stubInk = hasCode
         ? (AppColors.routeNeedsDarkInk(stub) ? AppColors.ink : Colors.white)
         : muted;
@@ -46,7 +49,10 @@ class TicketCard extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: edge, width: 2),
+              border: Border.all(
+                color: AppColors.hairlineOf(brightness),
+                width: 1,
+              ),
             ),
             child: IntrinsicHeight(
               child: Row(
@@ -146,11 +152,16 @@ class _TicketDashPainter extends CustomPainter {
     const gap = 4.0;
     var y = 0.0;
     while (y < size.height) {
-      canvas.drawLine(Offset(size.width / 2, y), Offset(size.width / 2, y + dash), paint);
+      canvas.drawLine(
+        Offset(size.width / 2, y),
+        Offset(size.width / 2, y + dash),
+        paint,
+      );
       y += dash + gap;
     }
   }
 
   @override
-  bool shouldRepaint(covariant _TicketDashPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _TicketDashPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

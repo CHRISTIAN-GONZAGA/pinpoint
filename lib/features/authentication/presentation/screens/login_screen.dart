@@ -8,6 +8,7 @@ import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
 import 'package:pinpoint/core/widgets/app_text_field.dart';
 import 'package:pinpoint/core/widgets/primary_button.dart';
+import 'package:pinpoint/core/widgets/responsive_content.dart';
 import 'package:pinpoint/core/widgets/secondary_button.dart';
 import 'package:pinpoint/features/authentication/presentation/viewmodels/auth_notifier.dart';
 
@@ -60,7 +61,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!mounted) return;
     setState(() => _biometricAvailable = canUnlock);
     if (canUnlock) {
-      final email = await ref.read(authLocalDataSourceProvider).getLastLoginEmail();
+      final email = await ref
+          .read(authLocalDataSourceProvider)
+          .getLastLoginEmail();
       if (email != null && email.isNotEmpty) {
         _emailController.text = email;
       }
@@ -68,13 +71,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _unlockWithBiometrics() async {
-    final success = await ref.read(authNotifierProvider.notifier).unlockWithBiometrics();
+    final success = await ref
+        .read(authNotifierProvider.notifier)
+        .unlockWithBiometrics();
     if (!mounted) return;
     if (success) {
       context.go(AppRoutes.home);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Biometric unlock failed. Sign in with your password.')),
+        const SnackBar(
+          content: Text('Biometric unlock failed. Sign in with your password.'),
+        ),
       );
     }
   }
@@ -88,7 +95,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-    final success = await ref.read(authNotifierProvider.notifier).login(
+    final success = await ref
+        .read(authNotifierProvider.notifier)
+        .login(
           email: _emailController.text.trim(),
           password: _passwordController.text,
           rememberMe: _rememberMe,
@@ -98,9 +107,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       context.go(AppRoutes.home);
     } else {
       final error = ref.read(authNotifierProvider).errorMessage;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error ?? 'Login failed')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error ?? 'Login failed')));
     }
   }
 
@@ -178,98 +187,123 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.screenMargin),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text('Sign in', style: Theme.of(context).textTheme.displayMedium),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Keep your saved places and routes on every phone you use.',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.inkSecondaryOf(Theme.of(context).brightness),
-                          ),
-                    ),
-                    const SizedBox(height: 20),
-                    AppTextField(
-                      controller: _emailController,
-                      label: 'Email',
-                      hint: 'you@example.com',
-                      keyboardType: TextInputType.emailAddress,
-                      prefixIcon: Icons.mail_outline,
-                      autocorrect: false,
-                      validator: validateLoginEmail,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    AppTextField(
-                      controller: _passwordController,
-                      label: 'Password',
-                      hint: 'Enter your password',
-                      obscureText: _obscurePassword,
-                      prefixIcon: Icons.lock_outline,
-                      suffixIcon: IconButton(
-                        tooltip: _obscurePassword ? 'Show password' : 'Hide password',
-                        icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                      ),
-                      validator: validateLoginPassword,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      alignment: WrapAlignment.spaceBetween,
+              child: ResponsiveContent(
+                maxWidth: 520,
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.screenMargin),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Checkbox(
-                              value: _rememberMe,
-                              onChanged: (v) => setState(() => _rememberMe = v ?? true),
+                        Text(
+                          'Sign in',
+                          style: Theme.of(context).textTheme.displayMedium,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Keep your saved places and routes on every phone you use.',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: AppColors.inkSecondaryOf(
+                                  Theme.of(context).brightness,
+                                ),
+                              ),
+                        ),
+                        const SizedBox(height: 20),
+                        AppTextField(
+                          controller: _emailController,
+                          label: 'Email',
+                          hint: 'you@example.com',
+                          keyboardType: TextInputType.emailAddress,
+                          prefixIcon: Icons.mail_outline,
+                          autocorrect: false,
+                          validator: validateLoginEmail,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextField(
+                          controller: _passwordController,
+                          label: 'Password',
+                          hint: 'Enter your password',
+                          obscureText: _obscurePassword,
+                          prefixIcon: Icons.lock_outline,
+                          suffixIcon: IconButton(
+                            tooltip: _obscurePassword
+                                ? 'Show password'
+                                : 'Hide password',
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
                             ),
-                            const Text('Keep me signed in'),
+                            onPressed: () => setState(
+                              () => _obscurePassword = !_obscurePassword,
+                            ),
+                          ),
+                          validator: validateLoginPassword,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          alignment: WrapAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Checkbox(
+                                  value: _rememberMe,
+                                  onChanged: (v) =>
+                                      setState(() => _rememberMe = v ?? true),
+                                ),
+                                const Text('Keep me signed in'),
+                              ],
+                            ),
+                            TextButton(
+                              onPressed: () =>
+                                  context.push(AppRoutes.forgotPassword),
+                              child: Text(
+                                'Forgot password?',
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? AppColors.primaryText
+                                      : AppColors.primary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
-                        TextButton(
-                          onPressed: () => context.push(AppRoutes.forgotPassword),
-                          child: Text(
-                            'Forgot password?',
-                            style: TextStyle(
-                              color: Theme.of(context).brightness == Brightness.dark
-                                  ? AppColors.primaryText
-                                  : AppColors.primary,
-                              fontWeight: FontWeight.w700,
-                            ),
+                        const SizedBox(height: AppSpacing.lg),
+                        if (_biometricAvailable) ...[
+                          OutlinedButton.icon(
+                            onPressed: auth.isLoading
+                                ? null
+                                : _unlockWithBiometrics,
+                            icon: const Icon(Icons.fingerprint),
+                            label: const Text('Unlock with biometrics'),
                           ),
+                          const SizedBox(height: AppSpacing.md),
+                        ],
+                        PrimaryButton(
+                          label: 'Sign in',
+                          isLoading: auth.isLoading,
+                          onPressed: _login,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        SecondaryButton(
+                          label: 'Continue as guest',
+                          onPressed: auth.isLoading ? null : _continueAsGuest,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        TextButton(
+                          onPressed: () => context.push(AppRoutes.register),
+                          child: const Text('New here? Create an account'),
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.lg),
-                    if (_biometricAvailable) ...[
-                      OutlinedButton.icon(
-                        onPressed: auth.isLoading ? null : _unlockWithBiometrics,
-                        icon: const Icon(Icons.fingerprint),
-                        label: const Text('Unlock with biometrics'),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                    ],
-                    PrimaryButton(
-                      label: 'Sign in',
-                      isLoading: auth.isLoading,
-                      onPressed: _login,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    SecondaryButton(
-                      label: 'Continue as guest',
-                      onPressed: auth.isLoading ? null : _continueAsGuest,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    TextButton(
-                      onPressed: () => context.push(AppRoutes.register),
-                      child: const Text('New here? Create an account'),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),

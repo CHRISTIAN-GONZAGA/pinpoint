@@ -22,6 +22,7 @@ import 'package:pinpoint/core/design_system/ticket_card.dart';
 import 'package:pinpoint/core/widgets/home_greeting_header.dart';
 import 'package:pinpoint/core/widgets/place_card.dart';
 import 'package:pinpoint/core/widgets/premium_surface.dart';
+import 'package:pinpoint/core/widgets/responsive_content.dart';
 import 'package:pinpoint/shared/widgets/destination_search_field.dart';
 
 class MainShellScreen extends ConsumerWidget {
@@ -31,20 +32,89 @@ class MainShellScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    void selectTab(int index) {
+      if (index == 0 || index == 1) {
+        unawaited(
+          ref.read(mapNotifierProvider.notifier).refreshFeaturedDestinations(),
+        );
+      }
+      if (index != navigationShell.currentIndex) {
+        navigationShell.goBranch(index);
+      }
+    }
+
+    final useRail = MediaQuery.sizeOf(context).width >= 760;
     return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: _DockBar(
-        currentIndex: navigationShell.currentIndex,
-        onSelected: (index) {
-          if (index == 0 || index == 1) {
-            unawaited(
-              ref.read(mapNotifierProvider.notifier).refreshFeaturedDestinations(),
-            );
-          }
-          if (index != navigationShell.currentIndex) {
-            navigationShell.goBranch(index);
-          }
-        },
+      body: Row(
+        children: [
+          if (useRail)
+            _SideNavigation(
+              currentIndex: navigationShell.currentIndex,
+              onSelected: selectTab,
+            ),
+          Expanded(child: navigationShell),
+        ],
+      ),
+      bottomNavigationBar: useRail
+          ? null
+          : _DockBar(
+              currentIndex: navigationShell.currentIndex,
+              onSelected: selectTab,
+            ),
+    );
+  }
+}
+
+class _SideNavigation extends StatelessWidget {
+  const _SideNavigation({required this.currentIndex, required this.onSelected});
+
+  final int currentIndex;
+  final ValueChanged<int> onSelected;
+
+  static const _items = <(IconData, IconData, String)>[
+    (Icons.home_outlined, Icons.home_rounded, 'Home'),
+    (Icons.map_outlined, Icons.map_rounded, 'Map'),
+    (Icons.explore_outlined, Icons.explore_rounded, 'Explore'),
+    (Icons.chat_bubble_outline, Icons.chat_bubble_rounded, 'Assistant'),
+    (Icons.person_outline, Icons.person_rounded, 'Profile'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    return SafeArea(
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.paperOf(brightness),
+          border: Border(
+            right: BorderSide(color: AppColors.hairlineOf(brightness)),
+          ),
+        ),
+        child: NavigationRail(
+          selectedIndex: currentIndex,
+          onDestinationSelected: onSelected,
+          minWidth: 84,
+          leading: Padding(
+            padding: const EdgeInsets.fromLTRB(0, 20, 0, 28),
+            child: Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: AppColors.primaryFillOf(brightness),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(Icons.route_rounded, color: Colors.white),
+            ),
+          ),
+          destinations: [
+            for (final item in _items)
+              NavigationRailDestination(
+                icon: Icon(item.$1),
+                selectedIcon: Icon(item.$2),
+                label: Text(item.$3),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -60,7 +130,8 @@ class _DockBar extends StatefulWidget {
   State<_DockBar> createState() => _DockBarState();
 }
 
-class _DockBarState extends State<_DockBar> with SingleTickerProviderStateMixin {
+class _DockBarState extends State<_DockBar>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _pillAnim;
   int _prevIndex = 0;
@@ -81,7 +152,10 @@ class _DockBarState extends State<_DockBar> with SingleTickerProviderStateMixin 
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _pillAnim = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
+    _pillAnim = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override
@@ -103,17 +177,16 @@ class _DockBarState extends State<_DockBar> with SingleTickerProviderStateMixin 
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final bottom = MediaQuery.paddingOf(context).bottom;
-    final primary = brightness == Brightness.dark ? AppColors.primaryText : AppColors.primary;
+    final primary = brightness == Brightness.dark
+        ? AppColors.primaryText
+        : AppColors.primary;
 
     return Material(
       color: AppColors.paperOf(brightness),
       child: Container(
         decoration: BoxDecoration(
           border: Border(
-            top: BorderSide(
-              color: AppColors.hairlineOf(brightness),
-              width: 1,
-            ),
+            top: BorderSide(color: AppColors.hairlineOf(brightness), width: 1),
           ),
         ),
         child: Padding(
@@ -197,7 +270,8 @@ class _DockItem extends StatefulWidget {
   State<_DockItem> createState() => _DockItemState();
 }
 
-class _DockItemState extends State<_DockItem> with SingleTickerProviderStateMixin {
+class _DockItemState extends State<_DockItem>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _scaleCtrl;
 
   @override
@@ -225,27 +299,24 @@ class _DockItemState extends State<_DockItem> with SingleTickerProviderStateMixi
         ? widget.primaryColor
         : AppColors.inkSecondaryOf(brightness);
 
-    return GestureDetector(
+    return InkWell(
+      onTap: widget.onTap,
       onTapDown: (_) => _scaleCtrl.reverse(),
-      onTapUp: (_) {
-        _scaleCtrl.forward();
-        widget.onTap();
-      },
+      onTapUp: (_) => _scaleCtrl.forward(),
       onTapCancel: () => _scaleCtrl.forward(),
-      behavior: HitTestBehavior.opaque,
+      borderRadius: BorderRadius.circular(14),
       child: AnimatedBuilder(
         animation: _scaleCtrl,
-        builder: (context, child) => Transform.scale(
-          scale: _scaleCtrl.value,
-          child: child,
-        ),
+        builder: (context, child) =>
+            Transform.scale(scale: _scaleCtrl.value, child: child),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 10),
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
-              transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+              transitionBuilder: (child, anim) =>
+                  ScaleTransition(scale: anim, child: child),
               child: Icon(
                 widget.selected ? widget.filledIcon : widget.outlineIcon,
                 key: ValueKey(widget.selected),
@@ -295,10 +366,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       unawaited(ref.read(favoritesNotifierProvider.notifier).load());
       unawaited(ref.read(historyNotifierProvider.notifier).load());
       await ref.read(exploreNotifierProvider.notifier).initialize();
-      await ref.read(notificationsNotifierProvider.notifier).loadAnnouncements();
+      await ref
+          .read(notificationsNotifierProvider.notifier)
+          .loadAnnouncements();
       final user = ref.read(currentUserProvider);
       if (user != null && !user.isGuest) {
-        await ref.read(notificationsNotifierProvider.notifier).loadNotifications();
+        await ref
+            .read(notificationsNotifierProvider.notifier)
+            .loadNotifications();
       }
     });
   }
@@ -319,78 +394,91 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       backgroundColor: PremiumTokens.groupedBackground(context),
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            await Future.wait([
-              ref.read(mapNotifierProvider.notifier).initialize(),
-              ref.read(mapNotifierProvider.notifier).refreshLocation(),
-              ref.read(mapNotifierProvider.notifier).refreshFeaturedDestinations(force: true),
-              ref.read(exploreNotifierProvider.notifier).initialize(),
-              ref.read(notificationsNotifierProvider.notifier).loadAnnouncements(),
-            ]);
-          },
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _HomeTop(user: user),
-                      const SizedBox(height: 24),
-                      Text(
-                        _todayLabel(),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.inkSecondaryOf(Theme.of(context).brightness),
-                            ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Where to today?',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 52),
-                      ),
-                      const SizedBox(height: 16),
-                      const _HomeSearchBar(),
-                      const SizedBox(height: 14),
-                      _FareNotice(announcements: announcements),
-                      const SizedBox(height: 16),
-                      const _ActionGrid(),
-                      const SizedBox(height: 26),
-                      HomeSectionHeader(
-                        title: 'Popular destinations',
-                      ),
-                      if (featured.isEmpty)
-                        HomeEmptyHint(
-                          icon: Icons.place_outlined,
-                          title: 'Destinations loading',
-                          message: 'Pull to refresh, or open Map to browse places.',
-                          actionLabel: 'Open map',
-                          onAction: () => context.go(AppRoutes.map),
-                        )
-                      else
-                        const _PopularNowRail(),
-                      const SizedBox(height: 26),
-                      HomeSectionHeader(
-                        title: 'Around you',
-                        subtitle: 'Places near your current spot',
-                        actionLabel: nearby.isEmpty ? null : 'Explore',
-                        onAction: nearby.isEmpty ? null : () => context.go(AppRoutes.explore),
-                      ),
-                      const _NearbyList(),
-                      const SizedBox(height: 12),
-                      _EmergencyBanner(),
-                      const SizedBox(height: 18),
-                      const _SavedAndRecentSection(),
-                      const SizedBox(height: 110),
-                    ],
+        child: ResponsiveContent(
+          maxWidth: 1040,
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await Future.wait([
+                ref.read(mapNotifierProvider.notifier).initialize(),
+                ref.read(mapNotifierProvider.notifier).refreshLocation(),
+                ref
+                    .read(mapNotifierProvider.notifier)
+                    .refreshFeaturedDestinations(force: true),
+                ref.read(exploreNotifierProvider.notifier).initialize(),
+                ref
+                    .read(notificationsNotifierProvider.notifier)
+                    .loadAnnouncements(),
+              ]);
+            },
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _HomeTop(user: user),
+                        const SizedBox(height: 24),
+                        Text(
+                          _todayLabel(),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: AppColors.inkSecondaryOf(
+                                  Theme.of(context).brightness,
+                                ),
+                              ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Where to today?',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.displayLarge?.copyWith(fontSize: 52),
+                        ),
+                        const SizedBox(height: 16),
+                        const _HomeSearchBar(),
+                        const SizedBox(height: 14),
+                        _FareNotice(announcements: announcements),
+                        const SizedBox(height: 16),
+                        const _ActionGrid(),
+                        const SizedBox(height: 26),
+                        HomeSectionHeader(title: 'Popular destinations'),
+                        if (featured.isEmpty)
+                          HomeEmptyHint(
+                            icon: Icons.place_outlined,
+                            title: 'Destinations loading',
+                            message:
+                                'Pull to refresh, or open Map to browse places.',
+                            actionLabel: 'Open map',
+                            onAction: () => context.go(AppRoutes.map),
+                          )
+                        else
+                          const _PopularNowRail(),
+                        const SizedBox(height: 26),
+                        HomeSectionHeader(
+                          title: 'Around you',
+                          subtitle: 'Places near your current spot',
+                          actionLabel: nearby.isEmpty ? null : 'Explore',
+                          onAction: nearby.isEmpty
+                              ? null
+                              : () => context.go(AppRoutes.explore),
+                        ),
+                        const _NearbyList(),
+                        const SizedBox(height: 12),
+                        _EmergencyBanner(),
+                        const SizedBox(height: 18),
+                        const _SavedAndRecentSection(),
+                        const SizedBox(height: 110),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -408,7 +496,9 @@ class _HomeTop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final name = (user?.fullName as String?)?.trim();
-    final initial = (name != null && name.isNotEmpty) ? name[0].toUpperCase() : 'B';
+    final initial = (name != null && name.isNotEmpty)
+        ? name[0].toUpperCase()
+        : 'B';
     final brightness = Theme.of(context).brightness;
     return Row(
       children: [
@@ -421,9 +511,18 @@ class _HomeTop extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.place_outlined, size: 18, color: brightness == Brightness.dark ? AppColors.primaryText : AppColors.primary),
+              Icon(
+                Icons.place_outlined,
+                size: 18,
+                color: brightness == Brightness.dark
+                    ? AppColors.primaryText
+                    : AppColors.primary,
+              ),
               const SizedBox(width: 6),
-              const Text('Butuan City', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+              const Text(
+                'Butuan City',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+              ),
             ],
           ),
         ),
@@ -441,7 +540,11 @@ class _HomeTop extends StatelessWidget {
             ),
             child: Text(
               initial,
-              style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w800, fontSize: 20),
+              style: const TextStyle(
+                color: AppColors.ink,
+                fontWeight: FontWeight.w800,
+                fontSize: 20,
+              ),
             ),
           ),
         ),
@@ -467,7 +570,9 @@ class _FareNotice extends StatelessWidget {
           bottomRight: Radius.circular(10),
           bottomLeft: Radius.circular(4),
         ),
-        border: const Border(left: BorderSide(color: AppColors.signal, width: 6)),
+        border: const Border(
+          left: BorderSide(color: AppColors.signal, width: 6),
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 11, 14, 11),
@@ -545,7 +650,11 @@ class _ActionGrid extends StatelessWidget {
                       'Find the jeep, the fare and where to get off',
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Colors.white, fontSize: 14, height: 1.3),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        height: 1.3,
+                      ),
                     ),
                   ],
                 ),
@@ -569,7 +678,10 @@ class _ActionGrid extends StatelessWidget {
                     Text(
                       'Ask the\nassistant',
                       softWrap: true,
-                      style: TextStyle(fontWeight: FontWeight.w700, height: 1.15),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        height: 1.15,
+                      ),
                     ),
                   ],
                 ),
@@ -614,19 +726,23 @@ class _ActionGrid extends StatelessWidget {
   }
 }
 
-
 class _HomeSearchBar extends ConsumerWidget {
   const _HomeSearchBar();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isSearching = ref.watch(mapNotifierProvider.select((s) => s.isSearching));
-    final results = ref.watch(mapNotifierProvider.select((s) => s.searchResults));
+    final isSearching = ref.watch(
+      mapNotifierProvider.select((s) => s.isSearching),
+    );
+    final results = ref.watch(
+      mapNotifierProvider.select((s) => s.searchResults),
+    );
     return DestinationSearchField(
       hintText: 'Search a place in Butuan',
       isSearching: isSearching,
       results: results,
-      onQueryChanged: (q) => ref.read(mapNotifierProvider.notifier).searchPlaces(q),
+      onQueryChanged: (q) =>
+          ref.read(mapNotifierProvider.notifier).searchPlaces(q),
       onSelect: (loc) async {
         await ref.read(mapNotifierProvider.notifier).planTripTo(loc);
         if (context.mounted) context.go(AppRoutes.map);
@@ -640,7 +756,9 @@ class _PopularNowRail extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final featured = ref.watch(mapNotifierProvider.select((s) => s.featuredDestinations));
+    final featured = ref.watch(
+      mapNotifierProvider.select((s) => s.featuredDestinations),
+    );
     if (featured.isEmpty) return const SizedBox.shrink();
 
     return SizedBox(
@@ -653,14 +771,18 @@ class _PopularNowRail extends ConsumerWidget {
           final item = featured[index];
           final categoryLabel =
               CommonDestinations.destinationCategories[item.place.category] ??
-                  PlaceUtils.labelForCategory(item.place.category);
-          final title = item.shortLabel.trim().isEmpty ? item.place.name : item.shortLabel;
+              PlaceUtils.labelForCategory(item.place.category);
+          final title = item.shortLabel.trim().isEmpty
+              ? item.place.name
+              : item.shortLabel;
 
           return TicketCard(
             title: title,
             category: categoryLabel,
             onTap: () async {
-              await ref.read(mapNotifierProvider.notifier).planTripTo(
+              await ref
+                  .read(mapNotifierProvider.notifier)
+                  .planTripTo(
                     MapLocation(
                       latitude: item.place.latitude,
                       longitude: item.place.longitude,
@@ -676,13 +798,14 @@ class _PopularNowRail extends ConsumerWidget {
   }
 }
 
-
 class _SavedAndRecentSection extends ConsumerWidget {
   const _SavedAndRecentSection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final favorites = ref.watch(favoritesNotifierProvider.select((s) => s.items));
+    final favorites = ref.watch(
+      favoritesNotifierProvider.select((s) => s.items),
+    );
     final history = ref.watch(historyNotifierProvider).items;
     if (favorites.isEmpty && history.isEmpty) {
       return const SizedBox.shrink();
@@ -705,7 +828,7 @@ class _SavedAndRecentSection extends ConsumerWidget {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: favorites.take(8).length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final item = favorites[index];
                 final accent = PlaceUtils.colorForCategory(item.category);
@@ -720,7 +843,9 @@ class _SavedAndRecentSection extends ConsumerWidget {
                   side: BorderSide(color: PremiumTokens.separator(context)),
                   onPressed: () async {
                     if (item.latitude != null && item.longitude != null) {
-                      await ref.read(mapNotifierProvider.notifier).planTripTo(
+                      await ref
+                          .read(mapNotifierProvider.notifier)
+                          .planTripTo(
                             MapLocation(
                               latitude: item.latitude!,
                               longitude: item.longitude!,
@@ -756,7 +881,9 @@ class _SavedAndRecentSection extends ConsumerWidget {
                 subtitle: item.searchType == 'route' ? 'Route' : 'Search',
                 onTap: () async {
                   if (item.latitude != null && item.longitude != null) {
-                    await ref.read(mapNotifierProvider.notifier).planTripTo(
+                    await ref
+                        .read(mapNotifierProvider.notifier)
+                        .planTripTo(
                           MapLocation(
                             latitude: item.latitude!,
                             longitude: item.longitude!,
@@ -764,14 +891,18 @@ class _SavedAndRecentSection extends ConsumerWidget {
                           ),
                         );
                   } else {
-                    await ref.read(mapNotifierProvider.notifier).searchPlaces(item.query);
+                    await ref
+                        .read(mapNotifierProvider.notifier)
+                        .searchPlaces(item.query);
                   }
                   if (context.mounted) context.go(AppRoutes.map);
                 },
                 trailing: Icon(
                   Icons.north_east_rounded,
                   size: 16,
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.3),
                 ),
               );
             }).toList(),
@@ -786,10 +917,16 @@ class _NearbyList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final nearby = ref.watch(exploreNotifierProvider.select((s) => s.nearbyPlaces));
-    final favorites = ref.watch(favoritesNotifierProvider.select((s) => s.items));
+    final nearby = ref.watch(
+      exploreNotifierProvider.select((s) => s.nearbyPlaces),
+    );
+    final favorites = ref.watch(
+      favoritesNotifierProvider.select((s) => s.items),
+    );
     if (nearby.isEmpty) {
-      final locating = ref.watch(mapNotifierProvider.select((s) => s.currentLocation)) == null;
+      final locating =
+          ref.watch(mapNotifierProvider.select((s) => s.currentLocation)) ==
+          null;
       return HomeEmptyHint(
         icon: Icons.location_searching_rounded,
         title: locating ? 'Location is off' : 'No places nearby yet',
@@ -813,9 +950,11 @@ class _NearbyList extends ConsumerWidget {
           child: PlaceCard(
             place: place,
             isFavorite: saved,
-            onFavorite: () =>
-                ref.read(favoritesNotifierProvider.notifier).toggleFavorite(place),
-            onTap: () => context.push(AppRoutes.placeDetail(place.placeType, place.id)),
+            onFavorite: () => ref
+                .read(favoritesNotifierProvider.notifier)
+                .toggleFavorite(place),
+            onTap: () =>
+                context.push(AppRoutes.placeDetail(place.placeType, place.id)),
           ),
         );
       }).toList(),

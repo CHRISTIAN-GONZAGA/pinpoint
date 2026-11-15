@@ -6,6 +6,7 @@ import 'package:pinpoint/app/constants.dart';
 import 'package:pinpoint/core/services/connectivity_service.dart';
 import 'package:pinpoint/core/localization/pinpoint_localizations.dart';
 import 'package:pinpoint/core/accessibility/accessibility_notifier.dart';
+import 'package:pinpoint/core/widgets/responsive_content.dart';
 import 'package:pinpoint/features/authentication/presentation/viewmodels/auth_notifier.dart';
 
 /// Root PINPOINT application widget.
@@ -46,9 +47,12 @@ class _PinpointAppState extends ConsumerState<PinpointApp> {
           .toList(),
       routerConfig: router,
       builder: (context, child) {
+        final systemTextScale = MediaQuery.textScalerOf(context).scale(1);
         final scaledChild = MediaQuery(
           data: MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.linear(accessibility.textScaleFactor),
+            textScaler: TextScaler.linear(
+              systemTextScale * accessibility.textScaleFactor,
+            ),
             disableAnimations: accessibility.reduceMotion,
           ),
           child: child ?? const SizedBox.shrink(),
@@ -64,7 +68,12 @@ class _PinpointAppState extends ConsumerState<PinpointApp> {
                 languageCode: accessibility.languageCode,
                 online: online,
               ),
-            Expanded(child: scaledChild),
+            Expanded(
+              child: ResponsiveContent(
+                maxWidth: 1440,
+                child: scaledChild,
+              ),
+            ),
           ],
         );
       },
@@ -103,7 +112,9 @@ class _AppStatusBar extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                showOffline ? Icons.wifi_off_rounded : Icons.offline_bolt_rounded,
+                showOffline
+                    ? Icons.wifi_off_rounded
+                    : Icons.offline_bolt_rounded,
                 size: 18,
                 color: showOffline
                     ? Theme.of(context).colorScheme.onErrorContainer
@@ -114,13 +125,18 @@ class _AppStatusBar extends StatelessWidget {
                 child: Text(
                   showOffline
                       ? PinpointLocalizations.t('offline_notice', languageCode)
-                      : PinpointLocalizations.t('offline_first_notice', languageCode),
+                      : PinpointLocalizations.t(
+                          'offline_first_notice',
+                          languageCode,
+                        ),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w500,
-                        color: showOffline
-                            ? Theme.of(context).colorScheme.onErrorContainer
-                            : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75),
-                      ),
+                    fontWeight: FontWeight.w500,
+                    color: showOffline
+                        ? Theme.of(context).colorScheme.onErrorContainer
+                        : Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.75),
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
