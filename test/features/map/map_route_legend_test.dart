@@ -18,7 +18,8 @@ void main() {
           durationSeconds: 360,
           routeCode: 'R1',
           routeName: 'West and East Loop',
-          segmentColorHex: '#E63946',
+          // Stale data colors must not override the R1 display color.
+          segmentColorHex: '#1D3557',
         ),
       ],
       totalDistanceMeters: 1200,
@@ -36,5 +37,9 @@ void main() {
     );
 
     expect(find.text('R1 · West and East Loop'), findsOneWidget);
+    final busIcon = tester.widget<Icon>(
+      find.byIcon(Icons.directions_bus_filled_rounded),
+    );
+    expect(busIcon.color, const Color(0xFFE63946));
   });
 }

@@ -27,6 +27,7 @@ import 'package:pinpoint/features/map/presentation/widgets/map_tools_sheet.dart'
 import 'package:pinpoint/features/map/presentation/widgets/map_route_legend.dart';
 import 'package:pinpoint/features/map/presentation/widgets/map_tile_layer.dart';
 import 'package:pinpoint/features/map/presentation/widgets/route_summary_sheet.dart';
+import 'package:pinpoint/features/routing/domain/transport_colors.dart';
 
 /// Full-screen interactive OpenStreetMap with transport layers.
 class MapScreen extends ConsumerStatefulWidget {
@@ -168,7 +169,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 },
                 onLongPress: (_, point) async {
                   final snapped = await notifier.prepareMapContext(point);
-                  if (!mounted) return;
+                  if (!context.mounted) return;
                   final items = notifier
                       .buildNearbyItems(snapped.snapped)
                       .map(_toNearbyItem)
@@ -192,7 +193,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                     return;
                   }
                   final ctx = await notifier.prepareMapContext(point);
-                  if (!mounted) return;
+                  if (!context.mounted) return;
                   await MapContextSheet.show(
                     context,
                     point: ctx.snapped,
@@ -252,8 +253,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
                           route.polyline;
                       return Polyline(
                         points: points,
-                        color: colorFromHex(
-                          route.colorHex,
+                        color: TransportColors.jeepney(
+                          route.routeCode,
+                          fallbackHex: route.colorHex,
                         ).withValues(alpha: isSelected ? 1 : 0.75),
                         strokeWidth: isSelected ? 6 : 4,
                       );
@@ -614,7 +616,10 @@ class _MapScreenState extends ConsumerState<MapScreen>
         final isTransfer =
             mapState.layers.showTransferPoints && notifier.isTransferStop(stop);
         final isTerminal = notifier.isTerminalStop(stop);
-        final color = colorFromHex(route.colorHex);
+        final color = TransportColors.jeepney(
+          route.routeCode,
+          fallbackHex: route.colorHex,
+        );
         return Marker(
           point: stop.latLng,
           width: showLabels ? 120 : 36,
@@ -718,17 +723,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
     final selected = mapState.plannedRoute!;
     return mapState.routeOptions
         .where((o) => o.optionId != selected.optionId)
-        .map((option) {
-          final points = option.coloredSegments.isNotEmpty
-              ? option.coloredSegments.expand((s) => s.polyline).toList()
-              : option.fullPolyline;
-          return Polyline(
-            points: points,
-            color: Colors.grey.withValues(alpha: 0.45),
-            strokeWidth: 3,
-            pattern: StrokePattern.dashed(segments: [8, 12]),
-          );
-        })
+        .expand((option) => _buildColoredRoutePolylines(option, dimmed: true))
         .toList();
   }
 
@@ -808,7 +803,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
     if (route.coloredSegments.isNotEmpty) {
       return route.coloredSegments.map((segment) {
         final isWalk = segment.type == RouteStepType.walk;
-        final color = colorFromHex(segment.colorHex).withValues(alpha: alpha);
+        final color = _routeSegmentColor(segment).withValues(alpha: alpha);
         if (isWalk) {
           return Polyline(
             points: segment.polyline,
@@ -835,6 +830,20 @@ class _MapScreenState extends ConsumerState<MapScreen>
         borderStrokeWidth: 2,
       ),
     ];
+  }
+
+  Color _routeSegmentColor(ColoredRouteSegment segment) {
+    if (segment.type == RouteStepType.tricycle) {
+      return TransportColors.tricycle;
+    }
+    if (VehicleTypeMapping.isCorridorStep(segment.type) &&
+        segment.type != RouteStepType.taxi) {
+      return TransportColors.jeepney(
+        segment.routeCode,
+        fallbackHex: segment.colorHex,
+      );
+    }
+    return colorFromHex(segment.colorHex);
   }
 
   Marker _accuracyCircleMarker(MapLocation location) {

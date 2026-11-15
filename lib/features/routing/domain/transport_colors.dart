@@ -8,21 +8,24 @@ abstract final class TransportColors {
   static const Color taxi = Color(0xFFEAB308);
   static const Color transfer = Color(0xFF8338EC);
 
-  static Color jeepney(String? routeCode) {
-    if (routeCode == null) return const Color(0xFF1A3A6B);
-    return colorFromHex(_jeepneyHex(routeCode));
+  static const Map<String, String> _jeepneyRouteHex = {
+    'R1': '#E63946',
+    'R2': '#F4A261',
+    'R3': '#2A9D8F',
+    'R4': '#457B9D',
+    'R5': '#FB8500',
+    'R6': '#FB5607',
+    'R7': '#06D6A0',
+  };
+
+  static Color jeepney(String? routeCode, {String? fallbackHex}) =>
+      colorFromHex(jeepneyHex(routeCode, fallbackHex: fallbackHex));
+
+  static String jeepneyHex(String? routeCode, {String? fallbackHex}) {
+    final normalized = routeCode?.trim().toUpperCase();
+    return _jeepneyRouteHex[normalized] ?? fallbackHex ?? '#1A3A6B';
   }
 
-  static String jeepneyHex(String? routeCode) => _jeepneyHex(routeCode ?? '');
-
-  static String _jeepneyHex(String code) => switch (code) {
-        'R1' => '#E63946',
-        'R2' => '#F4A261',
-        'R3' => '#2A9D8F',
-        'R4' => '#457B9D',
-        'R5' => '#FB8500',
-        'R6' => '#FB5607',
-        'R7' => '#06D6A0',
-        _ => '#1A3A6B',
-      };
+  static bool hasJeepneyRouteColor(String? routeCode) =>
+      _jeepneyRouteHex.containsKey(routeCode?.trim().toUpperCase());
 }

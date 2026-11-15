@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:latlong2/latlong.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
+import 'package:pinpoint/features/routing/domain/transport_colors.dart';
 import 'package:pinpoint/features/routing/services/fare_calculator.dart';
 import 'package:pinpoint/features/routing/services/jeepney_plan.dart';
 import 'package:pinpoint/features/routing/services/routing_geometry.dart';
@@ -340,7 +341,10 @@ class RouteAssembler {
         routeCode: route.routeCode,
         routeName: route.routeName,
         polyline: polyline,
-        segmentColorHex: route.colorHex,
+        segmentColorHex: TransportColors.jeepneyHex(
+          route.routeCode,
+          fallbackHex: route.colorHex,
+        ),
       ),
     );
   }

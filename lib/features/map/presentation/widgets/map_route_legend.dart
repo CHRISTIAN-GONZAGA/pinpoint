@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pinpoint/core/utilities/color_utils.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
 import 'package:pinpoint/features/routing/domain/transport_colors.dart';
 
@@ -140,9 +139,6 @@ class MapRouteLegend extends StatelessWidget {
   }
 
   Color _colorFor(RouteStep step) {
-    if (step.segmentColorHex != null) {
-      return colorFromHex(step.segmentColorHex!);
-    }
     return switch (step.type) {
       RouteStepType.walk => TransportColors.walk,
       RouteStepType.tricycle => TransportColors.tricycle,
@@ -151,7 +147,10 @@ class MapRouteLegend extends StatelessWidget {
       RouteStepType.jeepney ||
       RouteStepType.modernJeepney ||
       RouteStepType.bus ||
-      RouteStepType.van => TransportColors.jeepney(step.routeCode),
+      RouteStepType.van => TransportColors.jeepney(
+        step.routeCode,
+        fallbackHex: step.segmentColorHex,
+      ),
     };
   }
 }

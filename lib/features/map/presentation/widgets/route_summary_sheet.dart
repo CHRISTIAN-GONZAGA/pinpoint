@@ -5,7 +5,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pinpoint/core/services/route_pdf_service.dart';
 import 'package:pinpoint/core/theme/app_colors.dart';
 import 'package:pinpoint/core/theme/app_spacing.dart';
-import 'package:pinpoint/core/utilities/color_utils.dart';
 import 'package:pinpoint/features/map/domain/map_models.dart';
 import 'package:pinpoint/core/widgets/loading_shimmer.dart';
 import 'package:pinpoint/features/routing/domain/route_planning_models.dart';
@@ -718,7 +717,7 @@ class _PreferenceSelector extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: _prefs.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 6),
+        separatorBuilder: (_, _) => const SizedBox(width: 6),
         itemBuilder: (context, index) {
           final (pref, icon, label) = _prefs[index];
           final isSelected = selected == pref;
@@ -775,7 +774,7 @@ class _VehicleModeSelector extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: _modes.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final (mode, icon, label) = _modes[index];
           final isSelected = selected == mode;
@@ -816,7 +815,6 @@ class _RouteOptionPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
-    final isDark = brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -866,6 +864,28 @@ class _RouteOptionPicker extends StatelessWidget {
             ],
           ),
         ),
+        if (_routeCodes().isNotEmpty) ...[
+          Text(
+            'PUJ route colors',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: AppColors.inkSecondaryOf(brightness),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              for (final code in _routeCodes())
+                _RouteColorBadge(
+                  label: code,
+                  color: TransportColors.jeepney(code),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+        ],
         for (var index = 0; index < options.length; index++) ...[
           if (index > 0) const SizedBox(height: 10),
           Builder(
@@ -874,7 +894,10 @@ class _RouteOptionPicker extends StatelessWidget {
               final isSelected = option.optionId == selected.optionId;
               final tag = _cardTitle(option, options);
               final isBest = option.isRecommended;
-              final modeColor = _primaryModeColor(option.primaryMode);
+              final serviceSteps = _serviceSteps(option);
+              final modeColor = serviceSteps.isNotEmpty
+                  ? _serviceColor(serviceSteps.first)
+                  : _primaryModeColor(option.primaryMode);
 
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
@@ -978,46 +1001,21 @@ class _RouteOptionPicker extends StatelessWidget {
                                       ],
                                     ),
                                     const SizedBox(height: 8),
-                                    // Mode icons with route codes
+                                    // Each service uses its route-specific color.
                                     Wrap(
                                       spacing: 6,
-                                      runSpacing: 4,
+                                      runSpacing: 6,
                                       crossAxisAlignment:
                                           WrapCrossAlignment.center,
                                       children: [
-                                        for (final step in option.steps) ...[
-                                          Icon(
-                                            _modeIcon(_modeForStep(step.type)),
-                                            size: 16,
-                                            color: AppColors.inkSecondaryOf(
-                                              brightness,
+                                        for (final step in serviceSteps)
+                                          _RouteColorBadge(
+                                            label: _serviceLabel(step),
+                                            color: _serviceColor(step),
+                                            icon: _modeIcon(
+                                              _modeForStep(step.type),
                                             ),
                                           ),
-                                          if (step.routeCode != null &&
-                                              step.routeCode!.isNotEmpty)
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 6,
-                                                    vertical: 2,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: modeColor.withValues(
-                                                  alpha: isDark ? 0.25 : 0.12,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(5),
-                                              ),
-                                              child: Text(
-                                                step.routeCode!,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w800,
-                                                  fontSize: 11,
-                                                  color: modeColor,
-                                                ),
-                                              ),
-                                            ),
-                                        ],
                                       ],
                                     ),
                                     ..._corridorNames(option).map(
@@ -1031,7 +1029,9 @@ class _RouteOptionPicker extends StatelessWidget {
                                               .textTheme
                                               .labelSmall
                                               ?.copyWith(
-                                                color: modeColor,
+                                                color: AppColors.inkSecondaryOf(
+                                                  brightness,
+                                                ),
                                                 fontWeight: FontWeight.w700,
                                               ),
                                         ),
@@ -1114,6 +1114,63 @@ class _RouteOptionPicker extends StatelessWidget {
     return names.toList();
   }
 
+  List<RouteStep> _serviceSteps(PlannedRoute option) {
+    final seen = <String>{};
+    return option.steps.where((step) {
+      if (step.type == RouteStepType.walk ||
+          step.type == RouteStepType.transfer) {
+        return false;
+      }
+      final key = VehicleTypeMapping.isCorridorStep(step.type)
+          ? '${step.type.name}:${step.routeCode ?? ''}'
+          : step.type.name;
+      return seen.add(key);
+    }).toList();
+  }
+
+  List<String> _routeCodes() {
+    final codes = <String>{};
+    for (final option in options) {
+      for (final step in _serviceSteps(option)) {
+        if (_isJeepneyStep(step.type) &&
+            step.routeCode?.trim().isNotEmpty == true) {
+          codes.add(step.routeCode!.trim());
+        }
+      }
+    }
+    return codes.toList();
+  }
+
+  String _serviceLabel(RouteStep step) {
+    if (_isJeepneyStep(step.type) &&
+        step.routeCode?.trim().isNotEmpty == true) {
+      return step.routeCode!.trim();
+    }
+    return _modeLabel(_modeForStep(step.type));
+  }
+
+  Color _serviceColor(RouteStep step) {
+    if (_isJeepneyStep(step.type)) {
+      return TransportColors.jeepney(
+        step.routeCode,
+        fallbackHex: step.segmentColorHex,
+      );
+    }
+    return switch (step.type) {
+      RouteStepType.tricycle => TransportColors.tricycle,
+      RouteStepType.taxi => TransportColors.taxi,
+      RouteStepType.walk => TransportColors.walk,
+      RouteStepType.transfer => TransportColors.transfer,
+      _ => AppColors.primary,
+    };
+  }
+
+  bool _isJeepneyStep(RouteStepType type) =>
+      type == RouteStepType.jeepney ||
+      type == RouteStepType.modernJeepney ||
+      type == RouteStepType.bus ||
+      type == RouteStepType.van;
+
   VehicleMode _modeForStep(RouteStepType type) => switch (type) {
     RouteStepType.walk => VehicleMode.walk,
     RouteStepType.jeepney => VehicleMode.jeepney,
@@ -1130,7 +1187,7 @@ class _RouteOptionPicker extends StatelessWidget {
     VehicleMode.modernJeepney ||
     VehicleMode.bus ||
     VehicleMode.van => AppColors.primary,
-    VehicleMode.tricycle => AppColors.warning,
+    VehicleMode.tricycle => TransportColors.tricycle,
     VehicleMode.taxi => const Color(0xFFC9650F),
     VehicleMode.walk => AppColors.accent,
     VehicleMode.auto => AppColors.primary,
@@ -1157,6 +1214,52 @@ class _RouteOptionPicker extends StatelessWidget {
     VehicleMode.walk => 'Walk',
     VehicleMode.auto => 'Best',
   };
+}
+
+class _RouteColorBadge extends StatelessWidget {
+  const _RouteColorBadge({required this.label, required this.color, this.icon});
+
+  final String label;
+  final Color color;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(
+          alpha: brightness == Brightness.dark ? 0.2 : 0.1,
+        ),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.55)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 15, color: color),
+            const SizedBox(width: 5),
+          ] else ...[
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 6),
+          ],
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: AppColors.inkOf(brightness),
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ── Stat row ────────────────────────────────────────────────────────────────
@@ -1319,10 +1422,10 @@ class _StepTile extends StatelessWidget {
     RouteStepType.jeepney ||
     RouteStepType.modernJeepney ||
     RouteStepType.bus ||
-    RouteStepType.van =>
-      step.segmentColorHex != null
-          ? colorFromHex(step.segmentColorHex!)
-          : TransportColors.jeepney(step.routeCode),
+    RouteStepType.van => TransportColors.jeepney(
+      step.routeCode,
+      fallbackHex: step.segmentColorHex,
+    ),
     RouteStepType.tricycle => TransportColors.tricycle,
     RouteStepType.taxi => TransportColors.taxi,
     RouteStepType.transfer => TransportColors.transfer,
@@ -1331,8 +1434,6 @@ class _StepTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
-    final isDark = brightness == Brightness.dark;
-    final color = isHighlighted ? _color : _color.withValues(alpha: 0.6);
 
     final tile = Padding(
       padding: const EdgeInsets.only(bottom: 2),
@@ -1471,7 +1572,10 @@ class JeepneyRouteSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = colorFromHex(route.colorHex);
+    final color = TransportColors.jeepney(
+      route.routeCode,
+      fallbackHex: route.colorHex,
+    );
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
     // Add bottom inset so sheet content clears the nav bar
