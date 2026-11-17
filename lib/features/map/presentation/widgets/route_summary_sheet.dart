@@ -17,6 +17,7 @@ class RouteSummarySheet extends StatefulWidget {
     super.key,
     required this.route,
     required this.routeOptions,
+    this.selectedOptionId,
     required this.onClose,
     required this.onDismiss,
     required this.onGenerate,
@@ -25,7 +26,6 @@ class RouteSummarySheet extends StatefulWidget {
     this.sheetController,
     this.onPreferenceChanged,
     this.selectedRoutePreference = RoutePreference.balanced,
-    this.onPreviewOption,
     this.onStepTap,
     this.isGenerating = false,
     this.canGenerate = false,
@@ -42,11 +42,11 @@ class RouteSummarySheet extends StatefulWidget {
 
   final PlannedRoute? route;
   final List<PlannedRoute> routeOptions;
+  final String? selectedOptionId;
   final VoidCallback onClose;
   final VoidCallback onDismiss;
   final VoidCallback onGenerate;
   final ValueChanged<PlannedRoute> onSelectOption;
-  final ValueChanged<PlannedRoute?>? onPreviewOption;
   final ValueChanged<int>? onStepTap;
   final ValueChanged<VehicleMode> onVehicleModeChanged;
   final ValueChanged<RoutePreference>? onPreferenceChanged;
@@ -321,9 +321,8 @@ class _RouteSummarySheetState extends State<RouteSummarySheet> {
           const SizedBox(height: AppSpacing.md),
           _RouteOptionPicker(
             options: widget.routeOptions,
-            selected: route,
+            selectedOptionId: widget.selectedOptionId,
             onSelect: widget.onSelectOption,
-            onPreview: widget.onPreviewOption,
           ),
         ],
         if (route.explanation != null) ...[
@@ -802,15 +801,13 @@ class _VehicleModeSelector extends StatelessWidget {
 class _RouteOptionPicker extends StatelessWidget {
   const _RouteOptionPicker({
     required this.options,
-    required this.selected,
+    required this.selectedOptionId,
     required this.onSelect,
-    this.onPreview,
   });
 
   final List<PlannedRoute> options;
-  final PlannedRoute selected;
+  final String? selectedOptionId;
   final ValueChanged<PlannedRoute> onSelect;
-  final ValueChanged<PlannedRoute?>? onPreview;
 
   @override
   Widget build(BuildContext context) {
@@ -834,7 +831,9 @@ class _RouteOptionPicker extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Ranked best to worst',
+                      selectedOptionId == null
+                          ? 'Tap an option to show its color-coded route on the map'
+                          : 'Selected route is highlighted on the map',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: AppColors.inkSecondaryOf(brightness),
                       ),
@@ -891,7 +890,7 @@ class _RouteOptionPicker extends StatelessWidget {
           Builder(
             builder: (context) {
               final option = options[index];
-              final isSelected = option.optionId == selected.optionId;
+              final isSelected = option.optionId == selectedOptionId;
               final tag = _cardTitle(option, options);
               final isBest = option.isRecommended;
               final serviceSteps = _serviceSteps(option);

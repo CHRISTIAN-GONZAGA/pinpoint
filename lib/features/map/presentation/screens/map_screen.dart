@@ -242,7 +242,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       );
                     }).toList(),
                   ),
-                if (layers.showJeepneyLinesAtZoom(zoom) &&
+                if (mapState.routeOptions.isEmpty &&
+                    layers.showJeepneyLinesAtZoom(zoom) &&
                     mapState.filteredJeepneyRoutes.isNotEmpty)
                   PolylineLayer(
                     polylines: mapState.filteredJeepneyRoutes.map((route) {
@@ -261,17 +262,12 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       );
                     }).toList(),
                   ),
-                if (mapState.routeOptions.length > 1 &&
-                    mapState.plannedRoute != null)
-                  PolylineLayer(polylines: _buildPreviewPolylines(mapState)),
-                if (mapState.plannedRoute != null)
+                if (mapState.plannedRoute != null &&
+                    mapState.selectedRouteOptionId ==
+                        mapState.plannedRoute!.optionId)
                   PolylineLayer(
                     polylines: _buildColoredRoutePolylines(
                       mapState.plannedRoute!,
-                      dimmed:
-                          mapState.previewOptionId != null &&
-                          mapState.previewOptionId !=
-                              mapState.plannedRoute!.optionId,
                     ),
                   ),
                 MarkerLayer(
@@ -466,6 +462,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 sheetController: _routeSheetController,
                 route: mapState.plannedRoute,
                 routeOptions: mapState.routeOptions,
+                selectedOptionId: mapState.selectedRouteOptionId,
                 canGenerate: mapState.canGenerateRoute,
                 isGenerating: mapState.isGeneratingRoute,
                 originLabel: mapState.currentAddress ?? 'Start',
@@ -481,8 +478,6 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 highlightedStepIndex: mapState.highlightedStepIndex,
                 onGenerate: () => notifier.generateRoute(),
                 onSelectOption: (option) => notifier.selectRouteOption(option),
-                onPreviewOption: (option) =>
-                    notifier.previewRouteOption(option),
                 onStepTap: (index) => notifier.focusRouteStep(index),
                 onVehicleModeChanged: (mode) => notifier.setVehicleMode(mode),
                 onPreferenceChanged: (pref) =>
@@ -719,14 +714,6 @@ class _MapScreenState extends ConsumerState<MapScreen>
     );
   }
 
-  List<Polyline> _buildPreviewPolylines(MapState mapState) {
-    final selected = mapState.plannedRoute!;
-    return mapState.routeOptions
-        .where((o) => o.optionId != selected.optionId)
-        .expand((option) => _buildColoredRoutePolylines(option, dimmed: true))
-        .toList();
-  }
-
   List<Marker> _buildFeaturedDestinationMarkers(
     MapState mapState,
     MapNotifier notifier,
@@ -795,11 +782,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
         .toList();
   }
 
-  List<Polyline> _buildColoredRoutePolylines(
-    PlannedRoute route, {
-    bool dimmed = false,
-  }) {
-    final alpha = dimmed ? 0.35 : 1.0;
+  List<Polyline> _buildColoredRoutePolylines(PlannedRoute route) {
+    const alpha = 1.0;
     if (route.coloredSegments.isNotEmpty) {
       return route.coloredSegments.map((segment) {
         final isWalk = segment.type == RouteStepType.walk;

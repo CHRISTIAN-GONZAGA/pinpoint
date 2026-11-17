@@ -192,15 +192,19 @@ class _RouteLinePulse extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = index.isEven ? AppColors.secondary : AppColors.primary;
     return CustomPaint(
           size: const Size(140, 80),
-          painter: _RouteArcPainter(
-            color: AppColors.secondary.withValues(alpha: 0.35),
-          ),
+          painter: _RouteArcPainter(color: color.withValues(alpha: 0.42)),
         )
         .animate(delay: (200 + index * 150).ms)
         .fadeIn(duration: 700.ms)
-        .slideX(begin: -0.2, end: 0, curve: Curves.easeOutCubic);
+        .slideX(begin: -0.2, end: 0, curve: Curves.easeOutCubic)
+        .scale(
+          begin: const Offset(0.94, 0.94),
+          duration: 900.ms,
+          curve: Curves.easeOutCubic,
+        );
   }
 }
 
@@ -223,7 +227,13 @@ class _RouteArcPainter extends CustomPainter {
     canvas.drawPath(path, paint);
 
     final dotPaint = Paint()..color = color;
-    canvas.drawCircle(Offset(size.width, size.height * 0.4), 3, dotPaint);
+    for (final t in const [0.32, 0.68, 1.0]) {
+      final x = size.width * t;
+      final y =
+          size.height *
+          (0.7 * (1 - t) * (1 - t) + 2 * 0.5 * (1 - t) * t * 0 + 0.4 * t * t);
+      canvas.drawCircle(Offset(x, y), t == 1 ? 3 : 2, dotPaint);
+    }
   }
 
   @override

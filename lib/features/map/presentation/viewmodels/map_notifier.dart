@@ -517,16 +517,6 @@ class MapNotifier extends Notifier<MapState> {
     if (point != null) await setDestinationFromTap(point);
   }
 
-  void previewRouteOption(PlannedRoute? option) {
-    if (option == null || option.optionId == state.plannedRoute?.optionId) {
-      state = state.copyWith(clearPreviewOption: true);
-      if (state.plannedRoute != null) _fitRoute(state.plannedRoute!);
-      return;
-    }
-    state = state.copyWith(previewOptionId: option.optionId);
-    _fitRoute(option);
-  }
-
   void focusRouteStep(int index) {
     final route = state.plannedRoute;
     if (route == null || index < 0 || index >= route.steps.length) return;
@@ -701,7 +691,7 @@ class MapNotifier extends Notifier<MapState> {
   void selectRouteOption(PlannedRoute option) {
     state = state.copyWith(
       plannedRoute: option,
-      clearPreviewOption: true,
+      selectedRouteOptionId: option.optionId,
       clearHighlightedStep: true,
     );
     _fitRoute(option);
@@ -788,7 +778,6 @@ class MapNotifier extends Notifier<MapState> {
               'transfers': selected.transferCount,
             },
           );
-      _fitRoute(selected);
     } catch (e) {
       if (generation != _routeGeneration) return;
       state = state.copyWith(

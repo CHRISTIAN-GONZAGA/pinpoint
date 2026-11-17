@@ -120,6 +120,7 @@ void main() {
   testWidgets('shows every route option in ranked order', (tester) async {
     final recommended = _sampleRoute(optionId: 'best', isRecommended: true);
     final alternative = _sampleRoute(optionId: 'alternative');
+    PlannedRoute? selectedOption;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -134,7 +135,7 @@ void main() {
               onClose: () {},
               onDismiss: () {},
               onGenerate: () {},
-              onSelectOption: (_) {},
+              onSelectOption: (option) => selectedOption = option,
               onVehicleModeChanged: (_) {},
             ),
           ),
@@ -144,9 +145,18 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('All route options'), findsOneWidget);
+    expect(
+      find.text('Tap an option to show its color-coded route on the map'),
+      findsOneWidget,
+    );
     expect(find.text('2 options'), findsOneWidget);
     expect(find.text('OPTION 1  ·  10 min'), findsOneWidget);
     expect(find.text('OPTION 2  ·  10 min'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('OPTION 2  ·  10 min'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OPTION 2  ·  10 min'));
+    expect(selectedOption?.optionId, 'alternative');
   });
 
   testWidgets('shows route-specific PUJ colors and blue tricycle labels', (
