@@ -29,7 +29,7 @@ class LLMService:
     api_key: str | None = None,
     client: Any | None = None,
   ) -> None:
-    self._model = model or "gemini-4-hydrogen"
+    self._model = model or "gemini-3.5-flash-lite"
     self._api_key = (api_key or "").strip()
     self._client = client
 
@@ -84,9 +84,14 @@ class LLMService:
           "Gemini's free-tier quota or rate limit has been reached. Please try again later; no paid-model fallback is used.",
           status_code=429,
         ) from None
-      if str(code) in {"401", "403"}:
+      if str(code) == "401":
         raise AIProviderError(
-          "Gemini rejected the server credentials or model access. Check GEMINI_API_KEY and the Google AI Studio project.",
+          "Gemini rejected GEMINI_API_KEY. Create or rotate a Gemini API key in Google AI Studio, then update the server-side key.",
+          status_code=503,
+        ) from None
+      if str(code) == "403":
+        raise AIProviderError(
+          "Google denied this key access to the configured Gemini model. Confirm the Google AI Studio project has Gemini API access and that GEMINI_MODEL is available to the key.",
           status_code=503,
         ) from None
       raise AIProviderError(

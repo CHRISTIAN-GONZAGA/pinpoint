@@ -757,6 +757,7 @@ class MapNotifier extends Notifier<MapState> {
         isGeneratingRoute: false,
         plannedRoute: selected,
         routeOptions: options,
+        selectedRouteOptionId: selected.optionId,
       );
       await ref
           .read(routeCacheServiceProvider)

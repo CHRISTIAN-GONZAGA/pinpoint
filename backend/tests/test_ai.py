@@ -145,7 +145,7 @@ def test_ai_status_reports_gemini_without_exposing_credentials(client):
   assert response.status_code == 200
   data = response.get_json()
   assert data["provider"] == "gemini"
-  assert data["model"] == "gemini-4-hydrogen"
+  assert data["model"] == "gemini-3.5-flash-lite"
   assert "api_key" not in data
   assert "GEMINI_API_KEY" not in data
 
@@ -210,6 +210,22 @@ def test_gemini_invalid_key_error_does_not_expose_provider_details():
     service.generate(query="Hello", language="en", chunks=[])
 
   assert raised.value.status_code == 503
+  assert "secret provider detail" not in raised.value.public_message
+  assert "Google AI Studio project" in raised.value.public_message
+
+
+def test_gemini_unauthorized_key_error_is_actionable_and_safe():
+  provider_error = APIError(
+    code=401,
+    response_json={"error": {"message": "secret provider detail"}},
+  )
+  service = LLMService(api_key="test-key", client=_FailingClient(provider_error))
+
+  with pytest.raises(AIProviderError) as raised:
+    service.generate(query="Hello", language="en", chunks=[])
+
+  assert raised.value.status_code == 503
+  assert "rotate a Gemini API key" in raised.value.public_message
   assert "secret provider detail" not in raised.value.public_message
 
 

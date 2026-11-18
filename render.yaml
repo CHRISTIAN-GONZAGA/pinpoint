@@ -27,7 +27,7 @@ services:
       - key: AI_USE_CHROMA
         value: "false"
       - key: GEMINI_MODEL
-        value: gemini-4-hydrogen
+        value: gemini-3.5-flash-lite
       - key: CACHE_TTL_SECONDS
         value: "60"
       - key: GEMINI_API_KEY

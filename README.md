@@ -136,14 +136,14 @@ Copy `backend/.env.example` → `backend/.env` for local development.
 | Variable | When you need it |
 |----------|----------------|
 | `GEMINI_API_KEY` | Server-side Gemini API key for cloud AI chat |
-| `GEMINI_MODEL` | Gemini model name; defaults to `gemini-4-hydrogen` |
+| `GEMINI_MODEL` | Gemini model name; defaults to `gemini-3.5-flash-lite` |
 | `AI_USE_CHROMA` | `true` only if you enable vector RAG + persistent disk on Render |
 
 #### Not API keys (backend tuning)
 
 `FLASK_ENV`, `DEBUG_MODE`, `AUTO_SEED`, `CORS_ORIGINS`, `PORT`, `APP_VERSION`, `CACHE_TTL_SECONDS`, `VECTOR_DB_PATH`, `AI_RETRIEVAL_TOP_K` — see `backend/.env.example`.
 
-The default [`gemini-4-hydrogen` model](https://ai.google.dev/gemini-api/docs/models/gemini-4-hydrogen) is listed with free-tier access in Google's current [Gemini API pricing documentation](https://ai.google.dev/gemini-api/docs/pricing#gemini-4-hydrogen). Free-tier quotas are limited and may change; the service does not switch models or enable billing when a quota is reached. To avoid charges, keep the Google project on the free tier without linking billing. Check current [rate limits](https://ai.google.dev/gemini-api/docs/rate-limits) before deployment. Keep the Gemini key in backend environment settings only.
+The default [`gemini-3.5-flash-lite` model](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite) is listed with free-tier access in Google's current [Gemini API pricing documentation](https://ai.google.dev/gemini-api/docs/pricing#gemini-3.5-flash-lite). Free-tier quotas are limited and may change; the service does not switch models or enable billing when a quota is reached. To avoid charges, keep the Google project on the free tier without linking billing. Check current [rate limits](https://ai.google.dev/gemini-api/docs/rate-limits) before deployment. Keep the Gemini key in backend environment settings only. If Google rejects a key, verify the Google AI Studio project's API access and the configured model; rotate the key and update it only in the backend environment if the key itself is rejected.
 
 **Offline-first thesis mode:** you can run the Flutter app with `OFFLINE_FIRST_MODE=true` and skip the backend entirely — then `SECRET_KEY`, `JWT_SECRET_KEY`, and `GEMINI_API_KEY` are not needed for core features.
 

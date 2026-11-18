@@ -131,6 +131,7 @@ void main() {
             child: RouteSummarySheet(
               route: recommended,
               routeOptions: [recommended, alternative],
+              selectedOptionId: recommended.optionId,
               canGenerate: true,
               onClose: () {},
               onDismiss: () {},
@@ -146,7 +147,7 @@ void main() {
 
     expect(find.text('All route options'), findsOneWidget);
     expect(
-      find.text('Tap an option to show its color-coded route on the map'),
+      find.text('Selected route is highlighted on the map'),
       findsOneWidget,
     );
     expect(find.text('2 options'), findsOneWidget);
