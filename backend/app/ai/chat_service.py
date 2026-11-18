@@ -114,6 +114,8 @@ class ChatService:
     return {
       "indexed": self._indexed,
       "remote_llm_enabled": bool(self._llm and self._llm.has_remote_model),
+      "provider": "gemini",
+      "model": current_app.config.get("GEMINI_MODEL"),
       "vector_backend": "chroma" if current_app.config.get("AI_USE_CHROMA") else "memory",
     }
 

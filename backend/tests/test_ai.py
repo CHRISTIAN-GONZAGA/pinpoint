@@ -139,6 +139,17 @@ def test_chat_provider_errors_are_returned_safely(client, monkeypatch):
   assert response.get_json() == {"message": "Gemini quota limit reached"}
 
 
+def test_ai_status_reports_gemini_without_exposing_credentials(client):
+  response = client.get("/api/ai/status")
+
+  assert response.status_code == 200
+  data = response.get_json()
+  assert data["provider"] == "gemini"
+  assert data["model"] == "gemini-4-hydrogen"
+  assert "api_key" not in data
+  assert "GEMINI_API_KEY" not in data
+
+
 def test_chat_endpoint_applies_rate_limit(client, monkeypatch):
   class FakeChat:
     def chat(self, **kwargs):
