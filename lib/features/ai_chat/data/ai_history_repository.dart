@@ -31,4 +31,12 @@ class AiHistoryRepository {
       throw _apiClient.mapError(error);
     }
   }
+
+  Future<void> clearSession(String sessionId) async {
+    try {
+      await _remote.clearSession(sessionId);
+    } on DioException catch (error) {
+      throw _apiClient.mapError(error);
+    }
+  }
 }

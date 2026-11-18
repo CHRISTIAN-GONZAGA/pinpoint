@@ -86,6 +86,12 @@ class ApiClient {
       message = 'Connection lost. Please check your internet.';
     }
     if (statusCode == 401) return AuthException(message, statusCode);
+    if (error.requestOptions.path.endsWith('/ai/chat') &&
+        (statusCode == 502 || statusCode == 503 || statusCode == 504) &&
+        data is Map &&
+        data['message'] is String) {
+      return AppException(message, statusCode: statusCode);
+    }
     if (statusCode != null && statusCode >= 500) {
       return AppException('Server unavailable. Please try again later.', statusCode: statusCode);
     }

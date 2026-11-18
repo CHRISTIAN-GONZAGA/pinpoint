@@ -14,6 +14,8 @@ services:
       DATABASE_URL: sqlite:////app/instance/pinpoint.db
       CORS_ORIGINS: "*"
       APP_VERSION: "1.2.0"
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-4-hydrogen}
     volumes:
       - pinpoint_data:/app/instance
       - pinpoint_chroma:/app/chroma_data
@@ -61,6 +63,8 @@ services:
       DATABASE_URL: postgresql+psycopg2://pinpoint:pinpoint@postgres:5432/pinpoint
       CORS_ORIGINS: "*"
       APP_VERSION: "1.2.0"
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-4-hydrogen}
     volumes:
       - pinpoint_chroma:/app/chroma_data
     restart: unless-stopped

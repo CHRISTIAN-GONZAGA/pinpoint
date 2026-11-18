@@ -7,15 +7,11 @@ from typing import Any
 
 from flask import current_app
 
-import re
-
 from app.ai.conversation_memory import ConversationMemoryManager
 from app.ai.knowledge_sync import build_documents_from_database
 from app.ai.language_detector import detect_language
 from app.ai.llm_service import LLMService
 from app.ai.vector_store import RetrievedChunk, VectorStoreManager
-
-_OFF_TOPIC_MARKERS = ["homework", "politics", "bitcoin", "python code", "write an essay"]
 
 
 class ChatService:
@@ -37,9 +33,8 @@ class ChatService:
       )
     if self._llm is None:
       self._llm = LLMService(
-        model=current_app.config.get("AI_MODEL"),
-        api_key=current_app.config.get("OPENAI_API_KEY") or current_app.config.get("OPENROUTER_API_KEY"),
-        base_url=current_app.config.get("OPENAI_BASE_URL"),
+        model=current_app.config.get("GEMINI_MODEL"),
+        api_key=current_app.config.get("GEMINI_API_KEY"),
       )
 
   def ensure_index(self) -> int:
@@ -57,6 +52,7 @@ class ChatService:
     latitude: float | None = None,
     longitude: float | None = None,
     response_language: str | None = None,
+    history: list[dict[str, str]] | None = None,
   ) -> dict[str, Any]:
     self._ensure_services()
     if not self._indexed:
@@ -64,36 +60,17 @@ class ChatService:
 
     session_id = session_id or str(uuid.uuid4())
     language = self._resolve_language(message, response_language)
-
-    if self._is_greeting(message):
-      return self._build_payload(
-        response=self._greeting_message(language),
-        language=language,
-        session_id=session_id,
-        chunks=[],
-      )
-
-    if self._is_off_topic(message):
-      response = self._off_topic_message(language)
-      return self._build_payload(
-        response=response,
-        language=language,
-        session_id=session_id,
-        chunks=[],
-      )
-
-    query = message
-    if latitude is not None and longitude is not None and "near me" in message.lower():
-      query = f"{message} Butuan City near coordinates {latitude}, {longitude}"
-
+    conversation = history if history is not None else self._memory.get(session_id).messages
+    query = self._build_retrieval_query(
+      message, conversation, latitude=latitude, longitude=longitude
+    )
     top_k = current_app.config.get("AI_RETRIEVAL_TOP_K", 5)
     chunks = self._vector_store.search(query, top_k=top_k)  # type: ignore[union-attr]
-    history = self._memory.get(session_id).messages
     response = self._llm.generate(  # type: ignore[union-attr]
       query=message,
       language=language,
       chunks=chunks,
-      history=history,
+      history=conversation,
     )
     self._memory.add_exchange(session_id, message, response, language)
 
@@ -113,6 +90,24 @@ class ChatService:
     if preferred and preferred not in {"auto", "mixed"}:
       return preferred
     return detect_language(message)
+
+  @staticmethod
+  def _build_retrieval_query(
+    message: str,
+    history: list[dict[str, str]],
+    *,
+    latitude: float | None = None,
+    longitude: float | None = None,
+  ) -> str:
+    previous_questions = [
+      item["content"]
+      for item in history[-8:]
+      if item.get("role") == "user" and item.get("content")
+    ][-2:]
+    query = " ".join([*previous_questions, message])
+    if latitude is not None and longitude is not None and "near me" in message.lower():
+      query = f"{query} Butuan City near coordinates {latitude}, {longitude}"
+    return query
 
   def status(self) -> dict[str, Any]:
     self._ensure_services()
@@ -173,47 +168,3 @@ class ChatService:
         }
       )
     return actions[:3]
-
-  def _is_off_topic(self, message: str) -> bool:
-    lowered = message.lower()
-    return any(marker in lowered for marker in _OFF_TOPIC_MARKERS)
-
-  @staticmethod
-  def _is_greeting(message: str) -> bool:
-    lowered = message.strip().lower()
-    return bool(
-      re.match(
-        r"^(hi|hello|hey|kumusta|musta|maayong|good\s+(morning|afternoon|evening))",
-        lowered,
-      )
-    )
-
-  @staticmethod
-  def _greeting_message(language: str) -> str:
-    messages = {
-      "en": (
-        "Hello! I'm PINPOINT, your Butuan City transport assistant. "
-        "Ask me about jeepney routes (R1–R7), fares, Robinsons, SM, or tourist spots."
-      ),
-      "tl": (
-        "Kumusta! Ako ang PINPOINT assistant mo para sa Butuan. "
-        "Magtanong tungkol sa jeepney routes (R1–R7), pamasahe, Robinsons, SM, o tourist spots."
-      ),
-      "ceb": (
-        "Maayong adlaw! Ako ang imong PINPOINT assistant sa Butuan. "
-        "Pangutana bahin sa jeepney routes (R1–R7), pletehan, Robinsons, SM, o tourist spots."
-      ),
-      "mixed": (
-        "Hello / Kumusta! Ask me about jeepney routes, fares, malls, and places in Butuan City."
-      ),
-    }
-    return messages.get(language, messages["en"])
-
-  def _off_topic_message(self, language: str) -> str:
-    messages = {
-      "en": "I'm designed only for transportation and tourism assistance in Butuan City. Ask me about jeepney routes, fares, tourist spots, or emergency contacts.",
-      "tl": "Para lang ako sa transportation at tourism assistance sa Butuan City. Magtanong ka tungkol sa jeepney routes, pamasahe, tourist spots, o emergency contacts.",
-      "ceb": "Para ra ko sa transportation ug tourism assistance sa Butuan City. Pangutana lang ko bahin sa jeepney routes, plete, tourist spots, o emergency contacts.",
-      "mixed": "Para lang ako / para ra ko sa transportation and tourism assistance sa Butuan City.",
-    }
-    return messages.get(language, messages["en"])

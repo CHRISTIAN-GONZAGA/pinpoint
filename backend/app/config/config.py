@@ -90,11 +90,9 @@ class Config:
 
   # AI / RAG configuration
   VECTOR_DB_PATH = os.getenv("VECTOR_DB_PATH", "./chroma_data")
-  AI_MODEL = os.getenv("AI_MODEL", "gpt-4o-mini")
+  GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-4-hydrogen")
   EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "default")
-  OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-  OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
-  OPENROUTER_API_KEY = os.getenv("OPENROUTER_KEY", "")
+  GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
   AI_USE_CHROMA = os.getenv("AI_USE_CHROMA", "false").lower() == "true"
   AI_RETRIEVAL_TOP_K = int(os.getenv("AI_RETRIEVAL_TOP_K", "5"))
 

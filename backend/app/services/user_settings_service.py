@@ -11,10 +11,12 @@ class AiHistoryService:
   """Persist and retrieve AI conversations for registered users."""
 
   def list_for_user(self, user_id: int, *, session_id: str | None = None, limit: int = 50) -> list[dict]:
-    query = AiChatHistory.query.filter_by(user_id=user_id).order_by(AiChatHistory.created_at.asc())
+    query = AiChatHistory.query.filter_by(user_id=user_id).order_by(
+      AiChatHistory.created_at.desc(), AiChatHistory.history_id.desc()
+    )
     if session_id:
       query = query.filter_by(session_id=session_id)
-    return [item.to_dict() for item in query.limit(limit).all()]
+    return [item.to_dict() for item in reversed(query.limit(limit).all())]
 
   def append_messages(self, user_id: int, session_id: str, messages: list[dict]) -> list[dict]:
     saved: list[dict] = []

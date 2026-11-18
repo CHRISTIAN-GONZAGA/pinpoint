@@ -19,15 +19,14 @@ PINPOINT uses **OpenStreetMap and free public routing services by default** — 
 | **`SECRET_KEY`** | Backend (production) | `backend/.env` or Render | Flask session signing |
 | **`JWT_SECRET_KEY`** | Backend (production) | `backend/.env` or Render | Login tokens |
 | **`DATABASE_URL`** | Backend (production) | `backend/.env` or Render | PostgreSQL on Render |
-| **`OPENAI_API_KEY`** | Optional | `backend/.env` or Render | Cloud AI chat (RAG) |
-| **`OPENROUTER_KEY`** | Optional | `backend/.env` or Render | Alternative LLM provider |
+| **`GEMINI_API_KEY`** | Optional | `backend/.env` or Render | Server-side Gemini chat (RAG) |
 | **`OFFLINE_FIRST_MODE`** | Optional | `.env.flutter.json` | Skip backend entirely (thesis mode) |
 
 ---
 
 ### Maps & location (Flutter app)
 
-PINPOINT maps use **flutter_map** with **CARTO** raster tiles (Voyager in light mode, Dark Matter in dark mode). A free CARTO key is required or the tiles watermark. OpenStreetMap is only the fallback if a CARTO tile fails. Routing stays on public OSRM. Nominatim handles place search.
+PINPOINT maps use **flutter_map** with **CARTO** raster tiles (Voyager in light mode, Dark Matter in dark mode). Set a valid CARTO key as `MAP_TILE_API_KEY`; the key is compiled into the Flutter APK, so restrict it with the provider. OpenStreetMap is only the fallback if a CARTO tile fails. Routing stays on public OSRM. Nominatim handles place search.
 
 ### Design tokens
 
@@ -85,16 +84,20 @@ Location uses the `geolocator` plugin (device GPS). Reverse geocoding for “cur
 
 ---
 
-### Flutter app configuration (not third-party API keys)
+### Flutter app configuration (build-time values)
 
 Copy `.env.flutter.example.json` → `.env.flutter.json`:
 
 ```json
 {
   "API_URL": "https://pinpoint-api.onrender.com/api",
-  "OFFLINE_FIRST_MODE": "false"
+  "OFFLINE_FIRST_MODE": "false",
+  "MAP_TILE_PROVIDER": "carto",
+  "MAP_TILE_API_KEY": "your_carto_key_here"
 }
 ```
+
+`MAP_TILE_PROVIDER` and `MAP_TILE_API_KEY` are Flutter build-time values, not backend settings. For an APK with maps enabled, use a valid provider key in the ignored `.env.flutter.json` and build with `--dart-define-from-file=.env.flutter.json`; do not commit that local file.
 
 | Variable | Required when | Example |
 |----------|---------------|---------|
@@ -132,16 +135,17 @@ Copy `backend/.env.example` → `backend/.env` for local development.
 
 | Variable | When you need it |
 |----------|----------------|
-| `OPENAI_API_KEY` | Cloud AI chat with OpenAI (`gpt-4o-mini` default) |
-| `OPENROUTER_KEY` | Cloud AI via [OpenRouter](https://openrouter.ai/) instead of OpenAI |
-| `OPENAI_BASE_URL` | Custom OpenAI-compatible endpoint (default `https://api.openai.com/v1`) |
+| `GEMINI_API_KEY` | Server-side Gemini API key for cloud AI chat |
+| `GEMINI_MODEL` | Gemini model name; defaults to `gemini-4-hydrogen` |
 | `AI_USE_CHROMA` | `true` only if you enable vector RAG + persistent disk on Render |
 
 #### Not API keys (backend tuning)
 
-`FLASK_ENV`, `DEBUG_MODE`, `AUTO_SEED`, `CORS_ORIGINS`, `PORT`, `APP_VERSION`, `CACHE_TTL_SECONDS`, `VECTOR_DB_PATH`, `AI_MODEL` — see `backend/.env.example`.
+`FLASK_ENV`, `DEBUG_MODE`, `AUTO_SEED`, `CORS_ORIGINS`, `PORT`, `APP_VERSION`, `CACHE_TTL_SECONDS`, `VECTOR_DB_PATH`, `AI_RETRIEVAL_TOP_K` — see `backend/.env.example`.
 
-**Offline-first thesis mode:** you can run the Flutter app with `OFFLINE_FIRST_MODE=true` and skip the backend entirely — then `SECRET_KEY`, `JWT_SECRET_KEY`, and `OPENAI_API_KEY` are not needed for core features.
+The default [`gemini-4-hydrogen` model](https://ai.google.dev/gemini-api/docs/models/gemini-4-hydrogen) is listed with free-tier access in Google's current [Gemini API pricing documentation](https://ai.google.dev/gemini-api/docs/pricing#gemini-4-hydrogen). Free-tier quotas are limited and may change; the service does not switch models or enable billing when a quota is reached. To avoid charges, keep the Google project on the free tier without linking billing. Check current [rate limits](https://ai.google.dev/gemini-api/docs/rate-limits) before deployment. Keep the Gemini key in backend environment settings only.
+
+**Offline-first thesis mode:** you can run the Flutter app with `OFFLINE_FIRST_MODE=true` and skip the backend entirely — then `SECRET_KEY`, `JWT_SECRET_KEY`, and `GEMINI_API_KEY` are not needed for core features.
 
 ---
 
@@ -155,10 +159,9 @@ Copy `backend/.env.example` → `backend/.env` for local development.
 
 **You manually add (optional):**
 
-- `OPENAI_API_KEY` — for server-side RAG AI chat
-- `OPENROUTER_KEY` — if using OpenRouter instead of OpenAI
+- `GEMINI_API_KEY` — for server-side Gemini RAG chat (do not put it in Flutter settings)
 
-**You do not add on Render for maps** — map tiles, Nominatim, and OSRM are called from the **Flutter app** to public endpoints (no keys in current setup).
+Render deploys the Flask backend; it does not build the Android APK. Build the APK with Flutter or a CI workflow. Map tiles are called from the **Flutter app**, so provide `MAP_TILE_API_KEY` to the Flutter build environment separately from Render.
 
 ---
 
@@ -167,9 +170,9 @@ Copy `backend/.env.example` → `backend/.env` for local development.
 | Goal | API keys / secrets needed |
 |------|---------------------------|
 | **Thesis demo (offline)** | None — `OFFLINE_FIRST_MODE=true` |
-| **Thesis demo (maps + routing online)** | None — OSM / Nominatim / OSRM public endpoints |
+| **Thesis demo (maps + routing online)** | `MAP_TILE_API_KEY` for CARTO tiles; no key for Nominatim / OSRM |
 | **App + Render backend (auth, sync, tourism API)** | `API_URL` + Render `SECRET_KEY` + `JWT_SECRET_KEY` + `DATABASE_URL` |
-| **App + backend + cloud AI** | Above + `OPENAI_API_KEY` or `OPENROUTER_KEY` |
+| **App + backend + cloud AI** | Above + server-only `GEMINI_API_KEY` |
 | **Production maps at scale** | Consider paid tile/geocoding/routing providers (not in repo yet) |
 
 ---
@@ -193,7 +196,7 @@ PINPOINT__MOBILE/
 - **Cloud-ready** — Render via `render.yaml`; `API_URL` at build time
 - **Maps & routing** — OpenStreetMap tiles, color-coded jeepney / tricycle / taxi routes, national-highway tricycle rules
 - **Tourism** — Attractions, establishments, nearby search
-- **AI assistant** — Local keyword retrieval offline; cloud RAG when `OPENAI_API_KEY` is set
+- **AI assistant** — Local keyword retrieval offline; server-side Gemini RAG when `GEMINI_API_KEY` is set
 - **Personalization** — Favorites, history, sync, biometrics, accessibility, EN / TL / CEB
 
 ## Getting Started
@@ -246,9 +249,10 @@ docker compose --profile postgres up --build api-postgres
 2. Render Dashboard → **New** → **Blueprint** → connect repo.
 3. Note API URL: `https://pinpoint-api.onrender.com` (or your service name).
 4. Set `.env.flutter.json` → `"API_URL": "https://<your-service>.onrender.com/api"`.
-5. Optionally add `OPENAI_API_KEY` in Render for cloud AI.
+5. Add `GEMINI_API_KEY` as a secret environment variable in Render for cloud AI.
+6. To build the APK with CARTO tiles, use `.env.flutter.json` (or CI secrets) with the map provider key and run `flutter build apk --release --dart-define-from-file=.env.flutter.json`.
 
-See `render.yaml`, `backend/.env.example`, and `.env.flutter.example.json` for full variable lists.
+See `render.yaml`, `backend/.env.example`, and `.env.flutter.example.json` for environment variable names. Never commit actual API keys.
 
 ## Tests
 
@@ -261,7 +265,7 @@ cd backend && pytest
 
 | File | Purpose |
 |------|---------|
-| `.env.example` | Flutter `dart-define` comments |
+| `.env.example` | Backend/Render settings and Flutter build configuration reference |
 | `.env.flutter.example.json` | Copy to `.env.flutter.json` for builds |
 | `backend/.env.example` | Backend / Render variables |
 | `render.yaml` | Render Blueprint |

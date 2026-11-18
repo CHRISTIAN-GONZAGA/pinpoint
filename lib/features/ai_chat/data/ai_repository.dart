@@ -22,6 +22,7 @@ class AiRepository {
 
   Future<AiChatResponse> chat({
     required String message,
+    List<Map<String, String>> history = const [],
     String? sessionId,
     double? latitude,
     double? longitude,
@@ -39,12 +40,18 @@ class AiRepository {
     try {
       return await _remote.sendMessage(
         message: message,
+        history: history,
         sessionId: sessionId,
         latitude: latitude,
         longitude: longitude,
         responseLanguage: responseLanguage,
       );
     } on DioException catch (error) {
+      if (error.response != null ||
+          (error.type != DioExceptionType.connectionError &&
+              error.type != DioExceptionType.connectionTimeout)) {
+        throw _apiClient.mapError(error);
+      }
       try {
         return await _local.chat(
           message: message,

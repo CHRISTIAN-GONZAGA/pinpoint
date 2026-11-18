@@ -12,6 +12,7 @@ class AiRemoteDataSource {
 
   Future<AiChatResponse> sendMessage({
     required String message,
+    required List<Map<String, String>> history,
     String? sessionId,
     double? latitude,
     double? longitude,
@@ -21,12 +22,14 @@ class AiRemoteDataSource {
       '/ai/chat',
       data: {
         'message': message,
+        'history': history,
         'session_id': ?sessionId,
         'latitude': ?latitude,
         'longitude': ?longitude,
         if (responseLanguage != AiResponseLanguage.auto)
           'response_language': responseLanguage,
       },
+      options: Options(receiveTimeout: const Duration(seconds: 45)),
     );
     final data = response.data;
     if (data == null) {

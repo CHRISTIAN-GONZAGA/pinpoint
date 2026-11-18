@@ -24,4 +24,8 @@ class AiHistoryRemoteDataSource {
       data: {'session_id': sessionId, 'messages': messages},
     );
   }
+
+  Future<void> clearSession(String sessionId) async {
+    await _api.delete<Map<String, dynamic>>('/ai/history/$sessionId');
+  }
 }

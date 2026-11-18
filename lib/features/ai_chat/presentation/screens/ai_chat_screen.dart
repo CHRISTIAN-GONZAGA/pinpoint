@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -70,7 +71,12 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(aiChatNotifierProvider);
     final responseLanguage = ref.watch(aiLanguageNotifierProvider);
-    ref.listen<AiChatState>(aiChatNotifierProvider, (_, next) {
+    ref.listen<AiChatState>(aiChatNotifierProvider, (previous, next) {
+      if (next.isSending ||
+          previous == null ||
+          next.messages.length != previous.messages.length) {
+        _scrollToBottom();
+      }
       if (next.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(next.errorMessage!)),
@@ -301,13 +307,21 @@ class _ChatBubble extends StatelessWidget {
                   ? null
                   : Border.all(color: AppColors.edgeOf(theme.brightness), width: 2),
             ),
-            child: Text(
-              message.content,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: isUser ? Colors.white : null,
-                height: 1.4,
-              ),
-            ),
+            child: isUser
+                ? Text(
+                    message.content,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.white,
+                      height: 1.4,
+                    ),
+                  )
+                : MarkdownBody(
+                    data: message.content,
+                    selectable: true,
+                    styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
+                      p: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
+                    ),
+                  ),
           ),
           if (!isUser && (message.actions.isNotEmpty || message.sources.isNotEmpty))
             Padding(

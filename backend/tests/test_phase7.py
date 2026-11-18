@@ -1,18 +1,18 @@
 """Phase 7 personalization, offline, and database tests."""
 
 
-def _user_headers(client):
+def _user_headers(client, email="phase7@pinpoint.local"):
   client.post(
     "/api/auth/register",
     json={
       "full_name": "Phase Seven",
-      "email": "phase7@pinpoint.local",
+      "email": email,
       "password": "SecurePass1",
     },
   )
   login = client.post(
     "/api/auth/login",
-    json={"email": "phase7@pinpoint.local", "password": "SecurePass1"},
+    json={"email": email, "password": "SecurePass1"},
   )
   token = login.get_json()["access_token"]
   return {"Authorization": f"Bearer {token}"}
@@ -56,6 +56,41 @@ def test_ai_history_persistence(client):
   messages = listed.get_json()["messages"]
   assert len(messages) == 2
   assert messages[0]["role"] == "user"
+
+
+def test_ai_history_is_scoped_to_session_and_user(client):
+  owner_headers = _user_headers(client, "history-owner@pinpoint.local")
+  other_headers = _user_headers(client, "history-other@pinpoint.local")
+  client.post(
+    "/api/ai/history",
+    headers=owner_headers,
+    json={
+      "session_id": "private-session",
+      "messages": [{"role": "user", "content": "Owner-only message"}],
+    },
+  )
+  client.post(
+    "/api/ai/history",
+    headers=owner_headers,
+    json={
+      "session_id": "other-session",
+      "messages": [{"role": "user", "content": "Different conversation"}],
+    },
+  )
+
+  owner_session = client.get(
+    "/api/ai/history?session_id=private-session",
+    headers=owner_headers,
+  )
+  other_user = client.get(
+    "/api/ai/history?session_id=private-session",
+    headers=other_headers,
+  )
+
+  assert [entry["content"] for entry in owner_session.get_json()["messages"]] == [
+    "Owner-only message"
+  ]
+  assert other_user.get_json()["messages"] == []
 
 
 def test_register_device_token(client):

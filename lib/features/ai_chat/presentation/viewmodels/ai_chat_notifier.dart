@@ -24,6 +24,10 @@ class AiChatNotifier extends Notifier<AiChatState> {
   @override
   AiChatState build() {
     Future.microtask(_restoreHistoryIfNeeded);
+    return _newConversationState();
+  }
+
+  AiChatState _newConversationState() {
     return AiChatState(
       messages: [
         ChatMessage(
@@ -56,6 +60,19 @@ class AiChatNotifier extends Notifier<AiChatState> {
     final message = text.trim();
     if (message.isEmpty || state.isSending) return;
 
+    final history = state.messages
+        .where((item) => item.id != _welcomeId)
+        .map(
+          (item) => {
+            'role': item.isUser ? 'user' : 'assistant',
+            'content': item.content,
+          },
+        )
+        .toList();
+    if (history.length > 8) {
+      history.removeRange(0, history.length - 8);
+    }
+
     final userMessage = ChatMessage(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       content: message,
@@ -74,6 +91,7 @@ class AiChatNotifier extends Notifier<AiChatState> {
       final responseLanguage = ref.read(aiLanguageNotifierProvider);
       final result = await ref.read(aiRepositoryProvider).chat(
             message: message,
+            history: history,
             sessionId: state.sessionId,
             latitude: location?.latitude,
             longitude: location?.longitude,
@@ -95,7 +113,7 @@ class AiChatNotifier extends Notifier<AiChatState> {
         sessionId: result.sessionId,
         isSending: false,
       );
-      await _persistHistory(result.sessionId);
+      await _persistHistory(result.sessionId, [userMessage, assistantMessage]);
     } catch (error) {
       state = state.copyWith(
         isSending: false,
@@ -106,12 +124,17 @@ class AiChatNotifier extends Notifier<AiChatState> {
 
   Future<void> clearChat() async {
     final sessionId = state.sessionId;
-    if (sessionId != null) {
-      try {
+    try {
+      if (sessionId != null) {
         await ref.read(aiRepositoryProvider).clearSession(sessionId);
-      } catch (_) {}
+        if (ref.read(isAuthenticatedProvider)) {
+          await ref.read(aiHistoryRepositoryProvider).clearSession(sessionId);
+        }
+      }
+      state = _newConversationState();
+    } catch (error) {
+      state = state.copyWith(errorMessage: _displayError(error));
     }
-    state = build();
   }
 
   Future<void> _restoreHistoryIfNeeded() async {
@@ -119,19 +142,30 @@ class AiChatNotifier extends Notifier<AiChatState> {
     try {
       final history = await ref.read(aiHistoryRepositoryProvider).fetchHistory();
       if (history.isEmpty) return;
-      final messages = history.map(_messageFromHistory).whereType<ChatMessage>().toList();
+      if (state.messages.length > 1) return;
+      final sessionId = history.last['session_id'] as String?;
+      if (sessionId == null) return;
+      final messages = history
+          .where((entry) => entry['session_id'] == sessionId)
+          .map(_messageFromHistory)
+          .whereType<ChatMessage>()
+          .toList();
       if (messages.isEmpty) return;
       state = state.copyWith(
         messages: messages,
-        sessionId: history.last['session_id'] as String?,
+        sessionId: sessionId,
       );
-    } catch (_) {}
+    } catch (error) {
+      state = state.copyWith(errorMessage: _displayError(error));
+    }
   }
 
-  Future<void> _persistHistory(String? sessionId) async {
+  Future<void> _persistHistory(
+    String? sessionId,
+    List<ChatMessage> newMessages,
+  ) async {
     if (!ref.read(isAuthenticatedProvider) || sessionId == null) return;
-    final payload = state.messages
-        .where((message) => message.id != _welcomeId)
+    final payload = newMessages
         .map(
           (message) => {
             'role': message.isUser ? 'user' : 'assistant',
@@ -146,7 +180,9 @@ class AiChatNotifier extends Notifier<AiChatState> {
             sessionId: sessionId,
             messages: payload,
           );
-    } catch (_) {}
+    } catch (error) {
+      state = state.copyWith(errorMessage: _displayError(error));
+    }
   }
 
   ChatMessage? _messageFromHistory(Map<String, dynamic> entry) {
@@ -154,13 +190,16 @@ class AiChatNotifier extends Notifier<AiChatState> {
     final content = entry['content'] as String?;
     if (role == null || content == null) return null;
     return ChatMessage(
-      id: '${entry['id'] ?? content.hashCode}',
+      id: '${entry['history_id'] ?? content.hashCode}',
       content: content,
       isUser: role == 'user',
       timestamp: DateTime.tryParse(entry['created_at'] as String? ?? '') ?? DateTime.now(),
       language: entry['language'] as String?,
     );
   }
+
+  String _displayError(Object error) =>
+      error.toString().replaceFirst('AppException: ', '');
 }
 
 final aiChatNotifierProvider =
