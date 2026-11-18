@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pinpoint/app/constants.dart';
 import 'package:pinpoint/core/networking/api_client.dart';
 import 'package:pinpoint/features/ai_chat/data/ai_local_datasource.dart';
+import 'package:pinpoint/features/ai_chat/data/ai_keyword_responder.dart';
 import 'package:pinpoint/features/ai_chat/data/ai_remote_datasource.dart';
 import 'package:pinpoint/features/ai_chat/domain/ai_response_language.dart';
 import 'package:pinpoint/features/ai_chat/domain/chat_models.dart';
@@ -47,9 +49,7 @@ class AiRepository {
         responseLanguage: responseLanguage,
       );
     } on DioException catch (error) {
-      if (error.response != null ||
-          (error.type != DioExceptionType.connectionError &&
-              error.type != DioExceptionType.connectionTimeout)) {
+      if (error.type == DioExceptionType.cancel) {
         throw _apiClient.mapError(error);
       }
       try {
@@ -60,14 +60,36 @@ class AiRepository {
           longitude: longitude,
           responseLanguage: responseLanguage,
         );
-      } catch (_) {
-        throw _apiClient.mapError(error);
+      } on Object catch (fallbackError) {
+        if (fallbackError is DioException) {
+          throw _apiClient.mapError(fallbackError);
+        }
+        debugPrint(
+          'PINPOINT local chat fallback failed: ${fallbackError.runtimeType}',
+        );
+        return AiChatResponse(
+          response: AiKeywordResponder.unknown(
+            AiResponseLanguage.resolve(
+              preference: responseLanguage,
+              message: message,
+            ),
+          ),
+          language: AiResponseLanguage.resolve(
+            preference: responseLanguage,
+            message: message,
+          ),
+          sessionId:
+              sessionId ?? 'local-${DateTime.now().millisecondsSinceEpoch}',
+          sources: const [],
+          actions: const [],
+          retrievalConfidence: 0,
+        );
       }
     }
   }
 
   Future<void> clearSession(String sessionId) async {
-    if (AppConstants.offlineFirstMode) {
+    if (AppConstants.offlineFirstMode || sessionId.startsWith('local-')) {
       await _local.clearSession(sessionId);
       return;
     }

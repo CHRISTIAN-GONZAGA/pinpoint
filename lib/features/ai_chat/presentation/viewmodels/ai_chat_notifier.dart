@@ -164,7 +164,11 @@ class AiChatNotifier extends Notifier<AiChatState> {
     String? sessionId,
     List<ChatMessage> newMessages,
   ) async {
-    if (!ref.read(isAuthenticatedProvider) || sessionId == null) return;
+    if (!ref.read(isAuthenticatedProvider) ||
+        sessionId == null ||
+        sessionId.startsWith('local-')) {
+      return;
+    }
     final payload = newMessages
         .map(
           (message) => {

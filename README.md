@@ -196,7 +196,7 @@ PINPOINT__MOBILE/
 - **Cloud-ready** — Render via `render.yaml`; `API_URL` at build time
 - **Maps & routing** — OpenStreetMap tiles, color-coded jeepney / tricycle / taxi routes, national-highway tricycle rules
 - **Tourism** — Attractions, establishments, nearby search
-- **AI assistant** — Local keyword retrieval offline; server-side Gemini RAG when `GEMINI_API_KEY` is set
+- **AI assistant** — Server-side Gemini RAG with bundled keyword answers in English, Tagalog, and Cebuano when Gemini or the backend is unavailable; live schedules, traffic, and weather are not part of the offline data
 - **Personalization** — Favorites, history, sync, biometrics, accessibility, EN / TL / CEB
 
 ## Getting Started
