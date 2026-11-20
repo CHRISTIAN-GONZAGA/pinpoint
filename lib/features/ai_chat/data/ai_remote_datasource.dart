@@ -29,7 +29,7 @@ class AiRemoteDataSource {
         if (responseLanguage != AiResponseLanguage.auto)
           'response_language': responseLanguage,
       },
-      options: Options(receiveTimeout: const Duration(seconds: 45)),
+      options: Options(receiveTimeout: const Duration(seconds: 20)),
     );
     final data = response.data;
     if (data == null) {

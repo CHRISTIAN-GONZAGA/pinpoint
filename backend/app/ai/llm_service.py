@@ -63,7 +63,7 @@ class LLMService:
     if client is None:
       client = genai.Client(
         api_key=self._api_key,
-        http_options=types.HttpOptions(timeout=30_000),
+        http_options=types.HttpOptions(timeout=18_000),
       )
       self._client = client
 
@@ -74,7 +74,7 @@ class LLMService:
         config={
           "system_instruction": prompt["system_instruction"],
           "temperature": 0.2,
-          "max_output_tokens": 500,
+          "max_output_tokens": 350,
         },
       )
     except errors.APIError as error:

@@ -227,8 +227,8 @@ class PremiumActionTile extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(PremiumTokens.surfaceRadius),
         child: Container(
-          width: 108,
-          padding: const EdgeInsets.all(14),
+          width: 124,
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(PremiumTokens.surfaceRadius),
             border: Border.all(color: PremiumTokens.separator(context), width: 0.5),
@@ -245,9 +245,11 @@ class PremiumActionTile extends StatelessWidget {
                 ),
                 child: Icon(icon, size: 20, color: color),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Text(
                 label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.labelLarge?.copyWith(
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.2,
