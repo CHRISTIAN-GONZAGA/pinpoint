@@ -90,7 +90,7 @@ class Config:
 
   # AI / RAG configuration
   VECTOR_DB_PATH = os.getenv("VECTOR_DB_PATH", "./chroma_data")
-  GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+  GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
   EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "default")
   GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
   AI_USE_CHROMA = os.getenv("AI_USE_CHROMA", "false").lower() == "true"

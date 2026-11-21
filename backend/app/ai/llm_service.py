@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import httpx
 
 from app.ai.prompt_builder import build_prompt
 from app.ai.vector_store import RetrievedChunk
+
+logger = logging.getLogger(__name__)
 
 
 class AIProviderError(RuntimeError):
@@ -29,7 +32,7 @@ class LLMService:
     api_key: str | None = None,
     client: Any | None = None,
   ) -> None:
-    self._model = model or "gemini-3.5-flash-lite"
+    self._model = model or "gemini-2.5-flash"
     self._api_key = (api_key or "").strip()
     self._client = client
 
@@ -46,6 +49,7 @@ class LLMService:
     history: list[dict[str, str]] | None = None,
   ) -> str:
     if not self.has_remote_model:
+      logger.error("Gemini is not configured: GEMINI_API_KEY is missing.")
       raise AIProviderError(
         "Gemini is not configured on the server. Set GEMINI_API_KEY to enable AI chat."
       )
@@ -79,6 +83,7 @@ class LLMService:
       )
     except errors.APIError as error:
       code = getattr(error, "code", None)
+      logger.exception("Gemini API request failed (status=%s)", code)
       if code == 429 or str(code) == "429":
         raise AIProviderError(
           "Gemini's free-tier quota or rate limit has been reached. Please try again later; no paid-model fallback is used.",
@@ -99,11 +104,13 @@ class LLMService:
         status_code=503,
       ) from None
     except httpx.TimeoutException:
+      logger.exception("Gemini API request timed out")
       raise AIProviderError(
         "Gemini took too long to respond. Please try again.",
         status_code=504,
       ) from None
     except httpx.TransportError:
+      logger.exception("Gemini API transport failed")
       raise AIProviderError(
         "Gemini is temporarily unavailable. Please try again later.",
         status_code=503,
@@ -111,6 +118,7 @@ class LLMService:
 
     answer = response.text
     if not answer or not answer.strip():
+      logger.error("Gemini API returned an empty response.")
       raise AIProviderError(
         "Gemini returned an empty response. Please try again.",
         status_code=502,

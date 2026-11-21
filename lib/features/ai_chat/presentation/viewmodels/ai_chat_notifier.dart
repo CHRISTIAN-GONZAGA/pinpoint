@@ -69,8 +69,8 @@ class AiChatNotifier extends Notifier<AiChatState> {
           },
         )
         .toList();
-    if (history.length > 8) {
-      history.removeRange(0, history.length - 8);
+    if (history.length > 9) {
+      history.removeRange(0, history.length - 9);
     }
 
     final userMessage = ChatMessage(

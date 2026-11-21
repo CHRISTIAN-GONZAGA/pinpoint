@@ -5,6 +5,7 @@ from __future__ import annotations
 import time
 from collections import defaultdict, deque
 from functools import wraps
+from typing import Callable
 
 from flask import current_app, jsonify, request
 
@@ -29,14 +30,20 @@ class RateLimiter:
 _limiter = RateLimiter()
 
 
-def rate_limit(limit: int = 10, window_seconds: int = 60):
-  """Decorator limiting requests per IP for the wrapped route."""
+def rate_limit(
+  limit: int = 10,
+  window_seconds: int = 60,
+  *,
+  key_func: Callable[[], str] | None = None,
+):
+  """Decorator limiting requests by IP or a caller-provided identity key."""
 
   def decorator(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
       client_ip = request.headers.get("X-Forwarded-For", request.remote_addr or "unknown")
-      key = f"{request.endpoint}:{client_ip}"
+      identity = key_func() if key_func else client_ip
+      key = f"{request.endpoint}:{identity}"
       if not _limiter.allow(key, limit=limit, window_seconds=window_seconds):
         return jsonify({"message": "Too many requests. Please try again later."}), 429
       return view(*args, **kwargs)

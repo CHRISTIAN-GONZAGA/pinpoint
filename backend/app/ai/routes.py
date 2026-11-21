@@ -1,8 +1,10 @@
 """AI and knowledge base API routes."""
 
 import math
+import uuid
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, current_app, jsonify, request
+from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 
 from app.ai.chat_service import ChatService
 from app.ai.llm_service import AIProviderError
@@ -12,8 +14,9 @@ from app.middleware.rate_limit import rate_limit
 ai_bp = Blueprint("ai", __name__)
 _chat: ChatService | None = None
 _MAX_MESSAGE_LENGTH = 4_000
-_MAX_HISTORY_MESSAGES = 8
+_MAX_HISTORY_MESSAGES = 9
 _SUPPORTED_LANGUAGES = {"auto", "en", "tl", "ceb", "mixed"}
+_FALLBACK_RESPONSE = "I'm having trouble responding right now. Please try again in a moment."
 
 
 def _get_chat() -> ChatService:
@@ -23,7 +26,33 @@ def _get_chat() -> ChatService:
   return _chat
 
 
+def _chat_requester_key() -> str:
+  verify_jwt_in_request(optional=True)
+  user_id = get_jwt_identity()
+  if user_id is not None:
+    return f"user:{user_id}"
+
+  client_ip = request.headers.get("X-Forwarded-For", request.remote_addr or "unknown")
+  return f"anonymous:{client_ip}"
+
+
+def _fallback_payload(
+  *, session_id: str | None, response_language: str | None
+) -> dict:
+  return {
+    "response": _FALLBACK_RESPONSE,
+    "language": response_language
+    if response_language in {"en", "tl", "ceb", "mixed"}
+    else "en",
+    "session_id": session_id or str(uuid.uuid4()),
+    "sources": [],
+    "actions": [],
+    "retrieval_confidence": 0.0,
+  }
+
+
 @ai_bp.post("/chat")
+@rate_limit(limit=1, window_seconds=3, key_func=_chat_requester_key)
 @rate_limit(limit=10, window_seconds=60)
 def chat():
   payload = request.get_json(silent=True)
@@ -101,7 +130,15 @@ def chat():
       history=history,
     )
   except AIProviderError as error:
-    return jsonify({"message": error.public_message}), error.status_code
+    current_app.logger.warning("AI chat provider failure: %s", error)
+    return jsonify(
+      _fallback_payload(session_id=session_id, response_language=response_language)
+    ), 200
+  except Exception:
+    current_app.logger.exception("Unexpected AI chat failure")
+    return jsonify(
+      _fallback_payload(session_id=session_id, response_language=response_language)
+    ), 200
   return jsonify(result), 200
 
 

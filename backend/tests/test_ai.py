@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 from google.genai.errors import APIError
+from flask_jwt_extended import create_access_token
 
 from app.ai.conversation_memory import ConversationMemoryManager
 from app.ai.chat_service import ChatService
@@ -135,8 +136,11 @@ def test_chat_provider_errors_are_returned_safely(client, monkeypatch):
   monkeypatch.setattr("app.ai.routes._get_chat", lambda: FailedChat())
   response = client.post("/api/ai/chat", json={"message": "How much is the fare?"})
 
-  assert response.status_code == 429
-  assert response.get_json() == {"message": "Gemini quota limit reached"}
+  assert response.status_code == 200
+  assert response.get_json()["response"] == (
+    "I'm having trouble responding right now. Please try again in a moment."
+  )
+  assert response.get_json()["sources"] == []
 
 
 def test_ai_status_reports_gemini_without_exposing_credentials(client):
@@ -145,7 +149,7 @@ def test_ai_status_reports_gemini_without_exposing_credentials(client):
   assert response.status_code == 200
   data = response.get_json()
   assert data["provider"] == "gemini"
-  assert data["model"] == "gemini-3.5-flash-lite"
+  assert data["model"] == "gemini-2.5-flash"
   assert "api_key" not in data
   assert "GEMINI_API_KEY" not in data
 
@@ -156,11 +160,46 @@ def test_chat_endpoint_applies_rate_limit(client, monkeypatch):
       return {"response": "ok"}
 
   monkeypatch.setattr("app.ai.routes._get_chat", lambda: FakeChat())
+  with client.application.app_context():
+    tokens = [
+      create_access_token(identity=f"user-{index}")
+      for index in range(10)
+    ]
+    extra_token = create_access_token(identity="new-user")
   for _ in range(10):
-    assert client.post("/api/ai/chat", json={"message": "Hello"}).status_code == 200
+    response = client.post(
+      "/api/ai/chat",
+      json={"message": "Hello", "session_id": str(_)},
+      headers={"Authorization": f"Bearer {tokens[_]}"},
+    )
+    assert response.status_code == 200
 
-  limited = client.post("/api/ai/chat", json={"message": "Hello"})
+  limited = client.post(
+    "/api/ai/chat",
+    json={"message": "Hello", "session_id": "different-session"},
+    headers={"Authorization": f"Bearer {extra_token}"},
+  )
   assert limited.status_code == 429
+
+
+def test_chat_endpoint_applies_per_user_cooldown(client, monkeypatch):
+  class FakeChat:
+    def chat(self, **kwargs):
+      return {"response": "ok"}
+
+  monkeypatch.setattr("app.ai.routes._get_chat", lambda: FakeChat())
+  with client.application.app_context():
+    token = create_access_token(identity="same-user")
+  headers = {"Authorization": f"Bearer {token}"}
+
+  assert (
+    client.post("/api/ai/chat", json={"message": "Hello"}, headers=headers).status_code
+    == 200
+  )
+  assert (
+    client.post("/api/ai/chat", json={"message": "Hello"}, headers=headers).status_code
+    == 429
+  )
 
 
 def test_gemini_generation_uses_role_based_history():
@@ -245,8 +284,33 @@ def test_prompt_restricts_local_facts_to_verified_context():
   )
 
   assert "verified context" in prompt["system_instruction"].lower()
+  assert "brief, friendly" in prompt["system_instruction"].lower()
   assert prompt["contents"][0]["role"] == "user"
   assert prompt["contents"][-1]["role"] == "user"
+
+
+def test_prompt_includes_at_most_nine_prior_messages_plus_current_question():
+  history = [
+    {"role": "user" if index % 2 == 0 else "assistant", "content": f"turn-{index}"}
+    for index in range(10)
+  ]
+
+  prompt = build_prompt(
+    query="current-question",
+    language="en",
+    chunks=[],
+    history=history,
+  )
+
+  contents = prompt["contents"]
+  text = "\n".join(
+    part["text"]
+    for entry in contents
+    for part in entry["parts"]
+  )
+  assert "turn-0" not in text
+  assert all(f"turn-{index}" in text for index in range(1, 10))
+  assert "current-question" in text
 
 
 def test_follow_up_context_is_used_for_knowledge_retrieval():
